@@ -11,4 +11,8 @@
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
     <string name="add_book">Add a book</string>
+    <string name="book_image_description">Book cover</string>
+    <string name="default_id_value">0000</string>
+    <string name="default_title_string">Title</string>
+    <string name="default_author_string">Author</string>
 </resources>
