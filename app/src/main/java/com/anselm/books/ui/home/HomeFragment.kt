@@ -83,7 +83,7 @@ class HomeFragment : Fragment() {
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                TODO("Not yet implemented")
+                return false
             }
 
         })
