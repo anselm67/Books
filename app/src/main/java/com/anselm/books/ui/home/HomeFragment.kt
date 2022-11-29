@@ -1,9 +1,11 @@
 package com.anselm.books.ui.home
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.util.Log
+import android.view.*
+import android.widget.SearchView
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -14,11 +16,8 @@ import androidx.paging.LoadState
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.anselm.books.BookViewModelFactory
-import com.anselm.books.BooksApplication
+import com.anselm.books.*
 import com.anselm.books.databinding.FragmentHomeBinding
-import com.anselm.books.BookViewModel
-import com.anselm.books.databinding.RecyclerviewBookItemBinding
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
@@ -51,6 +50,7 @@ class HomeFragment : Fragment() {
             // but still visible on the screen, for example in a multi window app
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 bookViewModel.data.collect {
+                    Log.d(TAG, "Submitting data to the adapter.")
                     adapter.submitData(it)
                 }
             }
@@ -64,8 +64,33 @@ class HomeFragment : Fragment() {
             }
         }
 
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                val searchItem = menu.findItem(R.id.idSearchView)
+                val searchView = searchItem.actionView as SearchView
+                searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+                    override fun onQueryTextSubmit(query: String?): Boolean {
+                        Log.d(TAG, "onQueryTextSubmit ${query}")
+                        adapter.refresh()
+                        return true
+                    }
+
+                    override fun onQueryTextChange(newText: String?) = false
+
+                })
+
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                TODO("Not yet implemented")
+            }
+
+        })
         return root
     }
+
+
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -74,7 +99,7 @@ class HomeFragment : Fragment() {
 }
 
 /**
- * Sets up the [RecyclerView] and binds [ArticleAdapter] to it
+ * Sets up the [RecyclerView] and binds [BookListAdapter] to it
  */
 private fun FragmentHomeBinding.bindAdapter(bookAdapter: BookListAdapter) {
     list.adapter = bookAdapter
