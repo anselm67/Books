@@ -1,14 +1,28 @@
 package com.anselm.books
 
 import androidx.lifecycle.*
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.cachedIn
 import kotlinx.coroutines.launch
 
-class BookViewModel(private val bookRepository: BookRepository) : ViewModel() {
+private const val PAGE_SIZE = 100
+private const val MAX_SIZE = 500
 
-    val allBooks: LiveData<List<Book>> = bookRepository.allBooks.asLiveData()
+class BookViewModel(private val repository: BookRepository) : ViewModel() {
+
+    val data = Pager(
+        config = PagingConfig(
+            pageSize = PAGE_SIZE,
+            enablePlaceholders = false,
+            maxSize = MAX_SIZE
+        ),
+    ) {
+        repository.bookPagingSource()
+    }.flow.cachedIn(viewModelScope)
 
     fun insert(book: Book) = viewModelScope.launch {
-        bookRepository.insert(book)
+        repository.insert(book)
     }
 
 }

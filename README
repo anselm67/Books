@@ -1,0 +1,7 @@
+A bookbuddy clone for Android.
+
+Based on the Android room codelab
+https://developer.android.com/codelabs/android-room-with-a-view
+
+And the Pagination 3 API per this blog post:
+https://genicsblog.com/gouravkhunger/pagination-in-android-room-database-using-the-paging-3-library

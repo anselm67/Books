@@ -1,11 +1,14 @@
 package com.anselm.books
 
 import androidx.annotation.WorkerThread
-import kotlinx.coroutines.flow.Flow
 
 class BookRepository(private val bookDao: BookDao) {
 
-    val allBooks: Flow<List<Book>> = bookDao.getAllBooks()
+    fun bookPagingSource() = BookPagingSource(this)
+
+    suspend fun getPagedList(limit: Int, offset: Int): List<Book> {
+        return bookDao.getPagedList(limit, offset)
+    }
 
     @Suppress("RedundantSuspendModifier")
     @WorkerThread
