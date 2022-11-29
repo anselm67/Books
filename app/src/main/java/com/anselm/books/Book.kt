@@ -2,10 +2,14 @@ package com.anselm.books
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import org.json.JSONObject
 
-@Entity(tableName = "book_table")
+@Entity(
+    tableName = "book_table",
+    indices = [Index(value = ["title", "author"] )]
+)
 data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0) {
     @ColumnInfo(name = "title")
     var title = ""

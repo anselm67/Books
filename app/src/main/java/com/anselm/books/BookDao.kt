@@ -14,9 +14,6 @@ interface BookDao {
     @Query("DELETE FROM book_table")
     suspend fun deleteAll(): Int
 
-    @Query("SELECT * FROM book_table ORDER BY id ASC")
-    fun getAllBooks(): Flow<List<Book>>
-
-    @Query("SELECT * FROM book_table ORDER BY id ASC LIMIT :limit OFFSET :offset")
+    @Query("SELECT * FROM book_table ORDER BY title, author DESC LIMIT :limit OFFSET :offset")
     suspend fun getPagedList(limit: Int, offset: Int): List<Book>
 }
