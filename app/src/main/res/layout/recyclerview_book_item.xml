@@ -18,6 +18,7 @@
 
         <ImageView
             android:id="@+id/coverImageView"
+            android:layout_margin="5dp"
             android:layout_width="50dp"
             android:layout_height="0dp"
             android:contentDescription="@string/book_image_description"
@@ -30,6 +31,7 @@
 
         <TextView
             android:id="@+id/idView"
+            style="@style/BookCardFieldValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/default_id_value"
@@ -42,6 +44,7 @@
 
         <TextView
             android:id="@+id/titleView"
+            style="@style/BookCardFieldValue"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/default_title_string"
@@ -52,6 +55,7 @@
 
         <TextView
             android:id="@+id/authorView"
+            style="@style/BookCardFieldValue"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/default_author_string"

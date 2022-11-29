@@ -11,11 +11,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.paging.LoadState
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.BookViewModelFactory
 import com.anselm.books.BooksApplication
 import com.anselm.books.databinding.FragmentHomeBinding
 import com.anselm.books.BookViewModel
+import com.anselm.books.databinding.RecyclerviewBookItemBinding
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
@@ -34,10 +37,8 @@ class HomeFragment : Fragment() {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val recyclerView = binding.recyclerview
         val adapter = BookListAdapter()
-        recyclerView.adapter = adapter
-        recyclerView.layoutManager = LinearLayoutManager(root.context)
+        binding.bindAdapter(bookAdapter = adapter)
 
         val bookViewModel: BookViewModel by viewModels {
             BookViewModelFactory((activity?.application as BooksApplication).repository)
@@ -70,4 +71,14 @@ class HomeFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+}
+
+/**
+ * Sets up the [RecyclerView] and binds [ArticleAdapter] to it
+ */
+private fun FragmentHomeBinding.bindAdapter(bookAdapter: BookListAdapter) {
+    list.adapter = bookAdapter
+    list.layoutManager = LinearLayoutManager(list.context)
+    val decoration = DividerItemDecoration(list.context, DividerItemDecoration.VERTICAL)
+    list.addItemDecoration(decoration)
 }

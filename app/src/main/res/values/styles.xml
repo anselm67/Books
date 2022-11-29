@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
@@ -6,6 +6,11 @@
         <item name="colorPrimary">@color/black</item>
         <item name="colorPrimaryDark">@color/green</item>
         <item name="colorAccent">@color/red</item>
+    </style>
+
+    <style name="BookCardFieldValue">
+        <item name="android:textSize">16sp</item>
+        <item name="android:padding">5dp</item>
     </style>
 
 </resources>
