@@ -30,6 +30,9 @@
 
         <TextView
             android:id="@+id/titleView"
+            android:scrollHorizontally="true"
+            android:ellipsize="end"
+            android:maxLines="1"
             style="@style/BookCardFieldValue"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -41,6 +44,9 @@
 
         <TextView
             android:id="@+id/authorView"
+            android:scrollHorizontally="true"
+            android:ellipsize="end"
+            android:maxLines="1"
             style="@style/BookCardFieldValue"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
