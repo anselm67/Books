@@ -25,22 +25,9 @@
             android:scaleType="centerCrop"
             android:src="@drawable/ic_image_loading"
             app:layout_constraintBottom_toBottomOf="@+id/authorView"
-            card_view:layout_constraintEnd_toStartOf="@id/idView"
+            card_view:layout_constraintEnd_toStartOf="@id/titleView"
             card_view:layout_constraintStart_toStartOf="parent"
             card_view:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/idView"
-            style="@style/BookCardFieldValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/default_id_value"
-            card_view:layout_constraintBottom_toTopOf="@id/authorView"
-            card_view:layout_constraintEnd_toStartOf="@id/titleView"
-            card_view:layout_constraintStart_toEndOf="@id/coverImageView"
-            card_view:layout_constraintTop_toTopOf="parent"
-
-            />
 
         <TextView
             android:id="@+id/titleView"
@@ -48,9 +35,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/default_title_string"
+            android:textColor="@color/black"
             card_view:layout_constraintBottom_toTopOf="@id/authorView"
             card_view:layout_constraintEnd_toEndOf="parent"
-            card_view:layout_constraintStart_toEndOf="@id/idView"
+            card_view:layout_constraintStart_toEndOf="@id/coverImageView"
             card_view:layout_constraintTop_toTopOf="parent" />
 
         <TextView

@@ -15,4 +15,5 @@
     <string name="default_id_value">0000</string>
     <string name="default_title_string">Title</string>
     <string name="default_author_string">Author</string>
+    <string name="import_database">Import Database</string>
 </resources>

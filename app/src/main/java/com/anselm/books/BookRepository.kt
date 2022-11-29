@@ -10,6 +10,10 @@ class BookRepository(private val bookDao: BookDao) {
         return bookDao.getPagedList(limit, offset)
     }
 
+    suspend fun deleteAll() {
+        bookDao.deleteAll()
+    }
+
     @Suppress("RedundantSuspendModifier")
     @WorkerThread
     suspend fun insert(book: Book) {

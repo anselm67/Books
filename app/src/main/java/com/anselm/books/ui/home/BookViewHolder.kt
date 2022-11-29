@@ -9,7 +9,6 @@ class BookViewHolder(
 ): RecyclerView.ViewHolder(binding.root) {
 
     fun bind(book: Book) {
-        binding.idView.text = book.id.toString()
         binding.titleView.text = book.title
         binding.authorView.text = book.author
     }

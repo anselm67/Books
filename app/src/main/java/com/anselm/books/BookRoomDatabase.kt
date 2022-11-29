@@ -28,7 +28,7 @@ abstract class BookRoomDatabase : RoomDatabase() {
             bookDao.deleteAll()
 
             for (i in 1.. NUMBER_OF_FAKE_ITEMS) {
-                val book = Book(0, "title $i", "author $i")
+                val book = Book("title $i", "author $i")
                 bookDao.insert(book)
             }
             Log.d(TAG, "Created $NUMBER_OF_FAKE_ITEMS fake books.")
