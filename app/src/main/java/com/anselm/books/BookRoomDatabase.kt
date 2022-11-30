@@ -16,7 +16,7 @@ abstract class BookRoomDatabase : RoomDatabase() {
 
     abstract fun bookDao(): BookDao
 
-    private class BookRoomDatabaseCallback(
+    private class BookDatabaseCallback(
         private val scope: CoroutineScope
     ) : Callback() {
         override fun onCreate(database: SupportSQLiteDatabase) {
@@ -44,7 +44,7 @@ abstract class BookRoomDatabase : RoomDatabase() {
                     context.applicationContext,
                     BookRoomDatabase::class.java,
                     "book_database"
-                ).addCallback(BookRoomDatabaseCallback(scope))
+                ).addCallback(BookDatabaseCallback(scope))
                 .build()
                 .also { INSTANCE = it }
             }

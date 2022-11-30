@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import com.anselm.books.Book
 import com.anselm.books.databinding.RecyclerviewBookItemBinding
 
-class BookListAdapter : PagingDataAdapter<Book, BookViewHolder>(BooksComparator()) {
+class BookAdapter : PagingDataAdapter<Book, BookViewHolder>(BooksComparator()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder =
         BookViewHolder(RecyclerviewBookItemBinding.inflate(

@@ -36,7 +36,7 @@ class HomeFragment : Fragment() {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val adapter = BookListAdapter()
+        val adapter = BookAdapter()
         binding.bindAdapter(bookAdapter = adapter)
 
         val bookViewModel: BookViewModel by viewModels {
@@ -67,19 +67,7 @@ class HomeFragment : Fragment() {
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                val searchItem = menu.findItem(R.id.idSearchView)
-                val searchView = searchItem.actionView as SearchView
-                searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
-                    override fun onQueryTextSubmit(query: String?): Boolean {
-                        Log.d(TAG, "onQueryTextSubmit ${query}")
-                        adapter.refresh()
-                        return true
-                    }
-
-                    override fun onQueryTextChange(newText: String?) = false
-
-                })
-
+                binding.bindSearch(adapter, menu)
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -90,18 +78,30 @@ class HomeFragment : Fragment() {
         return root
     }
 
-
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 }
 
+private fun FragmentHomeBinding.bindSearch(adapter: BookAdapter, menu: Menu) {
+    val searchItem = menu.findItem(R.id.idSearchView)
+    val searchView = searchItem.actionView as SearchView
+    searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+        override fun onQueryTextSubmit(query: String?): Boolean {
+            Log.d(TAG, "onQueryTextSubmit ${query}")
+            adapter.refresh()
+            return true
+        }
+
+        override fun onQueryTextChange(newText: String?) = false
+    })
+}
+
 /**
- * Sets up the [RecyclerView] and binds [BookListAdapter] to it
+ * Sets up the [RecyclerView] and binds [BookAdapter] to it
  */
-private fun FragmentHomeBinding.bindAdapter(bookAdapter: BookListAdapter) {
+private fun FragmentHomeBinding.bindAdapter(bookAdapter: BookAdapter) {
     list.adapter = bookAdapter
     list.layoutManager = LinearLayoutManager(list.context)
     val decoration = DividerItemDecoration(list.context, DividerItemDecoration.VERTICAL)
