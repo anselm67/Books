@@ -39,8 +39,9 @@ class HomeFragment : Fragment() {
         val adapter = BookAdapter()
         binding.bindAdapter(bookAdapter = adapter)
 
+        val repository = (activity?.application as BooksApplication).repository
         val bookViewModel: BookViewModel by viewModels {
-            BookViewModelFactory((activity?.application as BooksApplication).repository)
+            BookViewModelFactory(repository)
         }
 
         // Collect from the Article Flow in the ViewModel, and submit it to the
@@ -67,7 +68,7 @@ class HomeFragment : Fragment() {
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                binding.bindSearch(adapter, menu)
+                binding.bindSearch(repository, menu)
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -84,18 +85,21 @@ class HomeFragment : Fragment() {
     }
 }
 
-private fun FragmentHomeBinding.bindSearch(adapter: BookAdapter, menu: Menu) {
+private fun FragmentHomeBinding.bindSearch(repository: BookRepository, menu: Menu) {
     val searchItem = menu.findItem(R.id.idSearchView)
     val searchView = searchItem.actionView as SearchView
     searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
         override fun onQueryTextSubmit(query: String?): Boolean {
-            Log.d(TAG, "onQueryTextSubmit ${query}")
-            adapter.refresh()
-            return true
+            repository.titleQuery = query
+            return false
         }
-
         override fun onQueryTextChange(newText: String?) = false
     })
+    searchView.setOnCloseListener {
+        repository.titleQuery = null
+        false
+    }
+
 }
 
 /**

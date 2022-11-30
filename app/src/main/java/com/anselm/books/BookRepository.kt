@@ -1,18 +1,28 @@
 package com.anselm.books
 
+import android.util.Log
 import androidx.annotation.WorkerThread
 
 class BookRepository(private val bookDao: BookDao) {
+    private var pagingSource: BookPagingSource? = null
 
-    // TODO()
-    // to the dao in a so it can generate the right text search query (fts4)
-    // The bookPagingSource() function will get called because of the refresh() in
-    // HomeFragment::onQueryTextSubmit, and can create a new BookPagingSource that
-    // uses the getFilteredPageList method
-    fun bookPagingSource() = BookPagingSource(this)
+    var titleQuery: String? = null
+        set(value) {
+            field = if (value?.trim() == "") null else value
+            Log.d(TAG, "Setting titleQuery to $value.")
+            pagingSource?.invalidate()
+        }
+
+    fun bookPagingSource() : BookPagingSource {
+        pagingSource = BookPagingSource(this)
+        return pagingSource!!
+    }
 
     suspend fun getPagedList(limit: Int, offset: Int): List<Book> {
-        return bookDao.getPagedList(limit, offset)
+        return if (titleQuery == null)
+            bookDao.getAllPagedList(limit, offset)
+        else
+            bookDao.getTitlePagedList(titleQuery!!, limit, offset)
     }
 
     suspend fun deleteAll() {
@@ -23,5 +33,9 @@ class BookRepository(private val bookDao: BookDao) {
     @WorkerThread
     suspend fun insert(book: Book) {
         bookDao.insert(book)
+    }
+
+    fun invalidate() {
+        pagingSource?.invalidate()
     }
 }

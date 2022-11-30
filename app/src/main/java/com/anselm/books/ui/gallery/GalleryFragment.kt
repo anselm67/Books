@@ -89,6 +89,7 @@ class GalleryFragment : Fragment() {
                 repository.insert(book)
             }
             Log.d(TAG, "Created ${obj.length()} books.")
+            repository.invalidate()
         }
     }
 }

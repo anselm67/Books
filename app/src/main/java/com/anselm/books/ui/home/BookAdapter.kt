@@ -21,9 +21,8 @@ class BookAdapter : PagingDataAdapter<Book, BookViewHolder>(BooksComparator()) {
         if (current != null) {
             holder.bind(current)
         }
+
     }
-
-
 
     class BooksComparator: DiffUtil.ItemCallback<Book>() {
         override fun areItemsTheSame(oldItem: Book, newItem: Book): Boolean {
