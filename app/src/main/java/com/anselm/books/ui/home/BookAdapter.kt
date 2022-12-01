@@ -5,16 +5,16 @@ import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import com.anselm.books.Book
+import com.anselm.books.BooksApplication
 import com.anselm.books.databinding.RecyclerviewBookItemBinding
 
 class BookAdapter : PagingDataAdapter<Book, BookViewHolder>(BooksComparator()) {
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder =
         BookViewHolder(RecyclerviewBookItemBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false,
-        ))
+        ), (parent.context.applicationContext as BooksApplication).picasso)
 
     override fun onBindViewHolder(holder: BookViewHolder, position: Int) {
         val current = getItem(position)

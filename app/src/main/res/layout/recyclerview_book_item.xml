@@ -19,11 +19,12 @@
         <ImageView
             android:id="@+id/coverImageView"
             android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_margin="3dp"
+            android:layout_height="75dp"
+            android:layout_margin="5dp"
             android:contentDescription="@string/book_image_description"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_image_loading"
+            app:layout_constraintBottom_toBottomOf="parent"
             card_view:layout_constraintEnd_toStartOf="@id/titleView"
             card_view:layout_constraintStart_toStartOf="parent"
             card_view:layout_constraintTop_toTopOf="parent" />
@@ -32,7 +33,7 @@
             android:id="@+id/titleView"
             android:scrollHorizontally="true"
             android:ellipsize="end"
-            android:maxLines="1"
+            android:maxLines="2"
             style="@style/BookCardFieldValue"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
