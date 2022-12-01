@@ -23,7 +23,7 @@
             android:layout_margin="5dp"
             android:contentDescription="@string/book_image_description"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_image_loading"
+            android:src="@mipmap/ic_book_cover"
             app:layout_constraintBottom_toBottomOf="parent"
             card_view:layout_constraintEnd_toStartOf="@id/titleView"
             card_view:layout_constraintStart_toStartOf="parent"
