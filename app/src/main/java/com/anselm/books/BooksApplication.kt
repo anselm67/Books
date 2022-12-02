@@ -16,6 +16,7 @@ import java.util.concurrent.Executors
 // TODO - These should be moved to settings
 private const val DISK_CACHE_SIZE = 10 * 204 * 1024L
 private const val EXTERNAL_CACHE_DIRNAME = "picasso-cache"
+private const val INDICATORS_EBNABLED = true
 
 class BooksApplication : Application() {
     private val applicationScope = CoroutineScope(SupervisorJob())
@@ -52,8 +53,8 @@ class BooksApplication : Application() {
         Picasso.Builder(applicationContext)
             .executor(Executors.newSingleThreadExecutor())
             .downloader(OkHttp3Downloader(client))
-            .indicatorsEnabled(true)
-            .listener { picasso: Picasso?, uri: Uri?, e: Exception? ->
+            .indicatorsEnabled(INDICATORS_EBNABLED)
+            .listener { _: Picasso?, uri: Uri?, e: Exception? ->
                 Log.e(TAG, "Picasso failed to load $uri", e)
             }.build()
     }

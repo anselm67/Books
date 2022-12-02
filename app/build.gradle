@@ -69,6 +69,9 @@ dependencies {
     // Picasso - Image loading and caching
     implementation "com.squareup.picasso:picasso:$picassoVersion"
 
+    // Preferences
+    implementation "androidx.preference:preference:$preferencesVersion"
+
     // Testing
     testImplementation "junit:junit:$rootProject.junitVersion"
     androidTestImplementation "androidx.arch.core:core-testing:$rootProject.coreTestingVersion"

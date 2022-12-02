@@ -9,7 +9,6 @@
 
     <string name="menu_home">Books</string>
     <string name="menu_gallery">Import</string>
-    <string name="menu_slideshow">Slideshow</string>
     <string name="add_book">Add a book</string>
     <string name="book_image_description">Book cover</string>
     <string name="default_id_value">0000</string>
@@ -17,4 +16,14 @@
     <string name="default_author_string">Author</string>
     <string name="import_database">Import Database</string>
     <string name="search_title">Search</string>
+
+    <string name="menu_settings">Settings</string>
+    <string name="picasso_preferences_header">Picasso Preferences</string>
+    <string name="picasso_source_indicator_title">Enable indicators</string>
+    <string name="picasso_cache_size_title">Cache size (Mb)</string>
+    <string name="picasso_clear_cache_title">Clear cache</string>
+
+    <string name="import_preferences_header">Import</string>
+    <string name="import_preference_title">Import books</string>
+
 </resources>
