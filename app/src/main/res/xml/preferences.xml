@@ -32,7 +32,7 @@
             app:showSeekBarValue="true"
             app:key="picasso_cache_size_mb"
             android:defaultValue="520"
-            app:min="5"  android:max="50" />
+            app:min="5"  android:max="100" />
 
         <SwitchPreference
             app:key="picasso_source_indicator"
