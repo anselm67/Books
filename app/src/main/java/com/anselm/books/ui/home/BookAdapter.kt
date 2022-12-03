@@ -8,13 +8,15 @@ import com.anselm.books.Book
 import com.anselm.books.BooksApplication
 import com.anselm.books.databinding.RecyclerviewBookItemBinding
 
-class BookAdapter : PagingDataAdapter<Book, BookViewHolder>(BooksComparator()) {
+class BookAdapter (private val onClick: (Book) -> Unit)
+    : PagingDataAdapter<Book, BookViewHolder>(BooksComparator())
+{
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder =
         BookViewHolder(RecyclerviewBookItemBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false,
-        ), (parent.context.applicationContext as BooksApplication).picasso)
+        ), (parent.context.applicationContext as BooksApplication).picasso, onClick)
 
     override fun onBindViewHolder(holder: BookViewHolder, position: Int) {
         val current = getItem(position)

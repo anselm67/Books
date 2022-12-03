@@ -5,6 +5,9 @@ buildscript {
         google()
         mavenCentral()
     }
+    dependencies {
+        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.5.3"
+    }
 }
 
 plugins {
@@ -25,6 +28,7 @@ ext {
     roomVersion = '2.4.3'
     picassoVersion = "2.71828"
     preferencesVersion="1.2.0"
+    navigationVersion = "2.5.3"
     // testing
     junitVersion = '4.13.2'
     espressoVersion = '3.4.0'

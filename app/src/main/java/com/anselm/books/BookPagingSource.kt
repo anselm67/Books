@@ -31,4 +31,5 @@ class BookPagingSource(private val repository: BookRepository) : PagingSource<In
             anchorPage?.prevKey?.plus(1) ?: anchorPage?.nextKey?.minus(1)
         }
     }
+
 }

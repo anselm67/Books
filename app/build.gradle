@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'kotlin-kapt'
+    id 'androidx.navigation.safeargs.kotlin'
 }
 
 android {
@@ -45,8 +46,9 @@ dependencies {
 
     // Room components
     implementation "androidx.room:room-ktx:$rootProject.roomVersion"
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.5.3'
+    implementation "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
+    implementation "androidx.navigation:navigation-ui-ktx:$navigationVersion"
+
     kapt "androidx.room:room-compiler:$rootProject.roomVersion"
     implementation "androidx.paging:paging-runtime-ktx:3.1.1"
 
@@ -70,7 +72,7 @@ dependencies {
     implementation "com.squareup.picasso:picasso:$picassoVersion"
 
     // Preferences
-    implementation "androidx.preference:preference:$preferencesVersion"
+    implementation "androidx.preference:preference-ktx:$preferencesVersion"
 
     // Testing
     testImplementation "junit:junit:$rootProject.junitVersion"

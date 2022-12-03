@@ -12,6 +12,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -36,7 +37,7 @@ class HomeFragment : Fragment() {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val adapter = BookAdapter()
+        val adapter = BookAdapter { book -> adapterOnClick(book) }
         binding.bindAdapter(bookAdapter = adapter)
 
         val repository = (activity?.application as BooksApplication).repository
@@ -68,7 +69,7 @@ class HomeFragment : Fragment() {
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                binding.bindSearch(repository, menu)
+                bindSearch(repository, menu)
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -83,9 +84,14 @@ class HomeFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+    private fun adapterOnClick(book: Book) {
+        val action = HomeFragmentDirections.actionHomeFragmentToDetailsFragment(book.id)
+        findNavController().navigate(action)
+    }
 }
 
-private fun FragmentHomeBinding.bindSearch(repository: BookRepository, menu: Menu) {
+private fun bindSearch(repository: BookRepository, menu: Menu) {
     val searchItem = menu.findItem(R.id.idSearchView)
     val searchView = searchItem.actionView as SearchView
     searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
@@ -111,3 +117,4 @@ private fun FragmentHomeBinding.bindAdapter(bookAdapter: BookAdapter) {
     val decoration = DividerItemDecoration(list.context, DividerItemDecoration.VERTICAL)
     list.addItemDecoration(decoration)
 }
+

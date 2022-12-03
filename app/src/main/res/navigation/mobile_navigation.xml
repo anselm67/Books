@@ -12,8 +12,8 @@
         tools:layout="@layout/fragment_home">
 
         <action
-            android:id="@+id/action_HomeFragment_to_SettingsFragment"
-            app:destination="@id/nav_settings" />
+            android:id="@+id/action_HomeFragment_to_DetailsFragment"
+            app:destination="@id/nav_details" />
 
     </fragment>
 
@@ -28,12 +28,18 @@
         android:name="com.anselm.books.ui.settings.SettingsFragment"
         android:label="@string/menu_settings"
         tools:layout="@layout/fragment_settings" >
-
-        <action
-            android:id="@+id/action_SettingsFragment_to_HomeFragment"
-            app:destination="@id/nav_home" />
-
     </fragment>
 
+    <fragment
+        android:id="@+id/nav_details"
+        android:name="com.anselm.books.ui.details.BookDetails"
+        android:label="@string/book_details"
+        tools:layout="@layout/fragment_details">
+
+        <argument
+            android:name="bookId"
+            app:argType="integer" />
+
+    </fragment>
 
 </navigation>
