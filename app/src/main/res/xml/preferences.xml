@@ -30,7 +30,7 @@
         <SeekBarPreference
             app:title="@string/picasso_cache_size_title"
             app:showSeekBarValue="true"
-            app:key="left_min_value"
+            app:key="picasso_cache_size_mb"
             android:defaultValue="520"
             app:min="5"  android:max="50" />
 

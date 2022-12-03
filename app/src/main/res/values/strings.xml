@@ -25,5 +25,6 @@
 
     <string name="import_preferences_header">Import</string>
     <string name="import_preference_title">Import books</string>
+    <string name="picasso_cache_cleared">Picasso cache cleared.</string>
 
 </resources>
