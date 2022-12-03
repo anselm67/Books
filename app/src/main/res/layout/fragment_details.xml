@@ -2,7 +2,8 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="10dp">
 
     <ImageView
         android:id="@+id/coverImageView"
@@ -19,6 +20,8 @@
         android:id="@+id/titleView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
         android:maxLines="4"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/coverImageView"
@@ -29,8 +32,112 @@
         android:id="@+id/authorView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/coverImageView"
         app:layout_constraintTop_toBottomOf="@id/titleView" />
+
+    <!-- ISBN, Year published and page number on a single row, with labels -->
+    <TextView
+        android:id="@+id/isbnLabelView"
+        style="@style/BookDetailsFieldLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:text="@string/isbnLabel"
+        app:layout_constraintEnd_toStartOf="@id/isbnView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/coverImageView" />
+    <TextView
+        style="@style/BookDetailsFieldValue"
+        android:id="@+id/isbnView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/isbnLabelView"
+        app:layout_constraintEnd_toStartOf="@id/yearPublishedLabelView"
+        app:layout_constraintTop_toBottomOf="@id/coverImageView" />
+
+    <TextView
+        android:id="@+id/yearPublishedLabelView"
+        style="@style/BookDetailsFieldLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:text="@string/yearPublishedLabel"
+        app:layout_constraintStart_toEndOf="@id/isbnView"
+        app:layout_constraintEnd_toStartOf="@id/yearPublishedView"
+        app:layout_constraintTop_toBottomOf="@id/coverImageView" />
+    <TextView
+        style="@style/BookDetailsFieldValue"
+        android:id="@+id/yearPublishedView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/yearPublishedLabelView"
+        app:layout_constraintEnd_toStartOf="@id/numberOfPagesLabelView"
+        app:layout_constraintTop_toBottomOf="@id/coverImageView" />
+
+    <TextView
+        android:id="@+id/numberOfPagesLabelView"
+        style="@style/BookDetailsFieldLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:text="@string/numberOfPagesLabel"
+        app:layout_constraintStart_toEndOf="@id/yearPublishedView"
+        app:layout_constraintEnd_toStartOf="@id/numberOfPagesView"
+        app:layout_constraintTop_toBottomOf="@id/coverImageView" />
+    <TextView
+        style="@style/BookDetailsFieldValue"
+        android:id="@+id/numberOfPagesView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/numberOfPagesLabelView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/coverImageView" />
+
+    <!-- Physical location -->
+    <TextView
+        android:id="@+id/physicalLocationLabelView"
+        style="@style/BookDetailsFieldLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:text="@string/physicalLocationLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/physicalLocationView"
+        app:layout_constraintTop_toBottomOf="@id/numberOfPagesView" />
+    <TextView
+        style="@style/BookDetailsFieldValue"
+        android:id="@+id/physicalLocationView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/physicalLocationLabelView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/numberOfPagesView" />
+
+    <!-- Book summary includes (vert.) a ruler, a label and the actual summary -->
+    <View
+        android:id="@+id/summaryRuler"
+        style="@style/BookDetailsRuler"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/physicalLocationView" />
+
+    <TextView
+        android:id="@+id/summaryLabelView"
+        style="@style/BookDetailsFieldLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/summaryLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/summaryRuler" />
+
+    <TextView
+        android:id="@+id/summaryView"
+        style="@style/BookDetailsFieldValue"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/summaryLabelView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

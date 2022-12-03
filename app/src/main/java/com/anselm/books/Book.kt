@@ -17,6 +17,21 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0) {
     @ColumnInfo(name = "imgUrl")
     var imgUrl = ""
 
+    @ColumnInfo(name = "physicalLocation")
+    var physicalLocation = ""
+
+    @ColumnInfo(name = "ISBN")
+    var isbn = ""
+
+    @ColumnInfo(name = "summary")
+    var summary = ""
+
+    @ColumnInfo(name = "yearPublished")
+    var yearPublished = ""
+
+    @ColumnInfo(name = "numberOfPages")
+    var numberOfPages = ""
+
     constructor(title: String, author: String, imgUrl: String = "") : this() {
         this.title = title
         this.author = author
@@ -27,6 +42,11 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0) {
         this.title = o.getString("title")
         this.author = o.getString("author")
         this.imgUrl = o.getString("uploaded_image_url")
+        this.physicalLocation = o.getString("physical_location")
+        this.isbn = o.getString("isbn")
+        this.summary = o.getString("summary")
+        this.yearPublished = o.getString("year_published")
+        this.numberOfPages = o.getString("number_of_pages")
     }
 }
 

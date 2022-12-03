@@ -27,5 +27,10 @@
     <string name="import_preference_title">Import books</string>
     <string name="picasso_cache_cleared">Picasso cache cleared.</string>
     <string name="book_details">Book details</string>
+    <string name="isbnLabel">"ISBN: "</string>
+    <string name="yearPublishedLabel">Year:</string>
+    <string name="numberOfPagesLabel">Pages:</string>
+    <string name="summaryLabel">Summary:</string>
+    <string name="physicalLocationLabel">Location:</string>
 
 </resources>
