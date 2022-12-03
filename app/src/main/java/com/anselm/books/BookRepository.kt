@@ -29,6 +29,10 @@ class BookRepository(private val bookDao: BookDao) {
         bookDao.deleteAll()
     }
 
+    suspend fun getBook(bookId: Int): Book {
+        return bookDao.getBook(bookId)
+    }
+
     @Suppress("RedundantSuspendModifier")
     @WorkerThread
     suspend fun insert(book: Book) {

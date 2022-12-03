@@ -21,4 +21,7 @@ interface BookDao {
             "WHERE book_fts MATCH :query " +
             "ORDER BY title, author DESC LIMIT :limit OFFSET :offset")
     suspend fun getTitlePagedList(query: String, limit: Int, offset: Int) : List<Book>
+
+    @Query("SELECT * FROM book_table WHERE id = :bookId")
+    suspend fun getBook(bookId: Int) : Book
 }
