@@ -16,7 +16,7 @@ import java.nio.file.Files
 import java.util.concurrent.Executors
 
 // TODO - These should be moved to settings
-private const val PICASSO_DEFAULT_CACHE_SIZE_MB = 10
+private const val PICASSO_DEFAULT_CACHE_SIZE_MB = 50
 private const val EXTERNAL_CACHE_DIRNAME = "picasso-cache"
 
 class BooksApplication : Application() {
