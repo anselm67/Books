@@ -13,7 +13,7 @@ private const val NUMBER_OF_FAKE_ITEMS = 3000
 
 @Database(
     entities = [ Book::class, BookFTS::class ],
-    version = 1,
+    version = 2,
     exportSchema = false)
 abstract class BookRoomDatabase : RoomDatabase() {
 
@@ -47,7 +47,8 @@ abstract class BookRoomDatabase : RoomDatabase() {
                     context.applicationContext,
                     BookRoomDatabase::class.java,
                     "book_database"
-                ).addCallback(BookDatabaseCallback(scope))
+                ).fallbackToDestructiveMigration()
+                .addCallback(BookDatabaseCallback(scope))
                 .build()
                 .also { INSTANCE = it }
             }
