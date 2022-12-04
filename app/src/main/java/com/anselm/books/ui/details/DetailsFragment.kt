@@ -40,8 +40,7 @@ class DetailsFragment : Fragment() {
             bindText(binding.physicalLocationView, binding.physicalLocationLabelView, book.physicalLocation)
             binding.summaryView.text = book.summary
             if (book.imgUrl != "") {
-                picasso
-                    .load(book.imgUrl).fit().centerCrop()
+                picasso.load(book.imgUrl).fit().centerCrop()
                     .placeholder(R.mipmap.ic_book_cover)
                     .into(binding.coverImageView)
             } else {
