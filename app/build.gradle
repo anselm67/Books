@@ -74,6 +74,9 @@ dependencies {
     // Preferences
     implementation "androidx.preference:preference-ktx:$preferencesVersion"
 
+    // Google Sign-In
+    implementation 'com.google.android.gms:play-services-auth:20.4.0'
+
     // Testing
     testImplementation "junit:junit:$rootProject.junitVersion"
     androidTestImplementation "androidx.arch.core:core-testing:$rootProject.coreTestingVersion"

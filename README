@@ -9,7 +9,6 @@ https://genicsblog.com/gouravkhunger/pagination-in-android-room-database-using-t
 Full text search
 https://www.kodeco.com/14292824-full-text-search-in-room-tutorial-getting-started
 
-
- statement aborts at 11: [SELECT * FROM book_table WHERE title MATCH ? ORDER BY title, author DESC LIMIT ? OFFSET ?] unable to use function MATCH in the requested context
-2022-11-30 10:38:54.127 22299-22348 SQLiteQuery             com.anselm.books                     E  exception: unable to use function MATCH in the requested context (code 1 SQLITE_ERROR); query: SELECT * FROM book_table WHERE title MATCH ? ORDER BY title, author DESC LIMIT ? OFFSET ?
-2022-11-30 10:38:54.340 22299-22324 EGL_emulation           com.anselm.books                     D  app_time_stats: avg=133.40ms min=13.56ms max=496.45ms count=9
+Accessing Google Drive from Android App
+https://medium.com/android-dev-hacks/integrating-google-drive-api-in-android-applications-18024f42391c
+https://developers.google.com/identity/sign-in/android/start-integrating

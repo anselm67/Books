@@ -41,4 +41,8 @@
     <string name="authorLabel">Author</string>
     <string name="detailsLabel">Details</string>
 
+    <string name="signin_button_label">Sign  In</string>
+    <string name="menu_signin">Sign In</string>
+    <string name="signout_button_label">Sign Out</string>
+
 </resources>
