@@ -36,8 +36,8 @@ class DetailsFragment : Fragment() {
             binding.authorView.text = book.author
             bindText(binding.isbnView, binding.isbnLabelView, book.isbn)
             bindText(binding.yearPublishedView, binding.yearPublishedLabelView, book.yearPublished)
-            bindText(binding.numberOfPagesView, binding.numberOfPagesLabelView, book.numberOfPages)
-            bindText(binding.physicalLocationView, binding.physicalLocationLabelView, book.physicalLocation)
+            bindText(binding.numberOfPagesView, binding.numberOfPagesLabelView, book.numberOfPages)/*
+            bindText(binding.physicalLocationView, binding.physicalLocationLabelView, book.physicalLocation) */
             binding.summaryView.text = book.summary
             if (book.imgUrl != "") {
                 picasso

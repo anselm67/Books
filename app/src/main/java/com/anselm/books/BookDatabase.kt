@@ -15,7 +15,7 @@ private const val NUMBER_OF_FAKE_ITEMS = 3000
     entities = [ Book::class, BookFTS::class ],
     version = 2,
     exportSchema = false)
-abstract class BookRoomDatabase : RoomDatabase() {
+abstract class BookDatabase : RoomDatabase() {
 
     abstract fun bookDao(): BookDao
 
@@ -39,13 +39,13 @@ abstract class BookRoomDatabase : RoomDatabase() {
     }
     companion object {
         @Volatile
-        private var INSTANCE: BookRoomDatabase? = null
+        private var INSTANCE: BookDatabase? = null
 
-        fun getDatabase(context: Context, scope: CoroutineScope): BookRoomDatabase {
+        fun getDatabase(context: Context, scope: CoroutineScope): BookDatabase {
             return INSTANCE ?: synchronized(this) {
                 Room.databaseBuilder(
                     context.applicationContext,
-                    BookRoomDatabase::class.java,
+                    BookDatabase::class.java,
                     "book_database"
                 ).fallbackToDestructiveMigration()
                 .addCallback(BookDatabaseCallback(scope))

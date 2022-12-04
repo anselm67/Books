@@ -40,7 +40,7 @@ class BooksApplication : Application() {
     }
 
     val database by lazy {
-        BookRoomDatabase.getDatabase(this, applicationScope)
+        BookDatabase.getDatabase(this, applicationScope)
     }
 
     val repository by lazy {
