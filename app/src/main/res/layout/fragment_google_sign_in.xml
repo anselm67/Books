@@ -3,20 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layoutDirection="ltr"
     tools:context=".ui.signin.GoogleSignInFragment">
 
     <Button
         android:id="@+id/signinButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/signin_button_label"
-        style="?android:attr/buttonBarButtonStyle" />
+        android:layout_margin="10dp"
+        android:text="@string/signin_button_label" />
 
     <Button
         android:id="@+id/signoutButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/signout_button_label"
-        style="?android:attr/buttonBarButtonStyle" />
+        android:layout_margin="10dp"
+        android:text="@string/signout_button_label" />
 
 </LinearLayout>

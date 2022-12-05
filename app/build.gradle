@@ -74,8 +74,17 @@ dependencies {
     // Preferences
     implementation "androidx.preference:preference-ktx:$preferencesVersion"
 
-    // Google Sign-In
+    // Google Sign-In & Drive
     implementation 'com.google.android.gms:play-services-auth:20.4.0'
+    implementation('com.google.api-client:google-api-client-android:1.23.0') {
+        exclude group: 'org.apache.httpcomponents'
+        exclude module: 'guava-jdk5'
+    }
+    implementation('com.google.apis:google-api-services-drive:v3-rev197-1.25.0') {
+        exclude group: 'org.apache.httpcomponents'
+        exclude module: 'guava-jdk5'
+    }
+    implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
 
     // Testing
     testImplementation "junit:junit:$rootProject.junitVersion"
