@@ -5,10 +5,7 @@
     android:orientation="vertical"
     android:layoutDirection="ltr">
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        style="@style/BookDetailsRuler"/>
+    <View style="@style/BookDetailsRuler"/>
 
     <TextView
         android:id="@+id/labelView"

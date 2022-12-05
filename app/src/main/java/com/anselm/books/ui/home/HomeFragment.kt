@@ -14,7 +14,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.*
@@ -114,7 +113,5 @@ private fun bindSearch(repository: BookRepository, menu: Menu) {
 private fun FragmentHomeBinding.bindAdapter(bookAdapter: BookAdapter) {
     list.adapter = bookAdapter
     list.layoutManager = LinearLayoutManager(list.context)
-    val decoration = DividerItemDecoration(list.context, DividerItemDecoration.VERTICAL)
-    list.addItemDecoration(decoration)
 }
 
