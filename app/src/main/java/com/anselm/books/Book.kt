@@ -2,6 +2,8 @@ package com.anselm.books
 
 import androidx.room.*
 import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.*
 
 object BookFields {
     const val TITLE = "title"
@@ -18,6 +20,8 @@ object BookFields {
     const val LANGUAGE = "language"
     const val DATE_ADDED = "date_added"
 }
+
+private val DATE_FORMAT = SimpleDateFormat("EEE, MMM d yyy - hh:mm aaa", Locale.US)
 
 @Entity(
     tableName = "book_table",
@@ -62,6 +66,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0) {
 
     @ColumnInfo(name = "date_added")
     var dateAdded = ""
+        get() = if (field == "") "" else DATE_FORMAT.format(Date(field.toLong() * 1000))
 
     constructor(title: String, author: String, imgUrl: String = "") : this() {
         this.title = title
@@ -70,19 +75,19 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0) {
     }
 
     constructor(o: JSONObject) : this() {
-        this.title = o.getString(BookFields.TITLE)
-        this.subtitle = o.getString(BookFields.SUBTITLE)
-        this.author = o.getString(BookFields.AUTHOR)
-        this.publisher = o.getString(BookFields.PUBLISHER)
-        this.imgUrl = o.getString(BookFields.UPLOADED_IMAGE_URL)
-        this.physicalLocation = o.getString(BookFields.PHYSICAL_LOCATION)
-        this.isbn = o.getString(BookFields.ISBN)
-        this.summary = o.getString(BookFields.SUMMARY)
-        this.yearPublished = o.getString(BookFields.YEAR_PUBLISHED)
-        this.numberOfPages = o.getString(BookFields.NUMBER_OF_PAGES)
-        this.genre = o.getString(BookFields.GENRE)
-        this.language = o.getString(BookFields.LANGUAGE)
-        this.dateAdded = o.getString(BookFields.DATE_ADDED)
+        this.title = o.optString(BookFields.TITLE, "")
+        this.subtitle = o.optString(BookFields.SUBTITLE, "")
+        this.author = o.optString(BookFields.AUTHOR, "")
+        this.publisher = o.optString(BookFields.PUBLISHER, "")
+        this.imgUrl = o.optString(BookFields.UPLOADED_IMAGE_URL, "")
+        this.physicalLocation = o.optString(BookFields.PHYSICAL_LOCATION, "")
+        this.isbn = o.optString(BookFields.ISBN, "")
+        this.summary = o.optString(BookFields.SUMMARY, "")
+        this.yearPublished = o.optString(BookFields.YEAR_PUBLISHED, "")
+        this.numberOfPages = o.optString(BookFields.NUMBER_OF_PAGES, "")
+        this.genre = o.optString(BookFields.GENRE, "")
+        this.language = o.optString(BookFields.LANGUAGE, "")
+        this.dateAdded = o.optString(BookFields.DATE_ADDED, "")
     }
 
     fun get(key: String): String {
