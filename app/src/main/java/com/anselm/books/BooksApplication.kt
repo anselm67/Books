@@ -47,6 +47,10 @@ class BooksApplication : Application() {
         BookRepository(database.bookDao())
     }
 
+    val importExport by lazy {
+        ImportExport(repository, applicationContext?.contentResolver!!)
+    }
+
     val picasso: Picasso by lazy {
         // Gets or creates the cache directory.
         val cacheDir = File(externalCacheDir, EXTERNAL_CACHE_DIRNAME)
