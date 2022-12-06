@@ -24,13 +24,6 @@
         tools:layout="@layout/fragment_gallery" />
 
     <fragment
-        android:id="@id/nav_signin"
-        android:name="com.anselm.books.ui.signin.GoogleSignInFragment"
-        android:label="@string/menu_signin"
-        tools:layout="@layout/fragment_settings" >
-    </fragment>
-
-    <fragment
         android:id="@id/nav_settings"
         android:name="com.anselm.books.ui.settings.SettingsFragment"
         android:label="@string/menu_settings"
