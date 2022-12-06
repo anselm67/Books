@@ -114,8 +114,8 @@ class GoogleSignInFragment : Fragment() {
         .build()
 
         //createGoogleFile(drive)
-        //listGoogleFiles(drive)
-        saveToFile(drive, "17x3jsqsrv4XnruD4dYkUFN-FhI-G0_Ib", "Hello World Content.")
+        listGoogleFiles(drive)
+        //saveToFile(drive, "17x3jsqsrv4XnruD4dYkUFN-FhI-G0_Ib", "Hello World Content.")
     }
 
     private fun listGoogleFiles(drive: Drive?) {
@@ -125,7 +125,7 @@ class GoogleSignInFragment : Fragment() {
                 do {
                     try {
                         val result = it.files().list().apply {
-                            q = "name contains 'here'"
+                            // q = "name contains 'here'"
                             spaces = "drive"
                             fields = "nextPageToken, files(id, name)"
                             pageToken = this.pageToken
