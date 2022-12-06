@@ -44,5 +44,6 @@
     <string name="signin_button_label">Sign  In</string>
     <string name="menu_signin">Sign In</string>
     <string name="signout_button_label">Sign Out</string>
+    <string name="import_from_directory">Select BookBuddy Directory</string>
 
 </resources>
