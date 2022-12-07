@@ -29,6 +29,7 @@ ext {
     picassoVersion = "2.71828"
     preferencesVersion="1.2.0"
     navigationVersion = "2.5.3"
+    glideVersion = '4.12.0'
     // testing
     junitVersion = '4.13.2'
     espressoVersion = '3.4.0'

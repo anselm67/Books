@@ -13,6 +13,8 @@ import androidx.lifecycle.lifecycleScope
 import com.anselm.books.BooksApplication
 import com.anselm.books.TAG
 import com.anselm.books.databinding.FragmentGalleryBinding
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import java.io.FileOutputStream
 
@@ -29,21 +31,26 @@ class GalleryFragment : Fragment() {
         val root: View = binding.root
 
         val importExport = ((activity?.application) as BooksApplication).importExport
+        val executor = ((activity?.application) as BooksApplication).executor
         val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             Log.d(TAG, "Opening file $uri")
             if (uri == null) {
                 Log.d(TAG, "No field selected, nothing to import")
             } else {
-                activity?.lifecycleScope?.launch {
-                    val (bookCount, imageCount) = importExport.importZipFile(uri)
+                var counts: Pair<Int, Int> = Pair(-1, -1)
+                GlobalScope.launch(executor.asCoroutineDispatcher()) {
+                    counts = importExport.importZipFile(uri)
+                }.invokeOnCompletion {
                     // We're running on the application lifecycle scope, so this view that we're
                     // launching from might be done by the time we get here, protect against that.
-                    if (_binding != null) {
-                        Toast.makeText(
-                            activity?.applicationContext,
-                            "Imported $bookCount books and $imageCount images.",
-                            Toast.LENGTH_LONG
-                        ).show()
+                    activity?.runOnUiThread {
+                        if (_binding != null) {
+                            Toast.makeText(
+                                activity?.applicationContext,
+                                "Imported ${counts.first} books and ${counts.second} images.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                     }
                 }
             }

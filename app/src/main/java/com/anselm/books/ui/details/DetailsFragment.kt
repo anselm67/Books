@@ -17,7 +17,7 @@ import com.anselm.books.R
 import com.anselm.books.databinding.DetailsDetailsLayoutBinding
 import com.anselm.books.databinding.DetailsFieldLayoutBinding
 import com.anselm.books.databinding.FragmentDetailsBinding
-import com.squareup.picasso.Picasso
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
 class DetailsFragment : Fragment() {
@@ -33,12 +33,11 @@ class DetailsFragment : Fragment() {
         val root: View = binding.root
 
         val repository = (activity?.application as BooksApplication).repository
-        val picasso = (activity?.application as BooksApplication).picasso
         val safeArgs: DetailsFragmentArgs by navArgs()
 
         viewLifecycleOwner.lifecycleScope.launch {
             val book: Book = repository.getBook(safeArgs.bookId)
-            binding.bind(inflater, picasso, book)
+            binding.bind(inflater, book)
         }
 
         return root
@@ -110,17 +109,19 @@ private val FIELDS = arrayOf<Pair<Int,String>>(
     Pair(R.string.dateAddedLabel, BookFields.DATE_ADDED)
 )
 
-private fun FragmentDetailsBinding.bind(inflater: LayoutInflater, picasso: Picasso, book: Book) {
+private fun FragmentDetailsBinding.bind(inflater: LayoutInflater, book: Book) {
     val context = detailsView.context
     // Main part of the details.
     titleView.text = book.title
     subtitleView.text = book.subtitle
     if (book.imgUrl != "") {
-        picasso.load(book.imgUrl).fit().centerCrop()
+        Glide.with(context)
+            .load(book.imgUrl).centerCrop()
             .placeholder(R.mipmap.ic_book_cover)
             .into(coverImageView)
     } else {
-        picasso.load(R.mipmap.ic_book_cover)
+        Glide.with(context)
+            .load(R.mipmap.ic_book_cover)
             .into(coverImageView)
     }
     // Author.

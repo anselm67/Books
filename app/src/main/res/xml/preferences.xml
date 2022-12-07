@@ -39,7 +39,7 @@
             app:title="@string/picasso_source_indicator_title" />
 
         <Preference
-            app:key="picasso_clear_cache"
+            app:key="glide_clear_cache"
             app:title="@string/picasso_clear_cache_title"/>
 
     </PreferenceCategory>

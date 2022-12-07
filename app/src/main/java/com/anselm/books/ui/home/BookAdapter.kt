@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import com.anselm.books.Book
-import com.anselm.books.BooksApplication
 import com.anselm.books.databinding.RecyclerviewBookItemBinding
 
 class BookAdapter (private val onClick: (Book) -> Unit)
@@ -16,14 +15,13 @@ class BookAdapter (private val onClick: (Book) -> Unit)
             LayoutInflater.from(parent.context),
             parent,
             false,
-        ), (parent.context.applicationContext as BooksApplication).picasso, onClick)
+        ), onClick)
 
     override fun onBindViewHolder(holder: BookViewHolder, position: Int) {
         val current = getItem(position)
         if (current != null) {
             holder.bind(current)
         }
-
     }
 
     class BooksComparator: DiffUtil.ItemCallback<Book>() {

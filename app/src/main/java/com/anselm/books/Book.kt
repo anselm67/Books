@@ -19,6 +19,7 @@ object BookFields {
     const val GENRE = "genre"
     const val LANGUAGE = "language"
     const val DATE_ADDED = "date_added"
+    const val IMAGE_FILENAME = "image_filename"
 }
 
 private val DATE_FORMAT = SimpleDateFormat("EEE, MMM d yyy - hh:mm aaa", Locale.US)
@@ -64,9 +65,19 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0) {
     @ColumnInfo(name = "language")
     var language = ""
 
+    // Handles date added conversion type:
+    // It's imported from json as a String encoded number of seconds. That's also how it
+    // is stored in the database. The private _dateAdded stores the db value, the public
+    // dateAdded returns it properly formatted.
     @ColumnInfo(name = "date_added")
-    var dateAdded = ""
-        get() = if (field == "") "" else DATE_FORMAT.format(Date(field.toLong() * 1000))
+    protected var raw_dateAdded = ""
+
+    val dateAdded: String
+        get() = if (raw_dateAdded == "") ""
+                else DATE_FORMAT.format(Date(raw_dateAdded.toLong() * 1000))
+
+    @ColumnInfo(name = "image_filename")
+    var imageFilename = ""
 
     constructor(title: String, author: String, imgUrl: String = "") : this() {
         this.title = title
@@ -87,7 +98,8 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0) {
         this.numberOfPages = o.optString(BookFields.NUMBER_OF_PAGES, "")
         this.genre = o.optString(BookFields.GENRE, "")
         this.language = o.optString(BookFields.LANGUAGE, "")
-        this.dateAdded = o.optString(BookFields.DATE_ADDED, "")
+        this.raw_dateAdded = o.optString(BookFields.DATE_ADDED, "")
+        this.imageFilename = o.optString(BookFields.IMAGE_FILENAME, "")
     }
 
     fun get(key: String): String {
@@ -105,6 +117,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0) {
             BookFields.GENRE -> genre
             BookFields.LANGUAGE -> language
             BookFields.DATE_ADDED -> dateAdded
+            BookFields.IMAGE_FILENAME -> imageFilename
             else -> "UNKNOWN KEY $key"
         }
     }
