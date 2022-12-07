@@ -1,42 +1,48 @@
 package com.anselm.books
 
 import android.app.Application
-import android.util.Log
+import android.content.SharedPreferences
+import android.net.Uri
+import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.io.File
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-
-// TODO - These should be moved to settings
-private const val PICASSO_DEFAULT_CACHE_SIZE_MB = 50
-private const val EXTERNAL_CACHE_DIRNAME = "picasso-cache"
 
 class BooksApplication : Application() {
-    private val applicationScope = CoroutineScope(SupervisorJob())
+    val applicationScope = CoroutineScope(SupervisorJob())
 
     private val basedir by lazy {
         File(applicationContext?.filesDir, "import")
     }
 
-    private val prefs by lazy {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-        prefs.registerOnSharedPreferenceChangeListener { p, key: String ->
-            when (key) {
-                "picasso_cache_size_mb"
-                -> Log.d(TAG, "Picasso new cache size ${p.getInt(key, 0)}")
-                "picasso_source_indicator"
-                -> {
-                    Log.d(TAG, "Picasso indicator enabled ${p.getBoolean(key, false)}.")
-                    //picasso.setIndicatorsEnabled(p.getBoolean(key, false))
-                }
-            }
-        }
-        prefs
+    fun getCoverUri(filename: String): Uri {
+        return File(basedir, filename).toUri()
     }
 
-    val database by lazy {
+    fun toast(resId: Int) {
+        toast(applicationContext.getString(resId))
+    }
+
+    fun toast(msg: String) {
+        applicationScope.launch(Dispatchers.Main) {
+            Toast.makeText(applicationContext, msg, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        app = this
+    }
+
+    val prefs: SharedPreferences by lazy {
+        PreferenceManager.getDefaultSharedPreferences(applicationContext)
+    }
+
+    private val database by lazy {
         BookDatabase.getDatabase(this, applicationScope)
     }
 
@@ -48,5 +54,9 @@ class BooksApplication : Application() {
         ImportExport(repository, applicationContext?.contentResolver!!, basedir)
     }
 
-    val executor: ExecutorService = Executors.newFixedThreadPool(4)
+    companion object {
+        lateinit var app: BooksApplication
+            private set
+    }
+
 }

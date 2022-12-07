@@ -15,11 +15,4 @@
         android:layout_gravity="center"
         android:text="@string/import_database" />
 
-    <Button
-        android:id="@+id/writeButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="@string/import_from_directory" />
-
 </LinearLayout>

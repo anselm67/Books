@@ -25,22 +25,18 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/picasso_preferences_header">
+    <PreferenceCategory app:title="@string/glide_preferences_header">
 
         <SeekBarPreference
-            app:title="@string/picasso_cache_size_title"
+            app:title="@string/glide_cache_size_title"
             app:showSeekBarValue="true"
-            app:key="picasso_cache_size_mb"
+            app:key="glide_cache_size_mb"
             android:defaultValue="520"
             app:min="5"  android:max="100" />
 
-        <SwitchPreference
-            app:key="picasso_source_indicator"
-            app:title="@string/picasso_source_indicator_title" />
-
         <Preference
             app:key="glide_clear_cache"
-            app:title="@string/picasso_clear_cache_title"/>
+            app:title="@string/glide_clear_cache_title"/>
 
     </PreferenceCategory>
 

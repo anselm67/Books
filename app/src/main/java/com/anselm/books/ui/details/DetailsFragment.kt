@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
@@ -20,7 +19,6 @@ import com.anselm.books.databinding.DetailsFieldLayoutBinding
 import com.anselm.books.databinding.FragmentDetailsBinding
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
-import java.io.File
 
 class DetailsFragment : Fragment() {
     private var _binding: FragmentDetailsBinding? = null
@@ -112,31 +110,31 @@ private val FIELDS = arrayOf<Pair<Int,String>>(
 )
 
 private fun FragmentDetailsBinding.bind(inflater: LayoutInflater, book: Book) {
-    val context = detailsView.context
+    val app = BooksApplication.app
     // Main part of the details.
     titleView.text = book.title
     subtitleView.text = book.subtitle
     if (book.imageFilename != "") {
-        // TODO Don't recompute these files over and over. Also in [BookViewHolder]
-        val images = File(context.filesDir, "import")
-        val imgUri = File(images, book.imageFilename).toUri()
-        Glide.with(context)
-            .load(imgUri).centerCrop()
+        Glide.with(app.applicationContext)
+            .load(app.getCoverUri(book.imageFilename)).centerCrop()
             .placeholder(R.mipmap.ic_book_cover)
             .into(coverImageView)
     } else {
-        Glide.with(context)
+        Glide.with(app.applicationContext)
             .load(R.mipmap.ic_book_cover)
             .into(coverImageView)
     }
     // Author.
     bindField(inflater, detailsView,
-        context.getString(R.string.authorLabel),
+        app.applicationContext.getString(R.string.authorLabel),
         book.get(BookFields.AUTHOR))
     // Details.
     bindDetails(inflater, detailsView, book)
     // Remaining fields.
     for (pair in FIELDS) {
-        bindField(inflater, detailsView, context.getString(pair.first), book.get(pair.second))
+        bindField(inflater,
+            detailsView,
+            app.applicationContext.getString(pair.first),
+            book.get(pair.second))
     }
 }
