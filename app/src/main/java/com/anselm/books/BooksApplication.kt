@@ -48,7 +48,8 @@ class BooksApplication : Application() {
     }
 
     val importExport by lazy {
-        ImportExport(repository, applicationContext?.contentResolver!!)
+        val basedir = File(applicationContext?.filesDir, "import")
+        ImportExport(repository, applicationContext?.contentResolver!!, basedir)
     }
 
     val picasso: Picasso by lazy {

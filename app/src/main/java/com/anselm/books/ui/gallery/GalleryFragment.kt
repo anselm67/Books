@@ -35,11 +35,16 @@ class GalleryFragment : Fragment() {
                 Log.d(TAG, "No field selected, nothing to import")
             } else {
                 activity?.lifecycleScope?.launch {
-                    val count = importExport.importJsonFile(uri)
-                    Toast.makeText(
-                        activity?.applicationContext,
-                        "Imported $count books.",
-                        Toast.LENGTH_LONG).show()
+                    val (bookCount, imageCount) = importExport.importZipFile(uri)
+                    // We're running on the application lifecycle scope, so this view that we're
+                    // launching from might be done by the time we get here, protect against that.
+                    if (_binding != null) {
+                        Toast.makeText(
+                            activity?.applicationContext,
+                            "Imported $bookCount books and $imageCount images.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                 }
             }
         }
