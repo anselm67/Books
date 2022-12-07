@@ -17,6 +17,7 @@ class BookViewHolder(
         binding.titleView.text = book.title
         binding.authorView.text = book.author
         if (book.imageFilename != "") {
+            // TODO Don't recompute these files over and over. Also in [DetailsFragment]
             val images = File(binding.root.context.filesDir, "import")
             val imgUri = File(images, book.imageFilename).toUri()
             Glide.with(binding.root.context)

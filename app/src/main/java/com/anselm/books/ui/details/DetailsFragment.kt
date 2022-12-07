@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
@@ -19,6 +20,7 @@ import com.anselm.books.databinding.DetailsFieldLayoutBinding
 import com.anselm.books.databinding.FragmentDetailsBinding
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
+import java.io.File
 
 class DetailsFragment : Fragment() {
     private var _binding: FragmentDetailsBinding? = null
@@ -114,9 +116,12 @@ private fun FragmentDetailsBinding.bind(inflater: LayoutInflater, book: Book) {
     // Main part of the details.
     titleView.text = book.title
     subtitleView.text = book.subtitle
-    if (book.imgUrl != "") {
+    if (book.imageFilename != "") {
+        // TODO Don't recompute these files over and over. Also in [BookViewHolder]
+        val images = File(context.filesDir, "import")
+        val imgUri = File(images, book.imageFilename).toUri()
         Glide.with(context)
-            .load(book.imgUrl).centerCrop()
+            .load(imgUri).centerCrop()
             .placeholder(R.mipmap.ic_book_cover)
             .into(coverImageView)
     } else {
