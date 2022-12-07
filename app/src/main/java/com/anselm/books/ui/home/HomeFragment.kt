@@ -6,7 +6,6 @@ import android.view.*
 import android.widget.SearchView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -35,9 +34,9 @@ class HomeFragment : Fragment() {
         val adapter = BookAdapter { book -> adapterOnClick(book) }
         binding.bindAdapter(bookAdapter = adapter)
 
-        val repository = (activity?.application as BooksApplication).repository
+        val app = BooksApplication.app
         val bookViewModel: BookViewModel by viewModels {
-            BookViewModelFactory(repository)
+            BookViewModelFactory(app.repository)
         }
 
         // Collect from the Article Flow in the ViewModel, and submit it to the
@@ -55,8 +54,8 @@ class HomeFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 adapter.loadStateFlow.collect {
-                    binding.loadProgress.isVisible = it.source.prepend is LoadState.Loading
-                            || it.source.append is LoadState.Loading
+                    app.loading(it.source.prepend is LoadState.Loading
+                            || it.source.append is LoadState.Loading)
                 }
             }
         }
@@ -64,7 +63,7 @@ class HomeFragment : Fragment() {
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                bindSearch(repository, menu)
+                bindSearch(app.repository, menu)
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {

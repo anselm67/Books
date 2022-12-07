@@ -34,12 +34,14 @@ class GalleryFragment : Fragment() {
                     Log.d(TAG, "No field selected, nothing to import")
                 } else {
                     var counts: Pair<Int, Int> = Pair(-1, -1)
+                    app.loading(true)
                     app.applicationScope.launch {
                         counts = importExport.importZipFile(uri)
                     }.invokeOnCompletion {
                         // We're running on the application lifecycle scope, so this view that we're
                         // launching from might be done by the time we get here, protect against that.
                         app.toast("Imported ${counts.first} books and ${counts.second} images.")
+                        app.loading(false)
                     }
                 }
             }

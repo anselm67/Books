@@ -2,6 +2,7 @@ package com.anselm.books
 
 import android.os.Bundle
 import android.view.Menu
+import android.view.View
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -33,6 +34,8 @@ class MainActivity : AppCompatActivity() {
                 setOf(R.id.nav_home), drawerLayout)
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        BooksApplication.app.enableProgressBar(findViewById<View>(R.id.progress_bar))
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -46,4 +49,8 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        BooksApplication.app.disableProgressBar()
+    }
 }

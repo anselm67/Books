@@ -1,10 +1,13 @@
 package com.anselm.books
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.SharedPreferences
 import android.net.Uri
+import android.view.View
 import android.widget.Toast
 import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -54,7 +57,23 @@ class BooksApplication : Application() {
         ImportExport(repository, applicationContext?.contentResolver!!, basedir)
     }
 
+    private var progressBarView: View? = null
+    fun enableProgressBar(view: View) {
+        progressBarView = view
+    }
+
+    fun disableProgressBar() {
+        progressBarView = null
+    }
+
+    fun loading(onoff: Boolean) {
+        applicationScope.launch(Dispatchers.Main) {
+            progressBarView?.isVisible = onoff
+        }
+    }
+
     companion object {
+        @SuppressLint("StaticFieldLeak")
         lateinit var app: BooksApplication
             private set
     }
