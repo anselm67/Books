@@ -13,11 +13,11 @@ import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.*
-import com.anselm.books.databinding.FragmentHomeBinding
+import com.anselm.books.databinding.FragmentListBinding
 import kotlinx.coroutines.launch
 
 open class ListFragment: Fragment() {
-    protected var _binding: FragmentHomeBinding? = null
+    protected var _binding: FragmentListBinding? = null
     protected val binding get() = _binding!!
 
     override fun onCreateView(
@@ -25,7 +25,7 @@ open class ListFragment: Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        _binding = FragmentListBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         val adapter = BookAdapter { book -> adapterOnClick(book) }
@@ -73,7 +73,7 @@ open class ListFragment: Fragment() {
 /**
  * Sets up the [RecyclerView] and binds [BookAdapter] to it
  */
-private fun FragmentHomeBinding.bindAdapter(bookAdapter: BookAdapter) {
+private fun FragmentListBinding.bindAdapter(bookAdapter: BookAdapter) {
     list.adapter = bookAdapter
     list.layoutManager = LinearLayoutManager(list.context)
 }

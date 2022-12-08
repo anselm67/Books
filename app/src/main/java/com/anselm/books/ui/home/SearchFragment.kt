@@ -1,22 +1,30 @@
 package com.anselm.books.ui.home
 
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
+import android.util.Log
+import android.view.*
 import android.widget.SearchView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
+import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.anselm.books.BookRepository
-import com.anselm.books.BooksApplication
-import com.anselm.books.R
+import com.anselm.books.*
+import kotlinx.coroutines.launch
 
 class SearchFragment : ListFragment(){
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        val root = super.onCreate(savedInstanceState)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        val root = super.onCreateView(inflater, container, savedInstanceState)
+        binding.idSearchFilters.isVisible = true
         handleMenu(requireActivity())
+        binding.idLocationFilter.setOnClickListener {
+            locationFilter()
+        }
         return root
     }
 
@@ -34,6 +42,16 @@ class SearchFragment : ListFragment(){
                 return false
             }
         })
+    }
+
+    private fun locationFilter() {
+        Log.d(TAG, "Location filter requested.")
+        requireActivity().lifecycleScope.launch {
+            val locations = BooksApplication.app.database.bookDao().getPhysicalLocation()
+            for (h in locations) {
+                Log.d(TAG, "${h.text} ${h.count}")
+            }
+        }
     }
 }
 

@@ -24,4 +24,12 @@ interface BookDao {
 
     @Query("SELECT * FROM book_table WHERE id = :bookId")
     suspend fun getBook(bookId: Int) : Book
+
+    @Query("SELECT physicalLocation as text, count(*) as count FROM book_table " +
+            " WHERE text != \"\" GROUP by physicalLocation " +
+            " ORDER by count DESC")
+    suspend fun getPhysicalLocation(): List<Histo>
 }
+
+data class Histo(val text: String, val count: Int)
+

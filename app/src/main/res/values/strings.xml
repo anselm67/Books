@@ -41,5 +41,8 @@
     <string name="detailsLabel">Details</string>
     <string name="save_book_title">Save</string>
     <string name="edit_book_title">Edit</string>
+    <string name="location_filter">Location</string>
+    <string name="genre_filter">Genre</string>
+    <string name="author_filter">Author</string>
 
 </resources>

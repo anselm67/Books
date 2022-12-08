@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.*
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
+import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
 import com.anselm.books.R
 
@@ -15,6 +16,7 @@ class HomeFragment : ListFragment() {
             savedInstanceState: Bundle?
     ): View {
         val root = super.onCreateView(inflater, container, savedInstanceState)
+        binding.idSearchFilters.isVisible = false
         handleMenu(requireActivity())
         return root
     }

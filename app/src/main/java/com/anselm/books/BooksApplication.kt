@@ -45,7 +45,7 @@ class BooksApplication : Application() {
         PreferenceManager.getDefaultSharedPreferences(applicationContext)
     }
 
-    private val database by lazy {
+    val database by lazy {
         BookDatabase.getDatabase(this, applicationScope)
     }
 

@@ -9,7 +9,7 @@
         android:id="@+id/nav_home"
         android:name="com.anselm.books.ui.home.HomeFragment"
         android:label="@string/menu_home"
-        tools:layout="@layout/fragment_home">
+        tools:layout="@layout/fragment_list">
 
         <action
             android:id="@+id/action_HomeFragment_to_DetailsFragment"
@@ -33,7 +33,7 @@
         android:id="@+id/nav_search"
         android:name="com.anselm.books.ui.home.SearchFragment"
         android:label="@string/menu_home"
-        tools:layout="@layout/fragment_home">
+        tools:layout="@layout/fragment_list">
 
         <action
             android:id="@+id/action_HomeFragment_to_DetailsFragment"
