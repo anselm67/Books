@@ -60,17 +60,7 @@ class HomeFragment : Fragment() {
             }
         }
 
-        val menuHost: MenuHost = requireActivity()
-        menuHost.addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                bindSearch(app.repository, menu)
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return false
-            }
-
-        })
+        handleMenu(requireActivity())
         return root
     }
 
@@ -83,11 +73,23 @@ class HomeFragment : Fragment() {
         val action = HomeFragmentDirections.actionHomeFragmentToDetailsFragment(book.id)
         findNavController().navigate(action)
     }
+
+    private fun handleMenu(menuHost: MenuHost) {
+        menuHost.addMenuProvider(object: MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                bindSearch(BooksApplication.app.repository, menu)
+            }
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return false
+            }
+        })
+    }
 }
 
 private fun bindSearch(repository: BookRepository, menu: Menu) {
     val searchItem = menu.findItem(R.id.idSearchView)
     val searchView = searchItem.actionView as SearchView
+    searchItem.isVisible = true
     searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
         override fun onQueryTextSubmit(query: String?): Boolean {
             repository.titleQuery = query
@@ -99,7 +101,6 @@ private fun bindSearch(repository: BookRepository, menu: Menu) {
         repository.titleQuery = null
         false
     }
-
 }
 
 /**

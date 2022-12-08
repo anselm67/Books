@@ -2,18 +2,15 @@ package com.anselm.books.ui.details
 
 import android.app.ActionBar.LayoutParams
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
-import com.anselm.books.Book
-import com.anselm.books.BookFields
-import com.anselm.books.BooksApplication
-import com.anselm.books.R
+import com.anselm.books.*
 import com.anselm.books.databinding.DetailsDetailsLayoutBinding
 import com.anselm.books.databinding.DetailsFieldLayoutBinding
 import com.anselm.books.databinding.FragmentDetailsBinding
@@ -40,6 +37,7 @@ class DetailsFragment : Fragment() {
             binding.bind(inflater, book)
         }
 
+        handleMenu(requireActivity())
         return root
     }
 
@@ -48,7 +46,18 @@ class DetailsFragment : Fragment() {
         _binding = null
     }
 
+    private fun handleMenu(menuHost: MenuHost) {
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                val searchItem = menu.findItem(R.id.idSearchView)
+                searchItem.isVisible = false
+            }
 
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return false
+            }
+        })
+    }
 }
 
 private fun bindField(inflater: LayoutInflater, detailsView: ViewGroup?, label: String, value: String) {
