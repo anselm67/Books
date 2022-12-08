@@ -3,6 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/idGotoSearchView"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="@string/search_title"
+        app:showAsAction="ifRoom|withText" />
+
+    <item
         android:id="@+id/idSearchView"
         android:icon="@android:drawable/ic_menu_search"
         android:title="@string/search_title"
