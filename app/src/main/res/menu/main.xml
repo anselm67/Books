@@ -9,4 +9,16 @@
         app:showAsAction="ifRoom|withText"
         app:actionViewClass="android.widget.SearchView" />
 
+    <item
+        android:id="@+id/idEditBook"
+        android:icon="@drawable/ic_baseline_mode_edit_24"
+        android:title="@string/edit_book_title"
+        app:showAsAction="ifRoom|withText" />
+
+    <item
+        android:id="@+id/idSaveBook"
+        android:icon="@drawable/ic_baseline_save_24"
+        android:title="@string/save_book_title"
+        app:showAsAction="ifRoom|withText" />
+
 </menu>

@@ -90,6 +90,8 @@ private fun bindSearch(repository: BookRepository, menu: Menu) {
     val searchItem = menu.findItem(R.id.idSearchView)
     val searchView = searchItem.actionView as SearchView
     searchItem.isVisible = true
+    menu.findItem(R.id.idEditBook)?.isVisible = false
+    menu.findItem(R.id.idSaveBook)?.isVisible = false
     searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
         override fun onQueryTextSubmit(query: String?): Boolean {
             repository.titleQuery = query

@@ -49,8 +49,9 @@ class DetailsFragment : Fragment() {
     private fun handleMenu(menuHost: MenuHost) {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                val searchItem = menu.findItem(R.id.idSearchView)
-                searchItem.isVisible = false
+                menu.findItem(R.id.idSearchView)?.isVisible = false
+                menu.findItem(R.id.idEditBook)?.isVisible = true
+                menu.findItem(R.id.idSaveBook)?.isVisible = false
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {

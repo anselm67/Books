@@ -39,5 +39,7 @@
     <string name="genreLabel">Genre</string>
     <string name="authorLabel">Author</string>
     <string name="detailsLabel">Details</string>
+    <string name="save_book_title">Save</string>
+    <string name="edit_book_title">Edit</string>
 
 </resources>
