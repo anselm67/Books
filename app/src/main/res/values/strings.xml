@@ -44,5 +44,6 @@
     <string name="location_filter">Location</string>
     <string name="genre_filter">Genre</string>
     <string name="author_filter">Author</string>
+    <string name="select_histo_value">Select a value</string>
 
 </resources>

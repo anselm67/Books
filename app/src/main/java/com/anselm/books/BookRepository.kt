@@ -1,6 +1,5 @@
 package com.anselm.books
 
-import android.util.Log
 import androidx.annotation.WorkerThread
 
 class BookRepository(private val bookDao: BookDao) {
@@ -9,7 +8,11 @@ class BookRepository(private val bookDao: BookDao) {
     var titleQuery: String? = null
         set(value) {
             field = if (value?.trim() == "") null else value
-            Log.d(TAG, "Setting titleQuery to $value.")
+            pagingSource?.invalidate()
+        }
+    var physicalLocation: String? = null
+        set(value) {
+            field = if (value?.trim() == "") null else value
             pagingSource?.invalidate()
         }
 
@@ -19,10 +22,17 @@ class BookRepository(private val bookDao: BookDao) {
     }
 
     suspend fun getPagedList(limit: Int, offset: Int): List<Book> {
-        return if (titleQuery == null)
+        return if (titleQuery == null && physicalLocation == null) {
             bookDao.getAllPagedList(limit, offset)
-        else
-            bookDao.getTitlePagedList(titleQuery!!, limit, offset)
+        } else {
+            val emptyTitle = (titleQuery == null || titleQuery == "")
+            val emptyLocation = (physicalLocation == null || physicalLocation == "")
+            bookDao.getTitlePagedList(
+                emptyTitle, if (emptyTitle) "" else titleQuery!!,
+                emptyLocation, if (emptyLocation) "" else physicalLocation!!,
+                limit, offset
+            )
+        }
     }
 
     suspend fun deleteAll() {

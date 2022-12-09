@@ -17,7 +17,7 @@ import com.anselm.books.databinding.FragmentListBinding
 import kotlinx.coroutines.launch
 
 open class ListFragment: Fragment() {
-    protected var _binding: FragmentListBinding? = null
+    private var _binding: FragmentListBinding? = null
     protected val binding get() = _binding!!
 
     override fun onCreateView(

@@ -35,6 +35,11 @@
         android:label="@string/menu_home"
         tools:layout="@layout/fragment_list">
 
+        <argument android:name="query" app:argType="string" android:defaultValue="" />
+        <argument android:name="location" app:argType="string" android:defaultValue="" />
+        <argument android:name="genre" app:argType="string" android:defaultValue="" />
+
+
         <action
             android:id="@+id/action_HomeFragment_to_DetailsFragment"
             app:destination="@id/nav_details"
@@ -43,7 +48,15 @@
             app:popEnterAnim="@android:anim/slide_in_left"
             app:popExitAnim="@android:anim/slide_out_right" />
 
+        <action
+            android:id="@+id/action_SearchFragment_to_SearchDialogFragment"
+            app:destination="@id/search_dialog_fragment" />
+
     </fragment>
+
+    <dialog
+        android:id="@+id/search_dialog_fragment"
+        android:name="com.anselm.books.ui.home.SearchDialogFragment" />
 
     <fragment
         android:id="@+id/nav_gallery"

@@ -40,13 +40,6 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"/>
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/author_filter"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"/>
-
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
