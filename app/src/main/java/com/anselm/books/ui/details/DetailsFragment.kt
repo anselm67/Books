@@ -52,6 +52,7 @@ class DetailsFragment : Fragment() {
                 menu.findItem(R.id.idSearchView)?.isVisible = false
                 menu.findItem(R.id.idEditBook)?.isVisible = true
                 menu.findItem(R.id.idSaveBook)?.isVisible = false
+                menu.findItem(R.id.idGotoSearchView)?.isVisible = false
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
