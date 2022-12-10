@@ -9,8 +9,11 @@
 
     <TextView
         android:id="@+id/idHistoValueView"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/idHistoCountView" />
@@ -19,6 +22,7 @@
         android:id="@+id/idHistoCountView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:textSize="20sp"
         android:textAlignment="viewEnd"
         android:paddingStart="5dp"
         android:paddingEnd="5dp"
@@ -37,8 +41,4 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/idHistoCountView" />
 
-    <View style="@style/BookDetailsRuler"
-        app:layout_constraintTop_toBottomOf="@id/idHistoImageView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

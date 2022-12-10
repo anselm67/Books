@@ -23,20 +23,27 @@ class BookRepository(private val bookDao: BookDao) {
     suspend fun getPagedList(limit: Int, offset: Int): List<Book> {
         Log.d(TAG, "runQuery ${query.query}/${query.partial}," +
                 " location: '${query.location}'," +
-                " genre: '${query.genre}'"
+                " genre: '${query.genre}'" +
+                " publisher: '${query.publisher}'"
         )
-        return if (isEmpty(query.query) && isEmpty(query.location)) {
-            bookDao.getAllPagedList(limit, offset)
-        } else if ( isEmpty(query.query) ) {
+        return if ( isEmpty(query.query) ) {
             val isLocationEmpty = isEmpty(query.location)
+            val isGenreEmpty = isEmpty(query.genre)
+            val isPublisherEmpty = isEmpty(query.publisher)
             bookDao.getFilteredPagedList(
                 isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
+                isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!,
                 limit, offset)
-        } else /* titleQuery is not empty */ {
+        } else /* Requests text matching. */ {
             val isLocationEmpty = isEmpty(query.location)
+            val isGenreEmpty = isEmpty(query.genre)
+            val isPublisherEmpty = isEmpty(query.publisher)
             bookDao.getTitlePagedList(
                 if (query.partial) query.query!! + '*' else query.query!!,
                 isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
+                isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!,
                 limit, offset)
         }
     }
@@ -47,6 +54,57 @@ class BookRepository(private val bookDao: BookDao) {
 
     suspend fun getBook(bookId: Int): Book {
         return bookDao.getBook(bookId)
+    }
+
+    suspend fun getLocations(): List<Histo> {
+        return if ( isEmpty(query.query) ) {
+            val isGenreEmpty = isEmpty(query.genre)
+            val isPublisherEmpty = isEmpty(query.publisher)
+            bookDao.getFilteredPhysicalLocation(
+                isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
+        } else /* Requests text match. */ {
+            val isGenreEmpty = isEmpty(query.genre)
+            val isPublisherEmpty = isEmpty(query.publisher)
+            bookDao.getTitlePhysicalLocation(
+                if (query.partial) query.query!! + '*' else query.query!!,
+                isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
+        }
+    }
+
+    suspend fun getGenres(): List<Histo> {
+        return if ( isEmpty(query.query) ) {
+            val isLocationEmpty = isEmpty(query.location)
+            val isPublisherEmpty = isEmpty(query.publisher)
+            bookDao.getFilteredGenre(
+                isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
+        } else /* titleQuery is not empty */ {
+            val isLocationEmpty = isEmpty(query.location)
+            val isPublisherEmpty = isEmpty(query.publisher)
+            bookDao.getTitleGenre(
+                if (query.partial) query.query!! + '*' else query.query!!,
+                isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
+        }
+    }
+
+    suspend fun getPublishers(): List<Histo> {
+        return if ( isEmpty(query.query) ) {
+            val isLocationEmpty = isEmpty(query.location)
+            val isGenreEmpty = isEmpty(query.genre)
+            bookDao.getFilteredPublisher(
+                isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
+                isGenreEmpty, if (isGenreEmpty) "" else query.genre!!)
+        } else /* titleQuery is not empty */ {
+            val isLocationEmpty = isEmpty(query.location)
+            val isGenreEmpty = isEmpty(query.genre)
+            bookDao.getTitlePublisher(
+                if (query.partial) query.query!! + '*' else query.query!!,
+                isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
+                isGenreEmpty, if (isGenreEmpty) "" else query.genre!!)
+        }
     }
 
     @Suppress("RedundantSuspendModifier")

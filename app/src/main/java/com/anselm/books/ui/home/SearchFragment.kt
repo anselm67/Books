@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.SearchView
+import android.widget.TextView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
@@ -36,16 +37,20 @@ class SearchFragment : ListFragment() {
         binding.idSearchFilters.isVisible = true
         handleMenu(requireActivity())
         binding.idLocationFilter.setOnClickListener {
-            locationFilter()
+            dialogFilter(SearchDialogFragment.PHYSICAL_LOCATION)
+        }
+        binding.idGenreFilter.setOnClickListener {
+            dialogFilter(SearchDialogFragment.GENRE)
+        }
+        binding.idPublisherFilter.setOnClickListener {
+            dialogFilter(SearchDialogFragment.PUBLISHER)
         }
 
         viewModel.query.value = BooksApplication.app.repository.query
         viewModel.query.observe(viewLifecycleOwner) {
             runQuery()
-            updateLocation()
+            updateFilters()
         }
-
-
 
         return root
     }
@@ -61,18 +66,21 @@ class SearchFragment : ListFragment() {
         })
     }
 
-    private fun locationFilter() {
+    private fun dialogFilter(columnName: String) {
         view?.let { activity?.hideKeyboard(it) }
-        val action = SearchFragmentDirections.actionSearchFragmentToSearchDialogFragment()
+        val action = SearchFragmentDirections.actionSearchFragmentToSearchDialogFragment(columnName)
         findNavController().navigate(action)
     }
 
-    private fun updateLocation() {
-        val location = viewModel.query.value?.location
-        if (location != null && location != "") {
-            binding.idLocationFilter.let {
-                it.text = location
-                it.typeface = Typeface.create(it.typeface, Typeface.BOLD)
+    private fun updateFilters() {
+        val filters = arrayOf<Pair<String?, TextView>>(
+            Pair(viewModel.query.value?.location, binding.idLocationFilter),
+            Pair(viewModel.query.value?.genre, binding.idGenreFilter),
+            Pair(viewModel.query.value?.publisher, binding.idPublisherFilter))
+        for ((value, textView) in filters) {
+            if (value!= null && value != "") {
+                textView.text = value
+                textView.typeface = Typeface.create(textView.typeface, Typeface.BOLD)
             }
         }
     }

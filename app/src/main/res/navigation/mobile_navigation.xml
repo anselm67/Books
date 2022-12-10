@@ -56,7 +56,10 @@
 
     <dialog
         android:id="@+id/search_dialog_fragment"
-        android:name="com.anselm.books.ui.home.SearchDialogFragment" />
+        android:name="com.anselm.books.ui.home.SearchDialogFragment" >
+        <argument android:name="columnName" android:defaultValue="physicalLocation" />
+    </dialog>
+
 
     <fragment
         android:id="@+id/nav_gallery"
