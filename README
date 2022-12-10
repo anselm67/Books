@@ -1,3 +1,14 @@
+Debugging SQLListe statements:
+- Turn it on:
+Android/Sdk$ ./platform-tools/adb shell setprop log.tag.SQLiteStatements VERBOSE
+Android/Sdk$ ./platform-tools/adb shell stop
+Android/Sdk$ ./platform-tools/adb shell start
+- Turn it off:
+Android/Sdk$ ./platform-tools/adb shell setprop log.tag.SQLiteStatements \"\"
+Android/Sdk$ ./platform-tools/adb shell stop
+Android/Sdk$ ./platform-tools/adb shell start
+
+
 A bookbuddy clone for Android.
 
 Based on the Android room codelab

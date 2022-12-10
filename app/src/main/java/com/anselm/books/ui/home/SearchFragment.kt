@@ -1,5 +1,6 @@
 package com.anselm.books.ui.home
 
+import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -12,16 +13,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.anselm.books.BooksApplication
-import com.anselm.books.R
-import com.anselm.books.TAG
-import com.anselm.books.hideKeyboard
+import com.anselm.books.*
 
 class QueryViewModel : ViewModel() {
-    var query = MutableLiveData("")
-    var partialMatch = MutableLiveData(false)
-    var location = MutableLiveData("")
-    val genre = MutableLiveData("")
+    var query: MutableLiveData<Query> = MutableLiveData<Query>()
 }
 
 class SearchFragment : ListFragment() {
@@ -44,17 +39,15 @@ class SearchFragment : ListFragment() {
             locationFilter()
         }
 
-        viewModel.query.observe(viewLifecycleOwner) { runQuery() }
-        viewModel.location.observe(viewLifecycleOwner) { runQuery() }
-        viewModel.genre.observe(viewLifecycleOwner) { runQuery() }
+        viewModel.query.value = BooksApplication.app.repository.query
+        viewModel.query.observe(viewLifecycleOwner) {
+            runQuery()
+            updateLocation()
+        }
+
+
 
         return root
-    }
-
-    override fun onStop() {
-        super.onStop()
-        viewModel.query.value = null
-        viewModel.location.value = null
     }
 
     private fun handleMenu(menuHost: MenuHost) {
@@ -74,13 +67,20 @@ class SearchFragment : ListFragment() {
         findNavController().navigate(action)
     }
 
+    private fun updateLocation() {
+        val location = viewModel.query.value?.location
+        if (location != null && location != "") {
+            binding.idLocationFilter.let {
+                it.text = location
+                it.typeface = Typeface.create(it.typeface, Typeface.BOLD)
+            }
+        }
+    }
+
     private fun runQuery() {
-        Log.d(TAG, "runQuery ${viewModel.query.value}/${viewModel.partialMatch.value}," +
-                " location: ${viewModel.location.value}," +
-                " genre: ${viewModel.genre.value}")
-        BooksApplication.app.repository.titleQuery =
-            if (viewModel.partialMatch.value == true) viewModel.query.value+'*' else viewModel.query.value
-        BooksApplication.app.repository.physicalLocation = viewModel.location.value
+        viewModel.query.value?.let {
+            BooksApplication.app.repository.query = viewModel.query.value!!
+        }
     }
 
     private fun bindSearch(menu: Menu) {
@@ -89,20 +89,23 @@ class SearchFragment : ListFragment() {
         menu.findItem(R.id.idGotoSearchView)?.isVisible = false
         // Handles the search view:
         val item = menu.findItem(R.id.idSearchView)
+        val query = viewModel.query.value?.copy()
         item.isVisible = true
         (item.actionView as SearchView).let {
-            it.setQuery(viewModel.query.value, false)
+            it.setQuery(query?.query, false)
             it.isIconified = false
             it.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                override fun onQueryTextSubmit(query: String?): Boolean {
-                    viewModel.query.value = query
-                    viewModel.partialMatch.value = false
+                override fun onQueryTextSubmit(text: String?): Boolean {
+                    query?.query = text
+                    query?.partial = false
+                    viewModel.query.value = query!!
                     return false
                 }
-                override fun onQueryTextChange(newText: String?): Boolean {
-                    val emptyText = (newText == null || newText == "")
-                    viewModel.query.value = if  (emptyText) null else newText
-                    viewModel.partialMatch.value =  ! emptyText
+                override fun onQueryTextChange(text: String?): Boolean {
+                    val emptyText = (text == null || text == "")
+                    query?.query = if  (emptyText) null else text
+                    query?.partial =  ! emptyText
+                    viewModel.query.value = query
                     return true
                 }
             })

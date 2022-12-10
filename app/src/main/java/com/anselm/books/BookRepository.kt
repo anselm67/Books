@@ -1,18 +1,13 @@
 package com.anselm.books
 
+import android.util.Log
 import androidx.annotation.WorkerThread
 
 class BookRepository(private val bookDao: BookDao) {
     private var pagingSource: BookPagingSource? = null
-
-    var titleQuery: String? = null
+    var query = Query()
         set(value) {
-            field = if (value?.trim() == "") null else value
-            pagingSource?.invalidate()
-        }
-    var physicalLocation: String? = null
-        set(value) {
-            field = if (value?.trim() == "") null else value
+            field = value
             pagingSource?.invalidate()
         }
 
@@ -21,17 +16,28 @@ class BookRepository(private val bookDao: BookDao) {
         return pagingSource!!
     }
 
+    private fun isEmpty(s: String?): Boolean {
+        return s == null || s == ""
+    }
+
     suspend fun getPagedList(limit: Int, offset: Int): List<Book> {
-        return if (titleQuery == null && physicalLocation == null) {
+        Log.d(TAG, "runQuery ${query.query}/${query.partial}," +
+                " location: '${query.location}'," +
+                " genre: '${query.genre}'"
+        )
+        return if (isEmpty(query.query) && isEmpty(query.location)) {
             bookDao.getAllPagedList(limit, offset)
-        } else {
-            val emptyTitle = (titleQuery == null || titleQuery == "")
-            val emptyLocation = (physicalLocation == null || physicalLocation == "")
+        } else if ( isEmpty(query.query) ) {
+            val isLocationEmpty = isEmpty(query.location)
+            bookDao.getFilteredPagedList(
+                isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
+                limit, offset)
+        } else /* titleQuery is not empty */ {
+            val isLocationEmpty = isEmpty(query.location)
             bookDao.getTitlePagedList(
-                emptyTitle, if (emptyTitle) "" else titleQuery!!,
-                emptyLocation, if (emptyLocation) "" else physicalLocation!!,
-                limit, offset
-            )
+                if (query.partial) query.query!! + '*' else query.query!!,
+                isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
+                limit, offset)
         }
     }
 

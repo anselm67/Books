@@ -78,7 +78,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
 
 
         binding.idHistoList.setOnItemClickListener { _, _, position, _ ->
-            viewModel.location.value = values?.get(position)?.text
+            viewModel.query.value = viewModel.query.value?.copy(location = values?.get(position)?.text)
             dismiss()
         }
         return binding.root

@@ -17,12 +17,20 @@ interface BookDao {
     suspend fun getAllPagedList(limit: Int, offset: Int): List<Book>
 
     @Query("SELECT * FROM book_table " +
-            "JOIN book_fts ON book_table.id = book_fts.rowid " +
-            "WHERE (:titleCond OR book_fts MATCH :query) " +
-            "  AND (:locationCond OR physicalLocation = :physicalLocation)" +
-            "ORDER BY title, author DESC LIMIT :limit OFFSET :offset")
+            " JOIN book_fts ON book_table.id = book_fts.rowid " +
+            " WHERE book_fts MATCH :query " +
+            "   AND (:locationCond OR physicalLocation = :physicalLocation)" +
+            " ORDER BY title, author DESC LIMIT :limit OFFSET :offset")
     suspend fun getTitlePagedList(
-        titleCond: Boolean, query: String,
+        query: String,
+        locationCond: Boolean, physicalLocation: String,
+        limit: Int, offset: Int) : List<Book>
+
+    @Query("SELECT * FROM book_table " +
+            " JOIN book_fts ON book_table.id = book_fts.rowid " +
+            " WHERE (:locationCond OR physicalLocation = :physicalLocation)" +
+            " ORDER BY title, author DESC LIMIT :limit OFFSET :offset")
+    suspend fun getFilteredPagedList(
         locationCond: Boolean, physicalLocation: String,
         limit: Int, offset: Int) : List<Book>
 

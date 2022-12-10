@@ -31,7 +31,9 @@ open class ListFragment: Fragment() {
         val adapter = BookAdapter { book -> adapterOnClick(book) }
         binding.bindAdapter(bookAdapter = adapter)
 
+        // Resets the query before creating the paging source.
         val app = BooksApplication.app
+        app.repository.query = Query()
         val bookViewModel: BookViewModel by viewModels {
             BookViewModelFactory(app.repository)
         }
