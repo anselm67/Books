@@ -23,6 +23,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
+import kotlin.math.min
 
 
 class HistoAdapter(
@@ -58,6 +59,9 @@ class HistoAdapter(
 
 class SearchDialogFragment: BottomSheetDialogFragment() {
     private val viewModel: QueryViewModel by activityViewModels()
+    private lateinit var adapter: HistoAdapter
+    private val dataSource: MutableList<Histo> = mutableListOf()
+
     private var columnName = PHYSICAL_LOCATION
 
     companion object {
@@ -78,44 +82,24 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
         savedInstanceState: Bundle?
     ): View {
         val binding = SearchDialogFragmentBinding.inflate(inflater, container, false)
-        val safeArgs: SearchDialogFragmentArgs by navArgs()
 
+        // Selects the column on which to filter.
+        val safeArgs: SearchDialogFragmentArgs by navArgs()
         columnName = safeArgs.columnName
 
-        val dataSource: MutableList<Histo> = mutableListOf()
-        val adapter = HistoAdapter(dataSource, onClick = { histo: Histo ->
-            when (columnName) {
-                PHYSICAL_LOCATION ->
-                    viewModel.query.value = viewModel.query.value?.copy(location = histo.text)
-                GENRE ->
-                    viewModel.query.value = viewModel.query.value?.copy(genre = histo.text)
-                PUBLISHER ->
-                    viewModel.query.value = viewModel.query.value?.copy(publisher = histo.text)
-            }
-            dismiss()
-        })
+        // Prepares the recycler view and kicks the values fetch.
+        adapter = HistoAdapter(dataSource, onClick = { h: Histo -> selectHisto(h)  })
         binding.idHistoList.let {
             it.adapter = adapter
             it.layoutManager = LinearLayoutManager(requireActivity())
             it.addItemDecoration(DividerItemDecoration(requireActivity(), RecyclerView.VERTICAL))
         }
-
         viewLifecycleOwner.lifecycleScope.launch {
-            var values: List<Histo>? = null
-            when (columnName) {
-                PHYSICAL_LOCATION ->
-                    values = BooksApplication.app.repository.getLocations()
-                GENRE ->
-                    values = BooksApplication.app.repository.getGenres()
-                PUBLISHER ->
-                    values = BooksApplication.app.repository.getPublishers()
-                else
-                    -> listOf<Histo>()
-            }
-            values?.let { dataSource.addAll(it) }
-            adapter.notifyItemRangeInserted(0, values!!.size)
+            loadValues()
+            adjustDialogHeight(binding.idHistoList)
         }
 
+        // Handles cancellation without value selected.
         binding.idCancelDialog.setOnClickListener {
             dismiss()
         }
@@ -123,29 +107,73 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
         return binding.root
     }
 
-
-    private fun showFullScreenBottomSheet(bottomSheet: FrameLayout) {
-        val layoutParams = bottomSheet.layoutParams
-        layoutParams.height = Resources.getSystem().displayMetrics.heightPixels
-        bottomSheet.layoutParams = layoutParams
+    private suspend fun loadValues() {
+        var values: List<Histo>? = null
+        when (columnName) {
+            PHYSICAL_LOCATION ->
+                values = BooksApplication.app.repository.getLocations()
+            GENRE ->
+                values = BooksApplication.app.repository.getGenres()
+            PUBLISHER ->
+                values = BooksApplication.app.repository.getPublishers()
+            else
+            -> listOf<Histo>()
+        }
+        values?.let { dataSource.addAll(it) }
+        adapter.notifyItemRangeInserted(0, values!!.size)
     }
 
-    private fun expandBottomSheet(bottomSheetBehavior: BottomSheetBehavior<FrameLayout>) {
-        bottomSheetBehavior.skipCollapsed = true
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+    /**
+     * Adjusts the height of the expanded dialog so it matches the [view].
+     */
+    private fun adjustDialogHeight(view: View) {
+        view.post {
+            if (view.isLaidOut) {
+                sizeDialog(view.height)
+            }
+        }
+    }
+
+    /**
+     * Selects the given [histo] value for the filter, and dismisses the dialog.
+     */
+    private fun selectHisto(histo: Histo) {
+        when (columnName) {
+            PHYSICAL_LOCATION ->
+                viewModel.query.value = viewModel.query.value?.copy(location = histo.text)
+            GENRE ->
+                viewModel.query.value = viewModel.query.value?.copy(genre = histo.text)
+            PUBLISHER ->
+                viewModel.query.value = viewModel.query.value?.copy(publisher = histo.text)
+        }
+        dismiss()
+    }
+
+    private var bottomSheet: FrameLayout? = null
+
+    private fun sizeDialog(height: Int = Int.MAX_VALUE) {
+        bottomSheet?.let {
+            val layoutParams = it.layoutParams
+            layoutParams.height = min(Resources.getSystem().displayMetrics.heightPixels, height)
+            it.layoutParams = layoutParams
+        }
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         //  if you wanna show the bottom sheet as full screen,
         val bottomSheetDialog = super.onCreateDialog(savedInstanceState) as BottomSheetDialog
         bottomSheetDialog.setOnShowListener { dialog: DialogInterface ->
-            val bottomSheet = (dialog as BottomSheetDialog)
-                .findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
-            showFullScreenBottomSheet(bottomSheet as FrameLayout)
-            BottomSheetBehavior
-                .from(bottomSheet).state = BottomSheetBehavior.STATE_EXPANDED
+            (dialog as BottomSheetDialog).findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let {
+                bottomSheet = it
+                BottomSheetBehavior.from(it).state = BottomSheetBehavior.STATE_EXPANDED
+            }
         }
         return bottomSheetDialog
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        bottomSheet = null
     }
 
 }
