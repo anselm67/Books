@@ -36,7 +36,7 @@
                     android:text="@string/location_filter"
                     android:layout_marginStart="10dp"
                     android:layout_marginEnd="10dp"
-                    android:drawableTint="?attr/colorOnPrimary"/>
+                    android:drawableTint="?attr/colorOnPrimary" />
 
                 <Button
                     android:id="@+id/idGenreFilter"
@@ -44,7 +44,8 @@
                     android:layout_height="wrap_content"
                     android:text="@string/genre_filter"
                     android:layout_marginStart="10dp"
-                    android:layout_marginEnd="10dp"/>
+                    android:layout_marginEnd="10dp"
+                    android:drawableTint="?attr/colorOnPrimary" />
 
                 <Button
                     android:id="@+id/idPublisherFilter"
@@ -52,7 +53,8 @@
                     android:layout_height="wrap_content"
                     android:text="@string/publisher_filter"
                     android:layout_marginStart="10dp"
-                    android:layout_marginEnd="10dp"/>
+                    android:layout_marginEnd="10dp"
+                    android:drawableTint="?attr/colorOnPrimary" />
 
             </LinearLayout>
         </HorizontalScrollView>
