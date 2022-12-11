@@ -95,10 +95,11 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
             dismiss()
         })
         binding.idHistoList.let {
+            val layoutManager = LinearLayoutManager(binding.idHistoList.context)
             it.adapter = adapter
-            it.layoutManager = LinearLayoutManager(binding.idHistoList.context)
+            it.layoutManager = layoutManager
             val dividerItemDecoration = DividerItemDecoration(
-                it.context, DividerItemDecoration.HORIZONTAL)
+                it.context, layoutManager.orientation)
             it.addItemDecoration(dividerItemDecoration)
         }
 
