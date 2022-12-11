@@ -95,15 +95,12 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
             dismiss()
         })
         binding.idHistoList.let {
-            val layoutManager = LinearLayoutManager(binding.idHistoList.context)
             it.adapter = adapter
-            it.layoutManager = layoutManager
-            val dividerItemDecoration = DividerItemDecoration(
-                it.context, layoutManager.orientation)
-            it.addItemDecoration(dividerItemDecoration)
+            it.layoutManager = LinearLayoutManager(requireActivity())
+            it.addItemDecoration(DividerItemDecoration(requireActivity(), RecyclerView.VERTICAL))
         }
 
-        requireActivity().lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             var values: List<Histo>? = null
             when (columnName) {
                 PHYSICAL_LOCATION ->
