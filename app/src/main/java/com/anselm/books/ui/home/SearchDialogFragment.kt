@@ -23,7 +23,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
-import kotlin.math.min
 
 
 class HistoAdapter(
@@ -96,7 +95,6 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
         }
         viewLifecycleOwner.lifecycleScope.launch {
             loadValues()
-            adjustDialogHeight(binding.idHistoList)
         }
 
         // Handles cancellation without value selected.
@@ -124,17 +122,6 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
     }
 
     /**
-     * Adjusts the height of the expanded dialog so it matches the [view].
-     */
-    private fun adjustDialogHeight(view: View) {
-        view.post {
-            if (view.isLaidOut) {
-                sizeDialog(view.height)
-            }
-        }
-    }
-
-    /**
      * Selects the given [histo] value for the filter, and dismisses the dialog.
      */
     private fun selectHisto(histo: Histo) {
@@ -149,31 +136,17 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
         dismiss()
     }
 
-    private var bottomSheet: FrameLayout? = null
-
-    private fun sizeDialog(height: Int = Int.MAX_VALUE) {
-        bottomSheet?.let {
-            val layoutParams = it.layoutParams
-            layoutParams.height = min(Resources.getSystem().displayMetrics.heightPixels, height)
-            it.layoutParams = layoutParams
-        }
-    }
-
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         //  if you wanna show the bottom sheet as full screen,
         val bottomSheetDialog = super.onCreateDialog(savedInstanceState) as BottomSheetDialog
         bottomSheetDialog.setOnShowListener { dialog: DialogInterface ->
             (dialog as BottomSheetDialog).findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let {
-                bottomSheet = it
+                val layoutParams = it.layoutParams
+                layoutParams.height = Resources.getSystem().displayMetrics.heightPixels
+                it.layoutParams = layoutParams
                 BottomSheetBehavior.from(it).state = BottomSheetBehavior.STATE_EXPANDED
             }
         }
         return bottomSheetDialog
     }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
-        bottomSheet = null
-    }
-
 }
