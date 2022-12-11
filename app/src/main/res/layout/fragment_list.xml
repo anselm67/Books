@@ -12,44 +12,50 @@
         android:layout_height="match_parent"
         tools:context=".MainActivity">
 
-        <LinearLayout
+        <HorizontalScrollView
             android:id="@+id/idSearchFilters"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toTopOf="@id/list"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:orientation="horizontal"
-            android:layoutDirection="ltr"
-            android:padding="3dp"
-            android:gravity="center">
+            app:layout_constraintTop_toTopOf="parent" >
 
-            <Button
-                android:id="@+id/idLocationFilter"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/location_filter"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp" />
+                android:orientation="horizontal"
+                android:layoutDirection="ltr"
+                android:padding="3dp"
+                android:gravity="center">
 
-            <Button
-                android:id="@+id/idGenreFilter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/genre_filter"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"/>
+                <Button
+                    android:id="@+id/idLocationFilter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/location_filter"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:drawableTint="?attr/colorOnPrimary"/>
 
-            <Button
-                android:id="@+id/idPublisherFilter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/publisher_filter"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"/>
+                <Button
+                    android:id="@+id/idGenreFilter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/genre_filter"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"/>
 
-        </LinearLayout>
+                <Button
+                    android:id="@+id/idPublisherFilter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/publisher_filter"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"/>
+
+            </LinearLayout>
+        </HorizontalScrollView>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/list"

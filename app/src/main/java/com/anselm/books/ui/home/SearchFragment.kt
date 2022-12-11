@@ -1,11 +1,13 @@
 package com.anselm.books.ui.home
 
 import android.graphics.Typeface
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.Button
 import android.widget.SearchView
-import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
@@ -22,6 +24,10 @@ class QueryViewModel : ViewModel() {
 
 class SearchFragment : ListFragment() {
     private val viewModel: QueryViewModel by activityViewModels()
+    // Button's Drawable to use to open a filter dialog.
+    private lateinit var filterDrawable: Drawable
+    // Button's Drawable to use when a filter value is selected, to clear it out.
+    private lateinit var clearFilterDrawable: Drawable
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,22 +40,31 @@ class SearchFragment : ListFragment() {
                 "location=${safeArgs.location}, " +
                 "genre=${safeArgs.genre}")
 
+        // Displays filters in this view, that's the whole point.
         binding.idSearchFilters.isVisible = true
         handleMenu(requireActivity())
-        binding.idLocationFilter.setOnClickListener {
-            dialogFilter(SearchDialogFragment.PHYSICAL_LOCATION)
-        }
-        binding.idGenreFilter.setOnClickListener {
-            dialogFilter(SearchDialogFragment.GENRE)
-        }
-        binding.idPublisherFilter.setOnClickListener {
-            dialogFilter(SearchDialogFragment.PUBLISHER)
-        }
 
-        viewModel.query.value = BooksApplication.app.repository.query
+        // Caches the drawable for the filter buttons.
+        filterDrawable = ContextCompat.getDrawable(
+            requireContext(), R.drawable.ic_baseline_arrow_drop_down_24)!!
+        clearFilterDrawable = ContextCompat.getDrawable(
+            requireContext(), R.drawable.ic_baseline_clear_24)!!
+
+        // We start with a fresh query, initialized with our arguments.
+        if (viewModel.query.value == null) {
+            viewModel.query.value = Query()
+        }
+        if (safeArgs.location != "") viewModel.query.value?.location = safeArgs.location
+        if (safeArgs.genre != "") viewModel.query.value?.genre = safeArgs.genre
+        if (safeArgs.publisher != "") viewModel.query.value?.publisher = safeArgs.publisher
+
+        // Let's go.
+        BooksApplication.app.repository.query = viewModel.query.value!!
+        updateFiltersUi()
+
         viewModel.query.observe(viewLifecycleOwner) {
-            runQuery()
-            updateFilters()
+            BooksApplication.app.repository.query = viewModel.query.value!!
+            updateFiltersUi()
         }
 
         return root
@@ -66,28 +81,60 @@ class SearchFragment : ListFragment() {
         })
     }
 
+    private fun clearFilter(columnName: String) {
+        var query: Query? = null
+        when(columnName) {
+            SearchDialogFragment.PHYSICAL_LOCATION ->
+                query = viewModel.query.value?.copy(location = null)
+            SearchDialogFragment.GENRE ->
+                query = viewModel.query.value?.copy(genre = null)
+            SearchDialogFragment.PUBLISHER ->
+                query = viewModel.query.value?.copy(publisher = null)
+        }
+        query?.let { viewModel.query.value = it }
+    }
+    
     private fun dialogFilter(columnName: String) {
         view?.let { activity?.hideKeyboard(it) }
         val action = SearchFragmentDirections.actionSearchFragmentToSearchDialogFragment(columnName)
         findNavController().navigate(action)
     }
 
-    private fun updateFilters() {
-        val filters = arrayOf<Pair<String?, TextView>>(
-            Pair(viewModel.query.value?.location, binding.idLocationFilter),
-            Pair(viewModel.query.value?.genre, binding.idGenreFilter),
-            Pair(viewModel.query.value?.publisher, binding.idPublisherFilter))
-        for ((value, textView) in filters) {
-            if (value!= null && value != "") {
-                textView.text = value
-                textView.typeface = Typeface.create(textView.typeface, Typeface.BOLD)
-            }
-        }
-    }
+    data class Filter(
+        val columnName: String,
+        val button: Button,
+        val value: String?,
+        val label: Int)
 
-    private fun runQuery() {
-        viewModel.query.value?.let {
-            BooksApplication.app.repository.query = viewModel.query.value!!
+    private fun updateFiltersUi() {
+        val filters = arrayOf(
+            Filter(SearchDialogFragment.PHYSICAL_LOCATION,
+                binding.idLocationFilter,
+                viewModel.query.value?.location,
+                R.string.physicalLocationLabel),
+            Filter(SearchDialogFragment.GENRE,
+                binding.idGenreFilter,
+                viewModel.query.value?.genre,
+                R.string.genreLabel),
+            Filter(SearchDialogFragment.PUBLISHER,
+                binding.idPublisherFilter,
+                viewModel.query.value?.publisher,
+                R.string.publisherLabel))
+        for (f in filters) {
+            if (f.value!= null && f.value != "") {
+                f.button.text = f.value
+                f.button.typeface = Typeface.create(f.button.typeface, Typeface.BOLD)
+                f.button.setOnClickListener { clearFilter(f.columnName) }
+                f.button.setCompoundDrawablesWithIntrinsicBounds(
+                    /* left, top, right, bottom */
+                    null,  null, clearFilterDrawable, null)
+            } else {
+                f.button.text = getString(f.label)
+                f.button.setOnClickListener { dialogFilter(f.columnName) }
+                f.button.setCompoundDrawablesWithIntrinsicBounds(
+                    /* left, top, right, bottom */
+                    null, null, filterDrawable, null)
+            }
         }
     }
 
