@@ -39,11 +39,13 @@ class BookViewHolder(
         binding.titleView.isVisible = false
         binding.authorView.isVisible = false
         binding.coverImageView.isVisible = false
+        binding.idRuler.isVisible = false
     }
 
     fun show() {
         binding.titleView.isVisible = true
         binding.authorView.isVisible = true
         binding.coverImageView.isVisible = true
+        binding.idRuler.isVisible = true
     }
 }

@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -21,6 +22,13 @@ import kotlinx.coroutines.launch
 open class ListFragment: Fragment() {
     private var _binding: FragmentListBinding? = null
     protected val binding get() = _binding!!
+    protected val viewModel: QueryViewModel by activityViewModels()
+
+    /**
+     * Is this the home screen or some other screen that inherit from it.
+     * For now, only SearchFragment inherits frome HomeFragment.
+     */
+    private fun isHome() = (this !is SearchFragment)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,19 +37,24 @@ open class ListFragment: Fragment() {
     ): View {
         _binding = FragmentListBinding.inflate(inflater, container, false)
         val root: View = binding.root
+        val app = BooksApplication.app
 
         val adapter = BookAdapter { book -> adapterOnClick(book) }
         binding.bindAdapter(bookAdapter = adapter)
 
-        // Resets the query before creating the paging source.
-        val app = BooksApplication.app
-        app.repository.query = Query()
+        // If we're on the home screen, resets the query so we have the full list, otherwise
+        // preserve any settings in the query viewModel.
+        if ( isHome() ) {
+            val query = Query()
+            viewModel.query.value = query
+            app.repository.query = query
+        }
+
         val bookViewModel: BookViewModel by viewModels {
             BookViewModelFactory(app.repository)
         }
 
-        // Collect from the Article Flow in the ViewModel, and submit it to the
-        // ListAdapter.
+        // Collects from the Article Flow in the ViewModel, and submits to the adapter.
         viewLifecycleOwner.lifecycleScope.launch {
             // We repeat on the STARTED lifecycle because an Activity may be PAUSED
             // but still visible on the screen, for example in a multi window app
@@ -52,6 +65,7 @@ open class ListFragment: Fragment() {
                 }
             }
         }
+        // Collects from the state and updates the progress bar accordingly.
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 adapter.loadStateFlow.collect {
