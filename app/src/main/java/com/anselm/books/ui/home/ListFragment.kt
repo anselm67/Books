@@ -60,6 +60,9 @@ open class ListFragment: Fragment() {
                 }
             }
         }
+        app.repository.itemCount.observe(viewLifecycleOwner) {
+            app.title = "$it Books"
+        }
         return root
     }
 

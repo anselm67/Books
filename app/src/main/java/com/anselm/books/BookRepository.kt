@@ -2,6 +2,7 @@ package com.anselm.books
 
 import android.util.Log
 import androidx.annotation.WorkerThread
+import androidx.lifecycle.MutableLiveData
 
 class BookRepository(private val bookDao: BookDao) {
     private var pagingSource: BookPagingSource? = null
@@ -48,13 +49,15 @@ class BookRepository(private val bookDao: BookDao) {
         }
     }
 
+    val itemCount = MutableLiveData(0)
+
     suspend fun getPagedListCount(): Int {
         Log.d(TAG, "runQuery ${query.query}/${query.partial}," +
                 " location: '${query.location}'," +
                 " genre: '${query.genre}'" +
                 " publisher: '${query.publisher}'"
         )
-        return if ( isEmpty(query.query) ) {
+        itemCount.value = if ( isEmpty(query.query) ) {
             val isLocationEmpty = isEmpty(query.location)
             val isGenreEmpty = isEmpty(query.genre)
             val isPublisherEmpty = isEmpty(query.publisher)
@@ -72,6 +75,7 @@ class BookRepository(private val bookDao: BookDao) {
                 isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
                 isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
         }
+        return itemCount.value!!
     }
 
     suspend fun deleteAll() {

@@ -2,7 +2,6 @@ package com.anselm.books
 
 import android.os.Bundle
 import android.view.Menu
-import android.view.View
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -35,7 +34,10 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        BooksApplication.app.enableProgressBar(findViewById<View>(R.id.progress_bar))
+        BooksApplication.app.enableProgressBar(findViewById(R.id.progress_bar))
+        BooksApplication.app.enableTitle({ title: String ->
+            binding.appBarMain.toolbar.title = title
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

@@ -72,6 +72,19 @@ class BooksApplication : Application() {
         }
     }
 
+    private var titleSetter: ((String) -> Unit) ? = null
+    fun enableTitle(titleSetter: (String) -> Unit) {
+        this.titleSetter = titleSetter
+    }
+
+    var title: String? = null
+        set (value) {
+            titleSetter?.let {
+                it(value ?: "")
+            }
+            field = value
+        }
+
     companion object {
         @SuppressLint("StaticFieldLeak")
         lateinit var app: BooksApplication
