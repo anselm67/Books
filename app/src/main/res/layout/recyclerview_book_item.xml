@@ -62,5 +62,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <View style="@style/BookDetailsRuler" />
+    <View android:id="@+id/idRuler"
+        style="@style/BookDetailsRuler" />
+
 </LinearLayout>
