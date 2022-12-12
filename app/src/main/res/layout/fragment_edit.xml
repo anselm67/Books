@@ -37,7 +37,7 @@
             <EditText
                 android:id="@+id/titleView"
                 style="@style/EditTextFieldStyle"
-                android:inputType="text"
+                android:inputType="textMultiLine"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
@@ -61,7 +61,7 @@
 
             <EditText
                 android:id="@+id/subtitleView"
-                android:inputType="text"
+                android:inputType="textMultiLine"
                 style="@style/EditTextFieldStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -88,7 +88,7 @@
             <EditText
                 android:id="@+id/authorView"
                 style="@style/EditTextFieldStyle"
-                android:inputType="text"
+                android:inputType="textMultiLine"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
@@ -113,11 +113,15 @@
             <EditText
                 android:id="@+id/summaryView"
                 style="@style/EditTextFieldStyle"
-                android:inputType="text"
+                android:inputType="textMultiLine"
+                android:singleLine="false"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:importantForAutofill="no"
+                android:overScrollMode="always"
+                android:scrollbarStyle="insideInset"
+                android:scrollbars="vertical"
                 tools:ignore="LabelFor" />
 
             <TextView
