@@ -21,6 +21,8 @@ class BookAdapter (private val onClick: (Book) -> Unit)
         val current = getItem(position)
         if (current != null) {
             holder.bind(current)
+        } else {
+            holder.hide()
         }
     }
 

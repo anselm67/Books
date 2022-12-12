@@ -1,6 +1,7 @@
 package com.anselm.books.ui.home
 
 import android.view.View
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.Book
 import com.anselm.books.BooksApplication
@@ -13,6 +14,7 @@ class BookViewHolder(
     private val onClick: (book: Book) -> Unit
 ): RecyclerView.ViewHolder(binding.root) {
     fun bind(book: Book) {
+        show()
         val app = BooksApplication.app
         binding.titleView.text = book.title
         binding.authorView.text = book.author
@@ -31,5 +33,17 @@ class BookViewHolder(
         binding.root.setOnClickListener { _: View ->
             book.let { this.onClick(it) }
         }
+    }
+
+    fun hide() {
+        binding.titleView.isVisible = false
+        binding.authorView.isVisible = false
+        binding.coverImageView.isVisible = false
+    }
+
+    fun show() {
+        binding.titleView.isVisible = true
+        binding.authorView.isVisible = true
+        binding.coverImageView.isVisible = true
     }
 }
