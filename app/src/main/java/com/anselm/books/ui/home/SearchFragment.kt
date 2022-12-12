@@ -11,7 +11,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.navigation.fragment.findNavController
@@ -23,7 +22,6 @@ class QueryViewModel : ViewModel() {
 }
 
 class SearchFragment : ListFragment() {
-    private val viewModel: QueryViewModel by activityViewModels()
     // Button's Drawable to use to open a filter dialog.
     private lateinit var filterDrawable: Drawable
     // Button's Drawable to use when a filter value is selected, to clear it out.
