@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -66,11 +67,10 @@ class DetailsFragment : Fragment() {
                 if (menuItem.itemId == R.id.idEditBook && bookId >= 0) {
                     val action = DetailsFragmentDirections.actionDetailsFragmentToEditFragment(bookId)
                     findNavController().navigate(action)
-
                 }
                 return false
             }
-        })
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 }
 

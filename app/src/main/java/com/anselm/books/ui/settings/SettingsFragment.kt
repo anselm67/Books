@@ -7,6 +7,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.anselm.books.BooksApplication
@@ -44,7 +45,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return false
             }
-        })
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
 }

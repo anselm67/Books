@@ -36,11 +36,37 @@
         <item name="android:layout_marginEnd">5dp</item>
     </style>
 
+    <!-- Dialog used for rendering search filter values. -->
     <style name="DialogStyle" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
         <item name="android:windowActivityTransitions">true</item>
     </style>
 
+    <!-- Editing books through the EditFragment -->
+    <style name="EditFieldContainerStyle">
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+    </style>
+
+    <style name="EditFieldLabelStyle">
+        <item name="android:background">@color/white</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:layout_marginStart">12sp</item>
+        <item name="android:layout_marginTop">-8sp</item>
+        <item name="android:paddingStart">5dp</item>
+        <item name="android:paddingEnd">5dp</item>
+    </style>
+
+    <style name="EditTextFieldStyle">
+        <item name="android:maxLines">4</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:paddingStart">5dp</item>
+        <item name="android:paddingEnd">5dp</item>
+        <item name="android:background">@drawable/textview_border</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+    </style>
 
 </resources>

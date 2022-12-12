@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.navigation.fragment.findNavController
@@ -77,7 +78,7 @@ class SearchFragment : ListFragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return false
             }
-        })
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun clearFilter(columnName: String) {

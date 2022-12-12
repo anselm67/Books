@@ -11,7 +11,9 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layoutDirection="ltr"
-        android:padding="5dp">
+        android:padding="5dp"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
         <ImageView
             android:id="@+id/coverImageView"
@@ -25,93 +27,72 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <RelativeLayout
+            style="@style/EditFieldContainerStyle"
             android:layout_width="match_parent"
-            android:layout_height="40sp" >
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false">
 
             <TextView
                 android:id="@+id/titleView"
+                style="@style/EditTextFieldStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="4"
-                android:textSize="20sp"
-                android:paddingStart="5dp"
-                android:paddingEnd="5dp"
-                android:background="@drawable/textview_border"
                 android:layout_alignParentBottom="true" />
 
             <TextView
+                style="@style/EditFieldLabelStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/titleLabel"
-                android:background="@color/white"
-                android:textColor="@color/black"
-                android:textSize="11sp"
-                android:layout_marginStart="12sp"
-                android:layout_marginBottom="20sp"
-                android:paddingStart="5dp"
-                android:paddingEnd="5dp"
-                android:layout_alignParentBottom="true" />
+                android:layout_alignParentTop="true" />
 
         </RelativeLayout>
 
         <RelativeLayout
+            style="@style/EditFieldContainerStyle"
             android:layout_width="match_parent"
-            android:layout_height="40sp" >
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false">
 
             <TextView
                 android:id="@+id/subtitleView"
+                style="@style/EditTextFieldStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="4"
-                android:textSize="20sp"
-                android:paddingStart="5dp"
-                android:paddingEnd="5dp"
-                android:background="@drawable/textview_border"
                 android:layout_alignParentBottom="true" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitleLabel"
-                android:background="@color/white"
-                android:textColor="@color/black"
-                android:textSize="11sp"
-                android:layout_marginStart="12sp"
-                android:layout_marginBottom="20sp"
-                android:paddingStart="5dp"
-                android:paddingEnd="5dp"
-                android:layout_alignParentBottom="true" />
+                style="@style/EditFieldLabelStyle"
+                android:layout_alignParentTop="true" />
 
         </RelativeLayout>
 
 
         <RelativeLayout
+            style="@style/EditFieldContainerStyle"
             android:layout_width="match_parent"
-            android:layout_height="40sp" >
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false">
 
             <TextView
                 android:id="@+id/authorView"
-                android:maxLines="4"
+                style="@style/EditTextFieldStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:paddingStart="5dp"
-                android:paddingEnd="5dp"
-                android:background="@drawable/textview_border"
                 android:layout_alignParentBottom="true" />
 
             <TextView
+                style="@style/EditFieldLabelStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/authorLabel"
-                android:background="@color/white"
-                android:textColor="@color/black"
-                android:textSize="11sp"
-                android:layout_marginStart="12sp"
-                android:layout_marginBottom="20sp"
-                android:paddingStart="5dp"
-                android:paddingEnd="5dp"
-                android:layout_alignParentBottom="true" />
+                android:layout_alignParentTop="true" />
 
         </RelativeLayout>
 
