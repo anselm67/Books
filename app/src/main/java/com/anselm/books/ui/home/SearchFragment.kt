@@ -149,6 +149,7 @@ class SearchFragment : ListFragment() {
         (item.actionView as SearchView).let {
             it.setQuery(query?.query, false)
             it.isIconified = false
+            it.clearFocus()
             it.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(text: String?): Boolean {
                     query?.query = text
@@ -170,7 +171,6 @@ class SearchFragment : ListFragment() {
             }
         }
     }
-
 }
 
 
