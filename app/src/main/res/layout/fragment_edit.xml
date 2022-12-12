@@ -2,6 +2,7 @@
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -33,12 +34,15 @@
             android:clipChildren="false"
             android:clipToPadding="false">
 
-            <TextView
+            <EditText
                 android:id="@+id/titleView"
                 style="@style/EditTextFieldStyle"
+                android:inputType="text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true" />
+                android:layout_alignParentBottom="true"
+                android:importantForAutofill="no"
+                tools:ignore="LabelFor" />
 
             <TextView
                 style="@style/EditFieldLabelStyle"
@@ -46,7 +50,6 @@
                 android:layout_height="wrap_content"
                 android:text="@string/titleLabel"
                 android:layout_alignParentTop="true" />
-
         </RelativeLayout>
 
         <RelativeLayout
@@ -56,12 +59,15 @@
             android:clipChildren="false"
             android:clipToPadding="false">
 
-            <TextView
+            <EditText
                 android:id="@+id/subtitleView"
+                android:inputType="text"
                 style="@style/EditTextFieldStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true" />
+                android:layout_alignParentBottom="true"
+                android:importantForAutofill="no"
+                tools:ignore="LabelFor" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -69,7 +75,6 @@
                 android:text="@string/subtitleLabel"
                 style="@style/EditFieldLabelStyle"
                 android:layout_alignParentTop="true" />
-
         </RelativeLayout>
 
 
@@ -80,12 +85,15 @@
             android:clipChildren="false"
             android:clipToPadding="false">
 
-            <TextView
+            <EditText
                 android:id="@+id/authorView"
                 style="@style/EditTextFieldStyle"
+                android:inputType="text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true" />
+                android:layout_alignParentBottom="true"
+                android:importantForAutofill="no"
+                tools:ignore="LabelFor" />
 
             <TextView
                 style="@style/EditFieldLabelStyle"
@@ -93,8 +101,69 @@
                 android:layout_height="wrap_content"
                 android:text="@string/authorLabel"
                 android:layout_alignParentTop="true" />
-
         </RelativeLayout>
 
+        <RelativeLayout
+            style="@style/EditFieldContainerStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <EditText
+                android:id="@+id/summaryView"
+                style="@style/EditTextFieldStyle"
+                android:inputType="text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:importantForAutofill="no"
+                tools:ignore="LabelFor" />
+
+            <TextView
+                style="@style/EditFieldLabelStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/summaryLabel"
+                android:layout_alignParentTop="true" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            style="@style/EditFieldContainerStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <LinearLayout
+                style="@style/EditTextFieldStyle"
+                android:layout_alignParentBottom="true"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:layoutDirection="ltr"
+                android:gravity="center">
+
+                <NumberPicker
+                    android:id="@+id/yearPublished100Picker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <NumberPicker
+                    android:id="@+id/yearPublished10Picker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <NumberPicker
+                    android:id="@+id/yearPublished1Picker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/EditFieldLabelStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/yearPublishedLabel"
+                android:layout_alignParentTop="true" />
+        </RelativeLayout>
     </LinearLayout>
 </ScrollView>

@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface BookDao {
@@ -15,6 +16,9 @@ interface BookDao {
 
     @Query("DELETE FROM book_table")
     suspend fun deleteAll(): Int
+
+    @Update
+    suspend fun update(book: Book)
 
     /**
      * Two queries for top level search.

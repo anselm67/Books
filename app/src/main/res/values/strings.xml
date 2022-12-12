@@ -29,7 +29,7 @@
     <!-- Details fragment strings -->
     <string name="book_details">Book details</string>
     <string name="isbnLabel">"ISBN"</string>
-    <string name="yearPublishedLabel">Year</string>
+    <string name="yearPublishedLabel">Year Published</string>
     <string name="numberOfPagesLabel">Pages</string>
     <string name="summaryLabel">Summary</string>
     <string name="physicalLocationLabel">Physical Location</string>
