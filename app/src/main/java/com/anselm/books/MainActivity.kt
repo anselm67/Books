@@ -35,9 +35,9 @@ class MainActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         BooksApplication.app.enableProgressBar(findViewById(R.id.progress_bar))
-        BooksApplication.app.enableTitle({ title: String ->
+        BooksApplication.app.enableTitle { title: String ->
             binding.appBarMain.toolbar.title = title
-        })
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
