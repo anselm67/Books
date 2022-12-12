@@ -10,6 +10,9 @@ interface BookDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(book: Book)
 
+    @Query("SELECT * FROM book_table WHERE id = :bookId")
+    suspend fun getBook(bookId: Int) : Book
+
     @Query("DELETE FROM book_table")
     suspend fun deleteAll(): Int
 
@@ -30,6 +33,18 @@ interface BookDao {
         publisherCond: Boolean, publisher: String,
         limit: Int, offset: Int) : List<Book>
 
+    @Query("SELECT COUNT(*) FROM book_table " +
+            " JOIN book_fts ON book_table.id = book_fts.rowid " +
+            " WHERE book_fts MATCH :query " +
+            "   AND (:locationCond OR physicalLocation = :physicalLocation)" +
+            "   AND (:genreCond OR genre = :genre)" +
+            "   AND (:publisherCond OR publisher = :publisher)" )
+    suspend fun getTitlePagedListCount(
+        query: String,
+        locationCond: Boolean, physicalLocation: String,
+        genreCond: Boolean, genre: String,
+        publisherCond: Boolean, publisher: String) : Int
+
     @Query("SELECT * FROM book_table " +
             " JOIN book_fts ON book_table.id = book_fts.rowid " +
             " WHERE (:locationCond OR physicalLocation = :physicalLocation)" +
@@ -42,8 +57,16 @@ interface BookDao {
         publisherCond: Boolean, publisher: String,
         limit: Int, offset: Int) : List<Book>
 
-    @Query("SELECT * FROM book_table WHERE id = :bookId")
-    suspend fun getBook(bookId: Int) : Book
+    @Query("SELECT COUNT(*) FROM book_table " +
+            " JOIN book_fts ON book_table.id = book_fts.rowid " +
+            " WHERE (:locationCond OR physicalLocation = :physicalLocation)" +
+            "   AND (:genreCond OR genre = :genre)" +
+            "   AND (:publisherCond OR publisher = :publisher)")
+    suspend fun getFilteredPagedListCount(
+        locationCond: Boolean, physicalLocation: String,
+        genreCond: Boolean, genre: String,
+        publisherCond: Boolean, publisher: String) : Int
+
 
     /**
      * Two queries for (physical) location histograms.

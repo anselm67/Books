@@ -48,6 +48,32 @@ class BookRepository(private val bookDao: BookDao) {
         }
     }
 
+    suspend fun getPagedListCount(): Int {
+        Log.d(TAG, "runQuery ${query.query}/${query.partial}," +
+                " location: '${query.location}'," +
+                " genre: '${query.genre}'" +
+                " publisher: '${query.publisher}'"
+        )
+        return if ( isEmpty(query.query) ) {
+            val isLocationEmpty = isEmpty(query.location)
+            val isGenreEmpty = isEmpty(query.genre)
+            val isPublisherEmpty = isEmpty(query.publisher)
+            bookDao.getFilteredPagedListCount(
+                isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
+                isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
+        } else /* Requests text matching. */ {
+            val isLocationEmpty = isEmpty(query.location)
+            val isGenreEmpty = isEmpty(query.genre)
+            val isPublisherEmpty = isEmpty(query.publisher)
+            bookDao.getTitlePagedListCount(
+                if (query.partial) query.query!! + '*' else query.query!!,
+                isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
+                isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
+        }
+    }
+
     suspend fun deleteAll() {
         bookDao.deleteAll()
     }

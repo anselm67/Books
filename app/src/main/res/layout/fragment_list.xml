@@ -61,6 +61,8 @@
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/list"
+            android:scrollbars="vertical"
+            android:scrollbarFadeDuration="0"
             android:fadeScrollbars="false"
             app:fastScrollEnabled="true"
             app:fastScrollHorizontalThumbDrawable="@drawable/thumb_drawable"
