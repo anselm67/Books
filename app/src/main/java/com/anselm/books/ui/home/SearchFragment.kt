@@ -32,6 +32,7 @@ class SearchFragment : ListFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        super.onCreateView(inflater, container, savedInstanceState)
         val root = super.onCreateView(inflater, container, savedInstanceState)
         val safeArgs: SearchFragmentArgs by navArgs()
         Log.d(TAG, "safeArgs query=${safeArgs.query}, " +

@@ -9,8 +9,12 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.anselm.books.*
+import com.anselm.books.Book
+import com.anselm.books.BookFields
+import com.anselm.books.BooksApplication
+import com.anselm.books.R
 import com.anselm.books.databinding.DetailsDetailsLayoutBinding
 import com.anselm.books.databinding.DetailsFieldLayoutBinding
 import com.anselm.books.databinding.FragmentDetailsBinding
@@ -20,12 +24,14 @@ import kotlinx.coroutines.launch
 class DetailsFragment : Fragment() {
     private var _binding: FragmentDetailsBinding? = null
     private val binding get() = _binding!!
+    private var bookId: Int = -1
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        super.onCreateView(inflater, container, savedInstanceState)
         _binding = FragmentDetailsBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
@@ -34,6 +40,7 @@ class DetailsFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             val book: Book = repository.getBook(safeArgs.bookId)
+            bookId = book.id
             binding.bind(inflater, book)
         }
 
@@ -56,6 +63,11 @@ class DetailsFragment : Fragment() {
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                if (menuItem.itemId == R.id.idEditBook && bookId >= 0) {
+                    val action = DetailsFragmentDirections.actionDetailsFragmentToEditFragment(bookId)
+                    findNavController().navigate(action)
+
+                }
                 return false
             }
         })
@@ -122,6 +134,7 @@ private val FIELDS = arrayOf<Pair<Int,String>>(
 
 private fun FragmentDetailsBinding.bind(inflater: LayoutInflater, book: Book) {
     val app = BooksApplication.app
+    app.title = book.title
     // Main part of the details.
     titleView.text = book.title
     subtitleView.text = book.subtitle

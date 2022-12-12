@@ -35,6 +35,7 @@ open class ListFragment: Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        super.onCreateView(inflater, container, savedInstanceState)
         _binding = FragmentListBinding.inflate(inflater, container, false)
         val root: View = binding.root
         val app = BooksApplication.app

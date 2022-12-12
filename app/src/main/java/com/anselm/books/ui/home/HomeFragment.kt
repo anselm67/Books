@@ -15,6 +15,7 @@ class HomeFragment : ListFragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View {
+        super.onCreateView(inflater, container, savedInstanceState)
         val root = super.onCreateView(inflater, container, savedInstanceState)
         binding.idSearchFilters.isVisible = false
         handleMenu(requireActivity())

@@ -22,6 +22,7 @@ class GalleryFragment : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View {
+        super.onCreateView(inflater, container, savedInstanceState)
         _binding = FragmentGalleryBinding.inflate(inflater, container, false)
         val root: View = binding.root
 

@@ -47,5 +47,7 @@
     <string name="select_histo_value">Select a value</string>
     <string name="publisher_filter">Publisher</string>
     <string name="cancel">Cancel</string>
-
+    <string name="book_edit">Edit</string>
+    <string name="titleLabel">Title</string>
+    <string name="subtitleLabel">Sub-title</string>
 </resources>
