@@ -60,7 +60,6 @@
     </style>
 
     <style name="EditTextFieldStyle">
-        <item name="android:maxLines">4</item>
         <item name="android:textSize">20sp</item>
         <item name="android:paddingStart">5dp</item>
         <item name="android:paddingEnd">5dp</item>
