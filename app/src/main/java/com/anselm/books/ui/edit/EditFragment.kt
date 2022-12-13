@@ -223,19 +223,30 @@ private class YearEditor(
             val newValue = getEditorValue()
             if (newValue != getter().toIntOrNull()) {
                 fragment.setChangedBorder(editor.yearPublishedView)
+                editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
+                    fragment.requireContext(), R.color.editorValueChanged))
             } else {
                 fragment.setRegularBorder(editor.yearPublishedView)
+                editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
+                    fragment.requireContext(), R.color.editorValueUnchanged))
             }
         }
         editor.yearPublished100Picker.setOnValueChangedListener(onValueChanged)
         editor.yearPublished10Picker.setOnValueChangedListener(onValueChanged)
         editor.yearPublished1Picker.setOnValueChangedListener(onValueChanged)
+        editor.idUndoEdit.setOnClickListener {
+            setEditorValue(getter().toIntOrNull() ?: 0)
+            fragment.setRegularBorder(editor.yearPublishedView)
+            editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
+                fragment.requireContext(), R.color.editorValueUnchanged))
+        }
+
         return editor.root
     }
 
     override fun isChanged(): Boolean {
         val value = getEditorValue()
-        return (getter().toIntOrNull() ?: 0) == value
+        return (getter().toIntOrNull() ?: 0) != value
     }
 
     override fun saveChange() {
@@ -266,7 +277,7 @@ private class TextEditor(
 
                 override fun afterTextChanged(s: Editable?) {
                     val value = s.toString().trim()
-                    if ( checker != null && ! checker.invoke(value) ) {
+                    if (checker != null && ! checker.invoke(value)) {
                         fragment.setInvalidBorder(it)
                         editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
                             fragment.requireContext(), R.color.editorValueInvalid))
@@ -279,7 +290,16 @@ private class TextEditor(
                     }
                 }
             })
-
+            // I have no idea what this does, I haven't read the docs. Sigh.
+            // What I can say is that it allows to scroll the EditText widget even though it is
+            // itself in a scrollable view: ScrollView > LinearLayout > Editor (EditText)
+            it.setOnTouchListener { view, event ->
+                view.parent.requestDisallowInterceptTouchEvent(true)
+                if ((event.action and MotionEvent.ACTION_MASK) == MotionEvent.ACTION_UP) {
+                    view.parent.requestDisallowInterceptTouchEvent(false)
+                }
+                return@setOnTouchListener false
+            }
         }
         editor.idUndoEdit.setOnClickListener {
             editor.idEditText.setText(getter())
