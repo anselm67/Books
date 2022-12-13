@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.*
 import android.widget.EditText
 import android.widget.NumberPicker.OnValueChangeListener
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -20,11 +21,11 @@ import com.anselm.books.Book
 import com.anselm.books.BooksApplication
 import com.anselm.books.R
 import com.anselm.books.TAG
+import com.anselm.books.databinding.EditFieldLayoutBinding
+import com.anselm.books.databinding.EditYearLayoutBinding
 import com.anselm.books.databinding.FragmentEditBinding
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
-import kotlin.reflect.KMutableProperty0
-import kotlin.reflect.KProperty0
 
 class EditFragment: Fragment() {
     private var _binding: FragmentEditBinding? = null
@@ -34,6 +35,8 @@ class EditFragment: Fragment() {
     private var validBorder: Drawable? = null
     private var invalidBorder: Drawable? = null
     private var changedBorder: Drawable? = null
+
+    private var editors: List<Editor>? = null
 
     private fun getBorderDrawable(resourceId: Int): Drawable {
         return ResourcesCompat.getDrawable(resources, resourceId, null)!!
@@ -53,7 +56,7 @@ class EditFragment: Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             book = repository.getBook(safeArgs.bookId)
-            book?.let { bind(it) }
+            book?.let { editors = bind(inflater, it) }
         }
 
         // Caches the borders corresponding to the various states of individual field editors.
@@ -62,96 +65,39 @@ class EditFragment: Fragment() {
         changedBorder = getBorderDrawable(R.drawable.textview_border_changed)
 
         handleMenu(requireActivity())
+
         return root
     }
 
-    private fun setInvalidBorder(view: View) {
+    fun setInvalidBorder(view: View) {
         view.background = invalidBorder
     }
 
-    private fun setChangedBorder(view: View) {
+    fun setChangedBorder(view: View) {
         view.background = changedBorder
     }
 
-    private fun setRegularBorder(view: View) {
+    fun setRegularBorder(view: View) {
         view.background = validBorder
     }
 
-    private fun setBorder(editText: EditText, currentValue: String?) {
-        val newValue = editText.text.toString()
-        if (newValue == currentValue) {
+    /**
+     * Sets the given [editText] border to color code a pending changes.
+     * Returns true if the value has been edited, false otherwise.
+     */
+    fun setBorder(editText: EditText, currentValue: String?): Boolean  {
+        val newValue = editText.text.toString().trim()
+        return if (newValue == currentValue) {
             setRegularBorder(editText)
+            false
         } else {
             setChangedBorder(editText)
+            true
         }
     }
 
-    private fun bindEditText(
-        editText: EditText,
-        getter: KProperty0.Getter<String>,
-        checker: ((String) -> Boolean)? = null) {
-        editText.setText(getter())
-        editText.addTextChangedListener(object: TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { }
-
-            override fun afterTextChanged(s: Editable?) {
-                val value = s.toString().trim()
-                if ( checker != null && ! checker(value) ) {
-                    setInvalidBorder(editText)
-                } else {
-                    setBorder(editText, getter())
-                }
-            }
-        })
-    }
-
-    private fun getYearPublishedValue(): Int {
-        return (binding.yearPublished100Picker.value * 100
-                + binding.yearPublished10Picker.value * 10
-                + binding.yearPublished1Picker.value)
-    }
-
-    private fun setYearPublishedValue(value: Int) {
-        if (value in Book.MIN_PUBLISHED_YEAR..Book.MAX_PUBLISHED_YEAR) {
-            binding.yearPublished100Picker.value = value / 100
-            binding.yearPublished10Picker.value = (value / 100) % 10
-            binding.yearPublished1Picker.value = value % 10
-        }
-    }
-
-    private fun bindYearPublished() {
-        binding.yearPublished100Picker.minValue = Book.MIN_PUBLISHED_YEAR / 100
-        binding.yearPublished100Picker.maxValue = Book.MAX_PUBLISHED_YEAR / 100
-        binding.yearPublished10Picker.minValue = 0
-        binding.yearPublished10Picker.maxValue = 9
-        binding.yearPublished1Picker.minValue = 0
-        binding.yearPublished1Picker.maxValue = 9
-        val yearPublished = book?.yearPublished?.toIntOrNull()
-        setYearPublishedValue(if (yearPublished == null ) 0 else yearPublished)
-        val onValueChanged = OnValueChangeListener { _, _, _ ->
-            val newValue = getYearPublishedValue()
-            if (newValue != book?.yearPublished?.toIntOrNull()) {
-                setChangedBorder(binding.yearPublishedView)
-            } else {
-                setRegularBorder(binding.yearPublishedView)
-            }
-        }
-        binding.yearPublished100Picker.setOnValueChangedListener(onValueChanged)
-        binding.yearPublished10Picker.setOnValueChangedListener(onValueChanged)
-        binding.yearPublished1Picker.setOnValueChangedListener(onValueChanged)
-    }
-
-    private fun bind(book: Book) {
+    private fun bind(inflater: LayoutInflater, book: Book): List<Editor> {
         val app = BooksApplication.app
-        // Binds all the simple text fields.
-        bindEditText(binding.titleView, book::title.getter)
-        bindEditText(binding.subtitleView, book::subtitle.getter)
-        bindEditText(binding.authorView, book::author.getter)
-        bindEditText(binding.summaryView, book::summary.getter)
-        bindEditText(binding.isbnView, book::isbn.getter) { value -> isValidEAN13(value) }
-        // Binds the year published number picker.
-        bindYearPublished()
         // Binds the cover to its image via Glide.
         if (book.imageFilename != "") {
             Glide.with(app.applicationContext)
@@ -163,36 +109,25 @@ class EditFragment: Fragment() {
                 .load(R.mipmap.ic_book_cover)
                 .into(binding.coverImageView)
         }
-    }
-
-    private fun updateValue(editText: EditText, getter: KProperty0.Getter<String>, setter: KMutableProperty0.Setter<String>):Boolean {
-        val value = editText.text.toString()
-        return if (value != getter()) {
-            setter(value)
-            true
-        } else {
-            false
+        // Creates and sets up an editor for every book property.
+        val fields = arrayListOf(
+            TextEditor(this, inflater, R.string.titleLabel, book::title.getter, book::title.setter),
+            TextEditor(this, inflater, R.string.subtitleLabel, book::subtitle.getter, book::subtitle.setter),
+            TextEditor(this, inflater, R.string.authorLabel, book::author.getter, book::author.setter),
+            TextEditor(this, inflater, R.string.summaryLabel, book::summary.getter, book::summary.setter),
+            TextEditor(this, inflater, R.string.isbnLabel, book::isbn.getter, book::isbn.setter) {
+                isValidEAN13(it)
+            },
+            YearEditor(this, inflater, book::yearPublished.getter, book::yearPublished.setter))
+        fields.forEach {
+            binding.editView.addView(it.setup(binding.editView))
         }
-    }
-
-    private fun updateYearPublished(): Boolean {
-        val value = getYearPublishedValue()
-        if (value != 0 && value != book?.yearPublished?.toIntOrNull()) {
-            book?.yearPublished = value.toString()
-            return true
-        }
-        return false
+        return fields
     }
 
     private fun saveChanges() {
-        if (book == null) {
-            return
-        }
-        val changed = (updateValue(binding.titleView, book!!::title.getter, book!!::title.setter)
-                || updateValue(binding.subtitleView, book!!::subtitle.getter, book!!::subtitle.setter)
-                || updateValue(binding.authorView, book!!::author.getter, book!!::author.setter)
-                || updateValue(binding.summaryView, book!!::summary.getter, book!!::summary.setter)
-                || updateYearPublished())
+        var changed = false
+        editors?.forEach { changed = changed || it.isChanged() }
         if (changed) {
             activity?.lifecycleScope?.launch {
                 val app = BooksApplication.app
@@ -239,3 +174,120 @@ class EditFragment: Fragment() {
     }
 }
 
+private abstract class Editor(
+    open val fragment: EditFragment,
+    open val inflater: LayoutInflater) {
+    abstract fun setup(container: ViewGroup?): View
+    abstract fun isChanged(): Boolean
+    abstract fun saveChange()
+}
+
+private class YearEditor(
+    override val fragment: EditFragment,
+    override val inflater: LayoutInflater,
+    val getter: () -> String,
+    val setter: (String) -> Unit
+): Editor(fragment, inflater) {
+    private var _binding: EditYearLayoutBinding? = null
+    private val editor get() = _binding!!
+
+    private fun getEditorValue(): Int {
+        return (editor.yearPublished100Picker.value * 100
+                + editor.yearPublished10Picker.value * 10
+                + editor.yearPublished1Picker.value)
+    }
+
+    private fun setEditorValue(value: Int) {
+        if (value in Book.MIN_PUBLISHED_YEAR..Book.MAX_PUBLISHED_YEAR) {
+            editor.yearPublished100Picker.value = value / 100
+            editor.yearPublished10Picker.value = (value / 100) % 10
+            editor.yearPublished1Picker.value = value % 10
+        }
+    }
+
+    override fun setup(container: ViewGroup?): View {
+        _binding = EditYearLayoutBinding.inflate(inflater, container, false)
+        editor.yearPublished100Picker.minValue = Book.MIN_PUBLISHED_YEAR / 100
+        editor.yearPublished100Picker.maxValue = Book.MAX_PUBLISHED_YEAR / 100
+        editor.yearPublished10Picker.minValue = 0
+        editor.yearPublished10Picker.maxValue = 9
+        editor.yearPublished1Picker.minValue = 0
+        editor.yearPublished1Picker.maxValue = 9
+        setEditorValue(getter().toIntOrNull() ?: 0)
+        val onValueChanged = OnValueChangeListener { _, _, _ ->
+            val newValue = getEditorValue()
+            if (newValue != getter().toIntOrNull()) {
+                fragment.setChangedBorder(editor.yearPublishedView)
+            } else {
+                fragment.setRegularBorder(editor.yearPublishedView)
+            }
+        }
+        editor.yearPublished100Picker.setOnValueChangedListener(onValueChanged)
+        editor.yearPublished10Picker.setOnValueChangedListener(onValueChanged)
+        editor.yearPublished1Picker.setOnValueChangedListener(onValueChanged)
+        return editor.root
+    }
+
+    override fun isChanged(): Boolean {
+        val value = getEditorValue()
+        return (getter().toIntOrNull() ?: 0) == value
+    }
+
+    override fun saveChange() {
+        val value = getEditorValue()
+        setter(value.toString())
+    }
+}
+
+private class TextEditor(
+    override val fragment: EditFragment,
+    override val inflater: LayoutInflater,
+    val labelId: Int,
+    val getter: () -> String,
+    val setter: (String) -> Unit,
+    val checker: ((String) -> Boolean)? = null
+): Editor(fragment, inflater) {
+    private var _binding: EditFieldLayoutBinding? = null
+    private val editor get() = _binding!!
+
+    override fun setup(container: ViewGroup?): View {
+        _binding = EditFieldLayoutBinding.inflate(inflater, container, false)
+        editor.idEditLabel.text = fragment.getText(labelId)
+        editor.idEditText.let {
+            it.setText(getter())
+            it.addTextChangedListener(object: TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { }
+
+                override fun afterTextChanged(s: Editable?) {
+                    val value = s.toString().trim()
+                    if ( checker != null && ! checker.invoke(value) ) {
+                        fragment.setInvalidBorder(it)
+                        editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
+                            fragment.requireContext(), R.color.editorValueInvalid))
+                    } else if (fragment.setBorder(it, getter()) ) {
+                        editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
+                            fragment.requireContext(), R.color.editorValueChanged))
+                    } else {
+                        editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
+                            fragment.requireContext(), R.color.editorValueUnchanged))
+                    }
+                }
+            })
+        }
+        editor.idUndoEdit.setOnClickListener {
+            editor.idEditText.setText(getter())
+        }
+        return editor.root
+    }
+
+    override fun isChanged(): Boolean {
+        val value = editor.idEditText.text.toString().trim()
+        return value != getter()
+    }
+
+    override fun saveChange() {
+        setter(editor.idEditText.text.toString().trim())
+    }
+
+}
