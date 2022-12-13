@@ -21,7 +21,6 @@ import com.anselm.books.BooksApplication
 import com.anselm.books.R
 import com.anselm.books.TAG
 import com.anselm.books.databinding.FragmentEditBinding
-import com.anselm.books.ui.details.DetailsFragmentArgs
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 import kotlin.reflect.KMutableProperty0
@@ -50,7 +49,7 @@ class EditFragment: Fragment() {
         val root: View = binding.root
 
         val repository = (activity?.application as BooksApplication).repository
-        val safeArgs: DetailsFragmentArgs by navArgs()
+        val safeArgs: EditFragmentArgs by navArgs()
 
         viewLifecycleOwner.lifecycleScope.launch {
             book = repository.getBook(safeArgs.bookId)
@@ -130,7 +129,7 @@ class EditFragment: Fragment() {
         binding.yearPublished1Picker.maxValue = 9
         val yearPublished = book?.yearPublished?.toIntOrNull()
         setYearPublishedValue(if (yearPublished == null ) 0 else yearPublished)
-        val onValueChanged = OnValueChangeListener { picker, oldVal, newVal ->
+        val onValueChanged = OnValueChangeListener { _, _, _ ->
             val newValue = getYearPublishedValue()
             if (newValue != book?.yearPublished?.toIntOrNull()) {
                 setChangedBorder(binding.yearPublishedView)
