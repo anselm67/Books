@@ -139,6 +139,37 @@
             android:clipChildren="false"
             android:clipToPadding="false">
 
+            <EditText
+                android:id="@+id/isbnView"
+                style="@style/EditTextFieldStyle"
+                android:inputType="textMultiLine"
+                android:singleLine="false"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:importantForAutofill="no"
+                android:overScrollMode="always"
+                android:scrollbarStyle="insideInset"
+                android:scrollbars="vertical"
+                app:strokeColor="#ff0000"
+
+                tools:ignore="LabelFor" />
+
+            <TextView
+                style="@style/EditFieldLabelStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/isbnLabel"
+                android:layout_alignParentTop="true" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            style="@style/EditFieldContainerStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
             <LinearLayout
                 style="@style/EditTextFieldStyle"
                 android:layout_alignParentBottom="true"
