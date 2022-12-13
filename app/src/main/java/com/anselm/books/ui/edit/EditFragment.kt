@@ -127,7 +127,12 @@ class EditFragment: Fragment() {
 
     private fun saveChanges() {
         var changed = false
-        editors?.forEach { changed = changed || it.isChanged() }
+        editors?.forEach {
+            if ( it.isChanged() ) {
+                changed = true
+                it.saveChange()
+            }
+        }
         if (changed) {
             activity?.lifecycleScope?.launch {
                 val app = BooksApplication.app
@@ -274,6 +279,7 @@ private class TextEditor(
                     }
                 }
             })
+
         }
         editor.idUndoEdit.setOnClickListener {
             editor.idEditText.setText(getter())
