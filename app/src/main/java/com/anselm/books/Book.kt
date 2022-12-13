@@ -121,6 +121,11 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0) {
             else -> "UNKNOWN KEY $key"
         }
     }
+
+    companion object {
+        const val MIN_PUBLISHED_YEAR = 0
+        const val MAX_PUBLISHED_YEAR = 2100
+    }
 }
 
 @Entity(tableName = "book_fts")

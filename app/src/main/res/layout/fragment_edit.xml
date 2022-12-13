@@ -172,6 +172,7 @@
 
             <LinearLayout
                 style="@style/EditTextFieldStyle"
+                android:id="@+id/yearPublishedView"
                 android:layout_alignParentBottom="true"
                 android:layout_height="wrap_content"
                 android:layout_width="match_parent"
