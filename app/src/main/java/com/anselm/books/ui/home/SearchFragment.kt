@@ -38,7 +38,8 @@ class SearchFragment : ListFragment() {
         val safeArgs: SearchFragmentArgs by navArgs()
         Log.d(TAG, "safeArgs query=${safeArgs.query}, " +
                 "location=${safeArgs.location}, " +
-                "genre=${safeArgs.genre}")
+                "genre=${safeArgs.genre}, " +
+                "author=${safeArgs.author}")
 
         // Displays filters in this view, that's the whole point.
         binding.idSearchFilters.isVisible = true
@@ -57,6 +58,7 @@ class SearchFragment : ListFragment() {
         if (safeArgs.location != "") viewModel.query.value?.location = safeArgs.location
         if (safeArgs.genre != "") viewModel.query.value?.genre = safeArgs.genre
         if (safeArgs.publisher != "") viewModel.query.value?.publisher = safeArgs.publisher
+        if (safeArgs.author != "") viewModel.query.value?.author = safeArgs.author
 
         // Let's go.
         BooksApplication.app.repository.query = viewModel.query.value!!
@@ -90,6 +92,8 @@ class SearchFragment : ListFragment() {
                 query = viewModel.query.value?.copy(genre = null)
             SearchDialogFragment.PUBLISHER ->
                 query = viewModel.query.value?.copy(publisher = null)
+            SearchDialogFragment.AUTHOR ->
+                query = viewModel.query.value?.copy(author = null)
         }
         query?.let { viewModel.query.value = it }
     }
@@ -119,7 +123,11 @@ class SearchFragment : ListFragment() {
             Filter(SearchDialogFragment.PUBLISHER,
                 binding.idPublisherFilter,
                 viewModel.query.value?.publisher,
-                R.string.publisherLabel))
+                R.string.publisherLabel),
+            Filter(SearchDialogFragment.AUTHOR,
+                binding.idAuthorFilter,
+                viewModel.query.value?.author,
+                R.string.authorLabel))
         for (f in filters) {
             if (f.value!= null && f.value != "") {
                 f.button.text = f.value

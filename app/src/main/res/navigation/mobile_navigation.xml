@@ -39,6 +39,7 @@
         <argument android:name="location" app:argType="string" android:defaultValue="" />
         <argument android:name="genre" app:argType="string" android:defaultValue="" />
         <argument android:name="publisher" app:argType="string" android:defaultValue="" />
+        <argument android:name="author" app:argType="string" android:defaultValue="" />
 
         <action
             android:id="@+id/action_HomeFragment_to_DetailsFragment"

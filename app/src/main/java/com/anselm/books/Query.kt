@@ -5,5 +5,6 @@ data class Query (
     var partial: Boolean = false,
     var location: String? = null,
     var genre: String? = null,
-    var publisher: String? = null
+    var publisher: String? = null,
+    var author: String? = null
 )

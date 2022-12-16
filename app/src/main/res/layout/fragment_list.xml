@@ -56,6 +56,15 @@
                     android:layout_marginEnd="10dp"
                     android:drawableTint="?attr/colorOnPrimary" />
 
+                <Button
+                    android:id="@+id/idAuthorFilter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/author_filter"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:drawableTint="?attr/colorOnPrimary" />
+
             </LinearLayout>
         </HorizontalScrollView>
 

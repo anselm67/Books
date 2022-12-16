@@ -67,6 +67,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
         const val PHYSICAL_LOCATION = "physicalLocation"
         const val GENRE = "genre"
         const val PUBLISHER = "publisher"
+        const val AUTHOR = "author"
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -114,6 +115,8 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
                 values = BooksApplication.app.repository.getGenres()
             PUBLISHER ->
                 values = BooksApplication.app.repository.getPublishers()
+            AUTHOR ->
+                values = BooksApplication.app.repository.getAuthors()
             else
             -> listOf<Histo>()
         }
@@ -132,6 +135,8 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
                 viewModel.query.value = viewModel.query.value?.copy(genre = histo.text)
             PUBLISHER ->
                 viewModel.query.value = viewModel.query.value?.copy(publisher = histo.text)
+            AUTHOR ->
+                viewModel.query.value = viewModel.query.value?.copy(author = histo.text)
         }
         dismiss()
     }

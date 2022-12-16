@@ -31,20 +31,24 @@ class BookRepository(private val bookDao: BookDao) {
             val isLocationEmpty = isEmpty(query.location)
             val isGenreEmpty = isEmpty(query.genre)
             val isPublisherEmpty = isEmpty(query.publisher)
+            val isAuthorEmpty = isEmpty(query.author)
             bookDao.getFilteredPagedList(
                 isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
                 isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
                 isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!,
+                isAuthorEmpty, if (isAuthorEmpty) "" else query.author!!,
                 limit, offset)
         } else /* Requests text matching. */ {
             val isLocationEmpty = isEmpty(query.location)
             val isGenreEmpty = isEmpty(query.genre)
             val isPublisherEmpty = isEmpty(query.publisher)
+            val isAuthorEmpty = isEmpty(query.author)
             bookDao.getTitlePagedList(
                 if (query.partial) query.query!! + '*' else query.query!!,
                 isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
                 isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
                 isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!,
+                isAuthorEmpty, if (isAuthorEmpty) "" else query.author!!,
                 limit, offset)
         }
     }
@@ -61,19 +65,23 @@ class BookRepository(private val bookDao: BookDao) {
             val isLocationEmpty = isEmpty(query.location)
             val isGenreEmpty = isEmpty(query.genre)
             val isPublisherEmpty = isEmpty(query.publisher)
+            val isAuthorEmpty = isEmpty(query.author)
             bookDao.getFilteredPagedListCount(
                 isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
                 isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
-                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!,
+                isAuthorEmpty, if (isAuthorEmpty) "" else query.author!!)
         } else /* Requests text matching. */ {
             val isLocationEmpty = isEmpty(query.location)
             val isGenreEmpty = isEmpty(query.genre)
             val isPublisherEmpty = isEmpty(query.publisher)
+            val isAuthorEmpty = isEmpty(query.author)
             bookDao.getTitlePagedListCount(
                 if (query.partial) query.query!! + '*' else query.query!!,
                 isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
                 isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
-                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!,
+                isAuthorEmpty, if (isAuthorEmpty) "" else query.author!!)
         }
         return itemCount.value!!
     }
@@ -90,16 +98,20 @@ class BookRepository(private val bookDao: BookDao) {
         return if ( isEmpty(query.query) ) {
             val isGenreEmpty = isEmpty(query.genre)
             val isPublisherEmpty = isEmpty(query.publisher)
+            val isAuthorEmpty = isEmpty(query.author)
             bookDao.getFilteredPhysicalLocation(
                 isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
-                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!,
+                isAuthorEmpty, if (isAuthorEmpty) "" else query.author!!)
         } else /* Requests text match. */ {
             val isGenreEmpty = isEmpty(query.genre)
             val isPublisherEmpty = isEmpty(query.publisher)
+            val isAuthorEmpty = isEmpty(query.author)
             bookDao.getTitlePhysicalLocation(
                 if (query.partial) query.query!! + '*' else query.query!!,
                 isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
-                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!,
+                isAuthorEmpty, if (isAuthorEmpty) "" else query.author!!)
         }
     }
 
@@ -107,16 +119,20 @@ class BookRepository(private val bookDao: BookDao) {
         return if ( isEmpty(query.query) ) {
             val isLocationEmpty = isEmpty(query.location)
             val isPublisherEmpty = isEmpty(query.publisher)
+            val isAuthorEmpty = isEmpty(query.author)
             bookDao.getFilteredGenre(
                 isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
-                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!,
+                isAuthorEmpty, if (isAuthorEmpty) "" else query.author!!)
         } else /* titleQuery is not empty */ {
             val isLocationEmpty = isEmpty(query.location)
             val isPublisherEmpty = isEmpty(query.publisher)
+            val isAuthorEmpty = isEmpty(query.author)
             bookDao.getTitleGenre(
                 if (query.partial) query.query!! + '*' else query.query!!,
                 isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
-                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!,
+                isAuthorEmpty, if (isAuthorEmpty) "" else query.author!!)
         }
     }
 
@@ -124,16 +140,41 @@ class BookRepository(private val bookDao: BookDao) {
         return if ( isEmpty(query.query) ) {
             val isLocationEmpty = isEmpty(query.location)
             val isGenreEmpty = isEmpty(query.genre)
+            val isAuthorEmpty = isEmpty(query.author)
             bookDao.getFilteredPublisher(
                 isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
-                isGenreEmpty, if (isGenreEmpty) "" else query.genre!!)
+                isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
+                isAuthorEmpty, if (isAuthorEmpty) "" else query.author!!)
         } else /* titleQuery is not empty */ {
             val isLocationEmpty = isEmpty(query.location)
             val isGenreEmpty = isEmpty(query.genre)
+            val isAuthorEmpty = isEmpty(query.author)
             bookDao.getTitlePublisher(
                 if (query.partial) query.query!! + '*' else query.query!!,
                 isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
-                isGenreEmpty, if (isGenreEmpty) "" else query.genre!!)
+                isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
+                isAuthorEmpty, if (isAuthorEmpty) "" else query.author!!)
+        }
+    }
+
+    suspend fun getAuthors(): List<Histo> {
+        return if ( isEmpty(query.query) ) {
+            val isLocationEmpty = isEmpty(query.location)
+            val isGenreEmpty = isEmpty(query.genre)
+            val isPublisherEmpty = isEmpty(query.publisher)
+            bookDao.getFilteredAuthor(
+                isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
+                isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
+        } else /* titleQuery is not empty */ {
+            val isLocationEmpty = isEmpty(query.location)
+            val isGenreEmpty = isEmpty(query.genre)
+            val isPublisherEmpty = isEmpty(query.publisher)
+            bookDao.getTitleAuthor(
+                if (query.partial) query.query!! + '*' else query.query!!,
+                isLocationEmpty, if (isLocationEmpty) "" else query.location!!,
+                isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
+                isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!)
         }
     }
 
