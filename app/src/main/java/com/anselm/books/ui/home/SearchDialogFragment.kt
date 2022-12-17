@@ -4,6 +4,8 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.content.res.Resources
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -60,6 +62,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
     private val viewModel: QueryViewModel by activityViewModels()
     private lateinit var adapter: HistoAdapter
     private val dataSource: MutableList<Histo> = mutableListOf()
+    private var allValues = listOf<Histo>()
 
     private var columnName = PHYSICAL_LOCATION
 
@@ -103,25 +106,57 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
             dismiss()
         }
 
+        binding.idAutoComplete.addTextChangedListener(object: TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
+            override fun afterTextChanged(s: Editable?) { }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                filter(s.toString())
+            }
+        })
         return binding.root
     }
 
     private suspend fun loadValues() {
-        var values: List<Histo>? = null
         when (columnName) {
             PHYSICAL_LOCATION ->
-                values = BooksApplication.app.repository.getLocations()
+                allValues = BooksApplication.app.repository.getLocations()
             GENRE ->
-                values = BooksApplication.app.repository.getGenres()
+                allValues = BooksApplication.app.repository.getGenres()
             PUBLISHER ->
-                values = BooksApplication.app.repository.getPublishers()
+                allValues = BooksApplication.app.repository.getPublishers()
             AUTHOR ->
-                values = BooksApplication.app.repository.getAuthors()
+                allValues = BooksApplication.app.repository.getAuthors()
             else
-            -> listOf<Histo>()
+                -> listOf<Histo>()
         }
-        values?.let { dataSource.addAll(it) }
-        adapter.notifyItemRangeInserted(0, values!!.size)
+        dataSource.addAll(allValues)
+        adapter.notifyItemRangeInserted(0, allValues.size)
+    }
+
+    private fun normalize(input: CharSequence): CharSequence {
+        val sb = StringBuilder()
+        var spaced = true
+        input.forEach { c ->
+            if (c.isLetter()) {
+                sb.append(c.lowercase())
+                spaced = false
+            } else if ( ! spaced ) {
+                sb.append(' ')
+                spaced = true
+            }
+        }
+        return sb.trim()
+    }
+
+    private fun filter(prefixInput: String) {
+        val prefix = normalize(prefixInput)
+        val values = allValues.filter { h -> normalize(h.text).startsWith(prefix) }
+        if (values.size != dataSource.size) {
+            dataSource.clear()
+            dataSource.addAll(values)
+            adapter.notifyItemRangeInserted(0, values.size)
+        }
     }
 
     /**
