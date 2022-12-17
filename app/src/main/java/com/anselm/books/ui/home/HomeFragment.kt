@@ -7,6 +7,7 @@ import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
+import com.anselm.books.BooksApplication
 import com.anselm.books.R
 
 class HomeFragment : ListFragment() {
@@ -19,7 +20,15 @@ class HomeFragment : ListFragment() {
         super.onCreateView(inflater, container, savedInstanceState)
         val root = super.onCreateView(inflater, container, savedInstanceState)
         binding.idSearchFilters.isVisible = false
+        binding.idCountView.isVisible = false
+
         handleMenu(requireActivity())
+
+        val app = BooksApplication.app
+        app.repository.itemCount.observe(viewLifecycleOwner) {
+            app.title = "$it Books"
+        }
+
         return root
     }
 
@@ -33,9 +42,7 @@ class HomeFragment : ListFragment() {
             }
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return if (menuItem.itemId == R.id.idGotoSearchView) {
-                    val action = HomeFragmentDirections.actionHomeFragmentToSearchFragment(
-                        query = null, location = null, genre = null, publisher = null, author=  null
-                    )
+                    val action = HomeFragmentDirections.actionHomeFragmentToSearchFragment()
                     findNavController().navigate(action)
                     true
                 } else {

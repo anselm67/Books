@@ -36,15 +36,15 @@
         tools:layout="@layout/fragment_list">
 
         <argument android:name="query" app:argType="string"
-            app:nullable="true" app:defaultValue="@null" />
+            app:nullable="true" android:defaultValue="@null" />
         <argument android:name="location" app:argType="string"
-            app:nullable="true" app:defaultValue="@null" />
+            app:nullable="true" android:defaultValue="@null" />
         <argument android:name="genre" app:argType="string"
-            app:nullable="true" app:defaultValue="@null" />
+            app:nullable="true" android:defaultValue="@null" />
         <argument android:name="publisher" app:argType="string"
-            app:nullable="true" app:defaultValue="@null" />
+            app:nullable="true" android:defaultValue="@null" />
         <argument android:name="author" app:argType="string"
-            app:nullable="true" app:defaultValue="@null" />
+            app:nullable="true" android:defaultValue="@null" />
 
         <action
             android:id="@+id/action_HomeFragment_to_DetailsFragment"

@@ -10,7 +10,7 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.findNavController
+import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.anselm.books.Book
@@ -27,6 +27,7 @@ class DetailsFragment : Fragment() {
     private var _binding: FragmentDetailsBinding? = null
     private val binding get() = _binding!!
     private var bookId: Int = -1
+    private lateinit var navController: NavController
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,6 +36,8 @@ class DetailsFragment : Fragment() {
     ): View {
         super.onCreateView(inflater, container, savedInstanceState)
         _binding = FragmentDetailsBinding.inflate(inflater, container, false)
+        navController = findNavController()
+
         val root: View = binding.root
 
         val repository = (activity?.application as BooksApplication).repository
@@ -68,7 +71,7 @@ class DetailsFragment : Fragment() {
                 if (menuItem.itemId == R.id.idEditBook && bookId >= 0) {
                     val action =
                         DetailsFragmentDirections.actionDetailsFragmentToEditFragment(bookId)
-                    findNavController().navigate(action)
+                    navController.navigate(action)
                 }
                 return false
             }
@@ -118,7 +121,7 @@ class DetailsFragment : Fragment() {
             LayoutParams.WRAP_CONTENT
         )
         val binding = DetailsDetailsLayoutBinding.inflate(inflater, container, true)
-        val fields = arrayOf<Triple<String, View, TextView>>(
+        arrayOf<Triple<String, View, TextView>>(
             Triple(
                 BookFields.ISBN,
                 binding.isbnContainerView,
@@ -134,54 +137,19 @@ class DetailsFragment : Fragment() {
                 binding.numberOfPagesContainerView,
                 binding.numberOfPageView
             ),
-        )
-        for (t in fields) {
-            val value = book.get(t.first)
+        ).forEach { (columnName, containerView, view) ->
+            val value = book.get(columnName)
             if (value == "") {
-                t.second.visibility = View.GONE
-                t.third.visibility = View.GONE
+                containerView.visibility = View.GONE
+                view.visibility = View.GONE
             } else {
-                t.third.text = value
+                view.text = value
             }
+
         }
         detailsView?.addView(container)
     }
 
-    private val fields = arrayOf<Triple<Int, String, ((String?) -> Unit)?>>(
-        Triple(R.string.publisherLabel, BookFields.PUBLISHER) {
-            val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                query="",
-                location="",
-                genre="",
-                publisher = it.toString(),
-                author="",
-            )
-            findNavController().navigate(action)
-        },
-        Triple(R.string.genreLabel, BookFields.GENRE) {
-            val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                query="",
-                location="",
-                genre=it.toString(),
-                publisher = "",
-                author="",
-            )
-            findNavController().navigate(action)
-        },
-        Triple(R.string.yearPublishedLabel, BookFields.YEAR_PUBLISHED, null),
-        Triple(R.string.physicalLocationLabel, BookFields.PHYSICAL_LOCATION) {
-            val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                query="",
-                location=it.toString(),
-                genre="",
-                publisher = "",
-                author="",
-            )
-            findNavController().navigate(action)
-        },
-        Triple(R.string.summaryLabel, BookFields.SUMMARY, null),
-        Triple(R.string.dateAddedLabel, BookFields.DATE_ADDED, null)
-    )
 
     private fun FragmentDetailsBinding.bind(inflater: LayoutInflater, book: Book) {
         val app = BooksApplication.app
@@ -200,31 +168,40 @@ class DetailsFragment : Fragment() {
                 .into(coverImageView)
         }
         // Author.
-        bindField(
-            inflater, detailsView,
-            app.applicationContext.getString(R.string.authorLabel),
-            book.get(BookFields.AUTHOR)
-        ) {
+        bindField(inflater, detailsView, app.applicationContext.getString(R.string.authorLabel), book.get(BookFields.AUTHOR)) {
             val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                query="",
-                location="",
-                genre="",
-                publisher = "",
-                author=it.toString(),
-
-                )
-            root.findNavController().navigate(action)
+                query="", location="", genre="", publisher = "", author=it.toString())
+            navController.navigate(action)
         }
         // Details.
         bindDetails(inflater, detailsView, book)
         // Remaining fields.
-        for (triple in fields) {
+        arrayOf<Triple<Int, String, ((String?) -> Unit)?>>(
+            Triple(R.string.publisherLabel, BookFields.PUBLISHER) {
+                val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
+                    query="", location="", genre="", publisher = it.toString(), author="")
+                navController.navigate(action)
+            },
+            Triple(R.string.genreLabel, BookFields.GENRE) {
+                val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
+                    query="", location="", genre=it.toString(), publisher = "", author="")
+                navController.navigate(action)
+            },
+            Triple(R.string.yearPublishedLabel, BookFields.YEAR_PUBLISHED, null),
+            Triple(R.string.physicalLocationLabel, BookFields.PHYSICAL_LOCATION) {
+                val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
+                    query="", location=it.toString(), genre="", publisher = "", author="")
+                navController.navigate(action)
+            },
+            Triple(R.string.summaryLabel, BookFields.SUMMARY, null),
+            Triple(R.string.dateAddedLabel, BookFields.DATE_ADDED, null)
+        ).forEach { (labelId, columnName, onClick) ->
             bindField(
                 inflater,
                 detailsView,
-                app.applicationContext.getString(triple.first),
-                book.get(triple.second),
-                triple.third
+                app.applicationContext.getString(labelId),
+                book.get(columnName),
+                onClick
             )
         }
     }

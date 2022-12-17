@@ -1,5 +1,6 @@
 package com.anselm.books.ui.home
 
+import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.DialogInterface
 import android.content.res.Resources
@@ -10,8 +11,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -59,7 +60,6 @@ class HistoAdapter(
 }
 
 class SearchDialogFragment: BottomSheetDialogFragment() {
-    private val viewModel: QueryViewModel by activityViewModels()
     private lateinit var adapter: HistoAdapter
     private val dataSource: MutableList<Histo> = mutableListOf()
     private var allValues = listOf<Histo>()
@@ -117,6 +117,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
         return binding.root
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private suspend fun loadValues() {
         when (columnName) {
             PHYSICAL_LOCATION ->
@@ -149,6 +150,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
         return sb.trim()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun filter(prefixInput: String) {
         val prefix = normalize(prefixInput)
         val values = allValues.filter { h -> normalize(h.text).startsWith(prefix) }
@@ -163,16 +165,8 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
      * Selects the given [histo] value for the filter, and dismisses the dialog.
      */
     private fun selectHisto(histo: Histo) {
-        when (columnName) {
-            PHYSICAL_LOCATION ->
-                viewModel.query.value = viewModel.query.value?.copy(location = histo.text)
-            GENRE ->
-                viewModel.query.value = viewModel.query.value?.copy(genre = histo.text)
-            PUBLISHER ->
-                viewModel.query.value = viewModel.query.value?.copy(publisher = histo.text)
-            AUTHOR ->
-                viewModel.query.value = viewModel.query.value?.copy(author = histo.text)
-        }
+        findNavController().previousBackStackEntry?.savedStateHandle?.set(
+            "filter", Pair(columnName, histo.text))
         dismiss()
     }
 

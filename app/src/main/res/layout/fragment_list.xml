@@ -16,7 +16,7 @@
             android:id="@+id/idSearchFilters"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toTopOf="@id/list"
+            app:layout_constraintBottom_toTopOf="@id/idCountView"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" >
@@ -36,7 +36,8 @@
                     android:text="@string/location_filter"
                     android:layout_marginStart="10dp"
                     android:layout_marginEnd="10dp"
-                    android:drawableTint="?attr/colorOnPrimary" />
+                    android:drawableTint="?attr/colorOnPrimary"
+                    tools:ignore="ButtonStyle" />
 
                 <Button
                     android:id="@+id/idGenreFilter"
@@ -45,7 +46,8 @@
                     android:text="@string/genre_filter"
                     android:layout_marginStart="10dp"
                     android:layout_marginEnd="10dp"
-                    android:drawableTint="?attr/colorOnPrimary" />
+                    android:drawableTint="?attr/colorOnPrimary"
+                    tools:ignore="ButtonStyle" />
 
                 <Button
                     android:id="@+id/idPublisherFilter"
@@ -54,7 +56,8 @@
                     android:text="@string/publisher_filter"
                     android:layout_marginStart="10dp"
                     android:layout_marginEnd="10dp"
-                    android:drawableTint="?attr/colorOnPrimary" />
+                    android:drawableTint="?attr/colorOnPrimary"
+                    tools:ignore="ButtonStyle" />
 
                 <Button
                     android:id="@+id/idAuthorFilter"
@@ -63,10 +66,21 @@
                     android:text="@string/author_filter"
                     android:layout_marginStart="10dp"
                     android:layout_marginEnd="10dp"
-                    android:drawableTint="?attr/colorOnPrimary" />
+                    android:drawableTint="?attr/colorOnPrimary"
+                    tools:ignore="ButtonStyle" />
 
             </LinearLayout>
         </HorizontalScrollView>
+
+        <TextView
+            android:id="@+id/idCountView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            app:layout_constraintBottom_toBottomOf="@id/list"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/idSearchFilters" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/list"
@@ -85,7 +99,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/idSearchFilters" />
+            app:layout_constraintTop_toBottomOf="@id/idCountView" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"

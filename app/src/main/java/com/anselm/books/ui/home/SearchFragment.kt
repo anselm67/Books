@@ -12,6 +12,7 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.navigation.fragment.findNavController
@@ -36,13 +37,16 @@ class SearchFragment : ListFragment() {
         super.onCreateView(inflater, container, savedInstanceState)
         val root = super.onCreateView(inflater, container, savedInstanceState)
         val safeArgs: SearchFragmentArgs by navArgs()
+        Log.d(TAG, "SearchFragment query : ${viewModel.query.value}")
         Log.d(TAG, "safeArgs query=${safeArgs.query}, " +
                 "location=${safeArgs.location}, " +
                 "genre=${safeArgs.genre}, " +
+                "publisher=${safeArgs.publisher}, " +
                 "author=${safeArgs.author}")
 
         // Displays filters in this view, that's the whole point.
         binding.idSearchFilters.isVisible = true
+        binding.idCountView.isVisible = true
         handleMenu(requireActivity())
 
         // Caches the drawable for the filter buttons.
@@ -68,6 +72,11 @@ class SearchFragment : ListFragment() {
         viewModel.query.observe(viewLifecycleOwner) {
             BooksApplication.app.repository.query = viewModel.query.value!!
             updateFiltersUi()
+        }
+
+        val app = BooksApplication.app
+        app.repository.itemCount.observe(viewLifecycleOwner) {
+            binding.idCountView.text = getString(R.string.item_count_format, it)
         }
 
         return root
@@ -153,24 +162,22 @@ class SearchFragment : ListFragment() {
         menu.findItem(R.id.idGotoSearchView)?.isVisible = false
         // Handles the search view:
         val item = menu.findItem(R.id.idSearchView)
-        val query = viewModel.query.value?.copy()
         item.isVisible = true
         (item.actionView as SearchView).let {
-            it.setQuery(query?.query, false)
+            it.setQuery(viewModel.query.value?.query, false)
             it.isIconified = false
             it.clearFocus()
             it.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(text: String?): Boolean {
-                    query?.query = text
-                    query?.partial = false
-                    viewModel.query.value = query!!
+                    viewModel.query.value = viewModel.query.value?.copy(
+                        query = text, partial = false)
                     return false
                 }
                 override fun onQueryTextChange(text: String?): Boolean {
                     val emptyText = (text == null || text == "")
-                    query?.query = if  (emptyText) null else text
-                    query?.partial =  ! emptyText
-                    viewModel.query.value = query
+                    viewModel.query.value = viewModel.query.value?.copy(
+                        query = if  (emptyText) null else text,
+                        partial = ! emptyText)
                     return true
                 }
             })
@@ -179,6 +186,49 @@ class SearchFragment : ListFragment() {
                 false
             }
         }
+    }
+
+    /**
+     * Collects and sets up the return value from our filter dialog.
+     * This is largely inspired by this link:
+     * https://developer.android.com/guide/navigation/navigation-programmatic
+     */
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val navController = findNavController()
+        val navBackStackEntry = navController.getBackStackEntry(R.id.nav_search)
+
+        // Create our observer and add it to the NavBackStackEntry's lifecycle
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME
+                && navBackStackEntry.savedStateHandle.contains("filter")) {
+                val result =
+                    navBackStackEntry.savedStateHandle.get<Pair<String, String>>("filter")
+                if (result != null) {
+                    val (columnName, value) = result
+                    Log.d(TAG, "Filter $columnName with $value")
+                    when (columnName) {
+                        SearchDialogFragment.PHYSICAL_LOCATION ->
+                            viewModel.query.value = viewModel.query.value?.copy(location = value)
+                        SearchDialogFragment.GENRE ->
+                            viewModel.query.value = viewModel.query.value?.copy(genre = value)
+                        SearchDialogFragment.PUBLISHER ->
+                            viewModel.query.value = viewModel.query.value?.copy(publisher = value)
+                        SearchDialogFragment.AUTHOR ->
+                            viewModel.query.value = viewModel.query.value?.copy(author = value)
+                    }
+                }
+            }
+        }
+        navBackStackEntry.lifecycle.addObserver(observer)
+
+        // As addObserver() does not automatically remove the observer, we
+        // call removeObserver() manually when the view lifecycle is destroyed
+        viewLifecycleOwner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_DESTROY) {
+                navBackStackEntry.lifecycle.removeObserver(observer)
+            }
+        })
     }
 }
 

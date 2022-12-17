@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -23,7 +22,7 @@ import kotlinx.coroutines.launch
 open class ListFragment: Fragment() {
     private var _binding: FragmentListBinding? = null
     protected val binding get() = _binding!!
-    protected val viewModel: QueryViewModel by activityViewModels()
+    protected val viewModel: QueryViewModel by viewModels()
 
     /**
      * Is this the home screen or some other screen that inherit from it.
@@ -75,9 +74,6 @@ open class ListFragment: Fragment() {
                             || it.source.append is LoadState.Loading)
                 }
             }
-        }
-        app.repository.itemCount.observe(viewLifecycleOwner) {
-            app.title = "$it Books"
         }
         return root
     }
