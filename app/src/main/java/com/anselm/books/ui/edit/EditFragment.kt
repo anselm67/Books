@@ -14,6 +14,7 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -24,6 +25,7 @@ import com.anselm.books.TAG
 import com.anselm.books.databinding.EditFieldLayoutBinding
 import com.anselm.books.databinding.EditYearLayoutBinding
 import com.anselm.books.databinding.FragmentEditBinding
+import com.anselm.books.ui.home.SearchDialogFragment
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
@@ -111,11 +113,28 @@ class EditFragment: Fragment() {
         }
         // Creates and sets up an editor for every book property.
         val fields = arrayListOf(
-            TextEditor(this, inflater, R.string.titleLabel, book::title.getter, book::title.setter),
-            TextEditor(this, inflater, R.string.subtitleLabel, book::subtitle.getter, book::subtitle.setter),
-            TextEditor(this, inflater, R.string.authorLabel, book::author.getter, book::author.setter),
-            TextEditor(this, inflater, R.string.summaryLabel, book::summary.getter, book::summary.setter),
-            TextEditor(this, inflater, R.string.isbnLabel, book::isbn.getter, book::isbn.setter) {
+            TextEditor(this, inflater, R.string.titleLabel,
+                book::title.getter, book::title.setter),
+            TextEditor(this, inflater, R.string.subtitleLabel,
+                book::subtitle.getter, book::subtitle.setter),
+            TextEditor(this, inflater, R.string.authorLabel,
+                book::author.getter, book::author.setter),
+            SearchDialogEditor(this, inflater,
+                SearchDialogFragment.PHYSICAL_LOCATION,
+                R.string.physicalLocationLabel,
+                book::physicalLocation.getter, book::physicalLocation.setter),
+            SearchDialogEditor(this, inflater,
+                SearchDialogFragment.GENRE,
+                R.string.genreLabel,
+                book::genre.getter, book::genre.setter),
+            SearchDialogEditor(this, inflater,
+                SearchDialogFragment.PUBLISHER,
+                R.string.publisherLabel,
+                book::publisher.getter, book::publisher.setter),
+            TextEditor(this, inflater, R.string.summaryLabel,
+                book::summary.getter, book::summary.setter),
+            TextEditor(this, inflater, R.string.isbnLabel,
+                book::isbn.getter, book::isbn.setter) {
                 isValidEAN13(it)
             },
             YearEditor(this, inflater, book::yearPublished.getter, book::yearPublished.setter))
@@ -177,6 +196,46 @@ class EditFragment: Fragment() {
         val expected = if (checksum == 0) '0' else ('0' + 10 - checksum)
         return expected == isbn[12]
     }
+
+    private fun getSearchDialogEditorByColumnName(columnName: String): SearchDialogEditor {
+        return (editors?.firstOrNull {
+            (it is SearchDialogEditor) && it.columnName == columnName
+        } as SearchDialogEditor)
+    }
+
+    /**
+     * Collects and sets up the return value from our filter dialog.
+     * This is largely inspired by this link:
+     * https://developer.android.com/guide/navigation/navigation-programmatic
+     */
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val navController = findNavController()
+        val navBackStackEntry = navController.getBackStackEntry(R.id.nav_edit)
+
+        // Create our observer and add it to the NavBackStackEntry's lifecycle
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME
+                && navBackStackEntry.savedStateHandle.contains("filter")) {
+                val result = navBackStackEntry.savedStateHandle.get<Pair<String, String>>("filter")
+                if (result != null) {
+                    val (columnName, value) = result
+                    getSearchDialogEditorByColumnName(columnName).
+                        setEditorValue(value)
+                }
+            }
+        }
+        navBackStackEntry.lifecycle.addObserver(observer)
+
+        // As addObserver() does not automatically remove the observer, we
+        // call removeObserver() manually when the view lifecycle is destroyed
+        viewLifecycleOwner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_DESTROY) {
+                navBackStackEntry.lifecycle.removeObserver(observer)
+            }
+        })
+    }
+
 }
 
 private abstract class Editor(
@@ -185,6 +244,8 @@ private abstract class Editor(
     abstract fun setup(container: ViewGroup?): View
     abstract fun isChanged(): Boolean
     abstract fun saveChange()
+
+    abstract fun setEditorValue(value: String)
 }
 
 private class YearEditor(
@@ -202,12 +263,16 @@ private class YearEditor(
                 + editor.yearPublished1Picker.value)
     }
 
-    private fun setEditorValue(value: Int) {
+    fun setEditorValue(value: Int) {
         if (value in Book.MIN_PUBLISHED_YEAR..Book.MAX_PUBLISHED_YEAR) {
             editor.yearPublished100Picker.value = value / 100
             editor.yearPublished10Picker.value = (value / 100) % 10
             editor.yearPublished1Picker.value = value % 10
         }
+    }
+
+    override fun setEditorValue(value: String) {
+        setEditorValue(value.toIntOrNull() ?: 0)
     }
 
     override fun setup(container: ViewGroup?): View {
@@ -255,16 +320,20 @@ private class YearEditor(
     }
 }
 
-private class TextEditor(
+private open class TextEditor(
     override val fragment: EditFragment,
     override val inflater: LayoutInflater,
-    val labelId: Int,
-    val getter: () -> String,
-    val setter: (String) -> Unit,
-    val checker: ((String) -> Boolean)? = null
+    open val labelId: Int,
+    open val getter: () -> String,
+    open val setter: (String) -> Unit,
+    open val checker: ((String) -> Boolean)? = null
 ): Editor(fragment, inflater) {
     private var _binding: EditFieldLayoutBinding? = null
-    private val editor get() = _binding!!
+    protected val editor get() = _binding!!
+
+    override fun setEditorValue(value: String) {
+        editor.idEditText.setText(value)
+    }
 
     override fun setup(container: ViewGroup?): View {
         _binding = EditFieldLayoutBinding.inflate(inflater, container, false)
@@ -277,7 +346,7 @@ private class TextEditor(
 
                 override fun afterTextChanged(s: Editable?) {
                     val value = s.toString().trim()
-                    if (checker != null && ! checker.invoke(value)) {
+                    if (checker != null && ! checker!!.invoke(value)) {
                         fragment.setInvalidBorder(it)
                         editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
                             fragment.requireContext(), R.color.editorValueInvalid))
@@ -316,4 +385,24 @@ private class TextEditor(
         setter(editor.idEditText.text.toString().trim())
     }
 
+}
+
+private class SearchDialogEditor(
+    override val fragment: EditFragment,
+    override val inflater: LayoutInflater,
+    val columnName: String,
+    override val labelId: Int,
+    override val getter: () -> String,
+    override val setter: (String) -> Unit
+): TextEditor(fragment, inflater, labelId, getter, setter) {
+
+    override fun setup(container: ViewGroup?): View {
+        val root = super.setup(container)
+        editor.idEditLabel.setOnClickListener {
+            val action = EditFragmentDirections.actionEditFragmentToSearchDialogFragment(
+                columnName)
+            fragment.findNavController().navigate(action)
+        }
+        return root
+    }
 }

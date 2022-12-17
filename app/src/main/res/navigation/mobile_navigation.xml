@@ -104,6 +104,9 @@
         <argument android:name="bookId"
             app:argType="integer" />
 
+        <action android:id="@+id/action_EditFragment_to_SearchDialogFragment"
+            app:destination="@id/search_dialog_fragment" />
+
     </fragment>
 
 </navigation>
