@@ -2,9 +2,7 @@ package com.anselm.books.ui.settings
 
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
+import android.view.*
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
@@ -18,6 +16,16 @@ import kotlinx.coroutines.launch
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        val root = super.onCreateView(inflater, container, savedInstanceState)
+        handleMenu(requireActivity())
+        return root
+    }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
         // Clears the Glide cache when requested.
@@ -30,7 +38,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 BooksApplication.app.toast(R.string.glide_cache_cleared)
                 true
             }
-        handleMenu(requireActivity())
     }
 
     private fun handleMenu(menuHost: MenuHost) {
