@@ -22,10 +22,11 @@ class BookRepository(private val bookDao: BookDao) {
     }
 
     suspend fun getPagedList(limit: Int, offset: Int): List<Book> {
-        Log.d(TAG, "runQuery ${query.query}/${query.partial}," +
+        Log.d(TAG, "getPagedList [$offset, $limit] ${query.query}/${query.partial}," +
                 " location: '${query.location}'," +
                 " genre: '${query.genre}'" +
-                " publisher: '${query.publisher}'"
+                " publisher: '${query.publisher}'" +
+                " author: ${query.author}"
         )
         return if ( isEmpty(query.query) ) {
             val isLocationEmpty = isEmpty(query.location)
@@ -56,10 +57,11 @@ class BookRepository(private val bookDao: BookDao) {
     val itemCount = MutableLiveData(0)
 
     suspend fun getPagedListCount(): Int {
-        Log.d(TAG, "runQuery ${query.query}/${query.partial}," +
+        Log.d(TAG, "getPagedListCount ${query.query}/${query.partial}," +
                 " location: '${query.location}'," +
                 " genre: '${query.genre}'" +
-                " publisher: '${query.publisher}'"
+                " publisher: '${query.publisher}'" +
+                " author: ${query.author}"
         )
         itemCount.value = if ( isEmpty(query.query) ) {
             val isLocationEmpty = isEmpty(query.location)

@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.*
 import com.anselm.books.databinding.FragmentListBinding
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 open class ListFragment: Fragment() {
@@ -60,7 +61,7 @@ open class ListFragment: Fragment() {
             // We repeat on the STARTED lifecycle because an Activity may be PAUSED
             // but still visible on the screen, for example in a multi window app
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                bookViewModel.data.collect {
+                bookViewModel.data.collectLatest {
                     Log.d(TAG, "Submitting data to the adapter.")
                     adapter.submitData(it)
                 }

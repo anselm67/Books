@@ -1,7 +1,9 @@
 package com.anselm.books
 
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import java.lang.Integer.max
 
 private const val START_PAGE = 0
 
@@ -20,6 +22,10 @@ class BookPagingSource(
             if (itemCount < 0) {
                 itemCount = repository.getPagedListCount()
             }
+            Log.d(TAG, "-> Got ${books.size}/$itemCount results," +
+                    " page: $page" +
+                    " before: ${page * params.loadSize}" +
+                    " after: ${max(0, itemCount - (page + 1) * params.loadSize)}")
             LoadResult.Page(
                 data = books,
                 prevKey = when (page) {
@@ -27,7 +33,7 @@ class BookPagingSource(
                     else -> page - 1 },
                 nextKey = if (books.isEmpty()) null else page + 1,
                 itemsBefore = page * params.loadSize,
-                itemsAfter = itemCount - page * params.loadSize
+                itemsAfter = max(0, itemCount - page * params.loadSize)
             )
         } catch (e: Exception) {
             LoadResult.Error(e)

@@ -4,7 +4,6 @@ import androidx.lifecycle.*
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
-import kotlinx.coroutines.launch
 
 private const val PAGE_SIZE = 100
 private const val MAX_SIZE = 500
@@ -18,10 +17,6 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
             jumpThreshold = 2 * PAGE_SIZE)) {
         repository.bookPagingSource()
     }.flow.cachedIn(viewModelScope)
-
-    fun insert(book: Book) = viewModelScope.launch {
-        repository.insert(book)
-    }
 }
 
 
