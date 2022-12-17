@@ -51,4 +51,5 @@
     <string name="titleLabel">Title</string>
     <string name="subtitleLabel">Sub-title</string>
     <string name="searchPrompt">Search &#8230;</string>
+    <string name="search_enabled_fiel">Search this attribute.</string>
 </resources>

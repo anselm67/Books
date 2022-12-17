@@ -55,10 +55,11 @@ class SearchFragment : ListFragment() {
         if (viewModel.query.value == null) {
             viewModel.query.value = Query()
         }
-        if (safeArgs.location != "") viewModel.query.value?.location = safeArgs.location
-        if (safeArgs.genre != "") viewModel.query.value?.genre = safeArgs.genre
-        if (safeArgs.publisher != "") viewModel.query.value?.publisher = safeArgs.publisher
-        if (safeArgs.author != "") viewModel.query.value?.author = safeArgs.author
+        if (safeArgs.query != null) viewModel.query.value?.query = safeArgs.query
+        if (safeArgs.location != null) viewModel.query.value?.location = safeArgs.location
+        if (safeArgs.genre != null) viewModel.query.value?.genre = safeArgs.genre
+        if (safeArgs.publisher != null) viewModel.query.value?.publisher = safeArgs.publisher
+        if (safeArgs.author != null) viewModel.query.value?.author = safeArgs.author
 
         // Let's go.
         BooksApplication.app.repository.query = viewModel.query.value!!

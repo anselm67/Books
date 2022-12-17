@@ -33,7 +33,9 @@ class HomeFragment : ListFragment() {
             }
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return if (menuItem.itemId == R.id.idGotoSearchView) {
-                    val action = HomeFragmentDirections.actionHomeFragmentToSearchFragment()
+                    val action = HomeFragmentDirections.actionHomeFragmentToSearchFragment(
+                        query = null, location = null, genre = null, publisher = null, author=  null
+                    )
                     findNavController().navigate(action)
                     true
                 } else {

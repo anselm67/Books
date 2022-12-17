@@ -35,11 +35,16 @@
         android:label="@string/menu_home"
         tools:layout="@layout/fragment_list">
 
-        <argument android:name="query" app:argType="string" android:defaultValue="" />
-        <argument android:name="location" app:argType="string" android:defaultValue="" />
-        <argument android:name="genre" app:argType="string" android:defaultValue="" />
-        <argument android:name="publisher" app:argType="string" android:defaultValue="" />
-        <argument android:name="author" app:argType="string" android:defaultValue="" />
+        <argument android:name="query" app:argType="string"
+            app:nullable="true" app:defaultValue="@null" />
+        <argument android:name="location" app:argType="string"
+            app:nullable="true" app:defaultValue="@null" />
+        <argument android:name="genre" app:argType="string"
+            app:nullable="true" app:defaultValue="@null" />
+        <argument android:name="publisher" app:argType="string"
+            app:nullable="true" app:defaultValue="@null" />
+        <argument android:name="author" app:argType="string"
+            app:nullable="true" app:defaultValue="@null" />
 
         <action
             android:id="@+id/action_HomeFragment_to_DetailsFragment"
@@ -79,17 +84,13 @@
         android:id="@+id/nav_details"
         android:name="com.anselm.books.ui.details.DetailsFragment"
         android:label="@string/book_details"
-        tools:layout="@layout/fragment_details">
+        tools:layout="@layout/fragment_details" >
 
-        <argument
-            android:name="bookId"
-            app:argType="integer" />
+        <argument android:name="bookId" app:argType="integer" />
 
-        <action
-            android:id="@+id/action_DetailsFragment_to_EditFragment"
+        <action android:id="@+id/action_DetailsFragment_to_EditFragment"
             app:destination="@id/nav_edit" />
-        <action
-            android:id="@+id/action_DetailsFragment_to_SearchFragment"
+        <action android:id="@+id/action_DetailsFragment_to_SearchFragment"
             app:destination="@id/nav_search" />
 
     </fragment>
@@ -100,8 +101,7 @@
         android:label="@string/book_edit"
         tools:layout="@layout/fragment_edit">
 
-        <argument
-            android:name="bookId"
+        <argument android:name="bookId"
             app:argType="integer" />
 
     </fragment>

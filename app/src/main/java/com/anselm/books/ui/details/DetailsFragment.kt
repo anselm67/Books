@@ -95,9 +95,12 @@ class DetailsFragment : Fragment() {
         val binding = DetailsFieldLayoutBinding.inflate(inflater, container, true)
         // Accounts for navigation to search if enabled.
         if (onClick != null) {
+            binding.idSearchEnabled.visibility = View.VISIBLE
             binding.valueView.setOnClickListener {
                 onClick((it as TextView).text.toString())
             }
+        } else {
+            binding.idSearchEnabled.visibility = View.GONE
         }
         // Fills in the blanks.
         binding.labelView.text = label
@@ -147,20 +150,32 @@ class DetailsFragment : Fragment() {
     private val fields = arrayOf<Triple<Int, String, ((String?) -> Unit)?>>(
         Triple(R.string.publisherLabel, BookFields.PUBLISHER) {
             val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                publisher = it.toString()
+                query="",
+                location="",
+                genre="",
+                publisher = it.toString(),
+                author="",
             )
             findNavController().navigate(action)
         },
         Triple(R.string.genreLabel, BookFields.GENRE) {
             val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                genre = it.toString()
+                query="",
+                location="",
+                genre=it.toString(),
+                publisher = "",
+                author="",
             )
             findNavController().navigate(action)
         },
         Triple(R.string.yearPublishedLabel, BookFields.YEAR_PUBLISHED, null),
         Triple(R.string.physicalLocationLabel, BookFields.PHYSICAL_LOCATION) {
             val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                location = it.toString()
+                query="",
+                location=it.toString(),
+                genre="",
+                publisher = "",
+                author="",
             )
             findNavController().navigate(action)
         },
@@ -191,8 +206,13 @@ class DetailsFragment : Fragment() {
             book.get(BookFields.AUTHOR)
         ) {
             val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                author = it.toString()
-            )
+                query="",
+                location="",
+                genre="",
+                publisher = "",
+                author=it.toString(),
+
+                )
             root.findNavController().navigate(action)
         }
         // Details.
