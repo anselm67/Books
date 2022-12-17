@@ -10,6 +10,7 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.anselm.books.Book
@@ -65,100 +66,146 @@ class DetailsFragment : Fragment() {
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 if (menuItem.itemId == R.id.idEditBook && bookId >= 0) {
-                    val action = DetailsFragmentDirections.actionDetailsFragmentToEditFragment(bookId)
+                    val action =
+                        DetailsFragmentDirections.actionDetailsFragmentToEditFragment(bookId)
                     findNavController().navigate(action)
                 }
                 return false
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
-}
 
-private fun bindField(inflater: LayoutInflater, detailsView: ViewGroup?, label: String, value: String) {
-    if ( value == "" ) {
-        return
-    }
-    val container = LinearLayout(detailsView?.context)
-    container.layoutDirection = View.LAYOUT_DIRECTION_RTL
-    container.layoutParams = ViewGroup.LayoutParams(
-        ViewGroup.LayoutParams.MATCH_PARENT,
-        LayoutParams.WRAP_CONTENT
-    )
-    val binding = DetailsFieldLayoutBinding.inflate(inflater, container, true)
-    binding.labelView.text = label
-    binding.valueView.text = value
-    detailsView?.addView(container)
-}
-
-private fun bindDetails(inflater: LayoutInflater, detailsView: ViewGroup?, book: Book) {
-    if (book.numberOfPages == "" && book.language == "" && book.isbn == "")
-        return
-    val container = LinearLayout(detailsView?.context)
-    container.layoutDirection = View.LAYOUT_DIRECTION_RTL
-    container.layoutParams = ViewGroup.LayoutParams(
-        ViewGroup.LayoutParams.MATCH_PARENT,
-        LayoutParams.WRAP_CONTENT
-    )
-    val binding = DetailsDetailsLayoutBinding.inflate(inflater, container, true)
-    val fields = arrayOf<Triple<String, View, TextView>>(
-        Triple(BookFields.ISBN,
-            binding.isbnContainerView,
-            binding.isbnView),
-        Triple(BookFields.LANGUAGE,
-            binding.languageContainerView,
-            binding.languageView),
-        Triple(BookFields.NUMBER_OF_PAGES,
-            binding.numberOfPagesContainerView,
-            binding.numberOfPageView),
-    )
-    for (t in fields) {
-        val value = book.get(t.first)
+    private fun bindField(
+        inflater: LayoutInflater,
+        detailsView: ViewGroup?,
+        label: String,
+        value: String,
+        onClick: ((String?) -> Unit)? = null
+    ) {
         if (value == "") {
-            t.second.visibility = View.GONE
-            t.third.visibility = View.GONE
-        } else {
-            t.third.text = value
+            return
         }
+        // Inflates this field's container.
+        val container = LinearLayout(detailsView?.context)
+        container.layoutDirection = View.LAYOUT_DIRECTION_RTL
+        container.layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            LayoutParams.WRAP_CONTENT
+        )
+        val binding = DetailsFieldLayoutBinding.inflate(inflater, container, true)
+        // Accounts for navigation to search if enabled.
+        if (onClick != null) {
+            binding.valueView.setOnClickListener {
+                onClick((it as TextView).text.toString())
+            }
+        }
+        // Fills in the blanks.
+        binding.labelView.text = label
+        binding.valueView.text = value
+        detailsView?.addView(container)
     }
-    detailsView?.addView(container)
-}
 
-private val FIELDS = arrayOf<Pair<Int,String>>(
-    Pair(R.string.publisherLabel, BookFields.PUBLISHER),
-    Pair(R.string.genreLabel, BookFields.GENRE),
-    Pair(R.string.yearPublishedLabel, BookFields.YEAR_PUBLISHED),
-    Pair(R.string.physicalLocationLabel, BookFields.PHYSICAL_LOCATION),
-    Pair(R.string.summaryLabel, BookFields.SUMMARY),
-    Pair(R.string.dateAddedLabel, BookFields.DATE_ADDED)
-)
-
-private fun FragmentDetailsBinding.bind(inflater: LayoutInflater, book: Book) {
-    val app = BooksApplication.app
-    app.title = book.title
-    // Main part of the details.
-    titleView.text = book.title
-    subtitleView.text = book.subtitle
-    if (book.imageFilename != "") {
-        Glide.with(app.applicationContext)
-            .load(app.getCoverUri(book.imageFilename)).centerCrop()
-            .placeholder(R.mipmap.ic_book_cover)
-            .into(coverImageView)
-    } else {
-        Glide.with(app.applicationContext)
-            .load(R.mipmap.ic_book_cover)
-            .into(coverImageView)
+    private fun bindDetails(inflater: LayoutInflater, detailsView: ViewGroup?, book: Book) {
+        if (book.numberOfPages == "" && book.language == "" && book.isbn == "")
+            return
+        val container = LinearLayout(detailsView?.context)
+        container.layoutDirection = View.LAYOUT_DIRECTION_RTL
+        container.layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            LayoutParams.WRAP_CONTENT
+        )
+        val binding = DetailsDetailsLayoutBinding.inflate(inflater, container, true)
+        val fields = arrayOf<Triple<String, View, TextView>>(
+            Triple(
+                BookFields.ISBN,
+                binding.isbnContainerView,
+                binding.isbnView
+            ),
+            Triple(
+                BookFields.LANGUAGE,
+                binding.languageContainerView,
+                binding.languageView
+            ),
+            Triple(
+                BookFields.NUMBER_OF_PAGES,
+                binding.numberOfPagesContainerView,
+                binding.numberOfPageView
+            ),
+        )
+        for (t in fields) {
+            val value = book.get(t.first)
+            if (value == "") {
+                t.second.visibility = View.GONE
+                t.third.visibility = View.GONE
+            } else {
+                t.third.text = value
+            }
+        }
+        detailsView?.addView(container)
     }
-    // Author.
-    bindField(inflater, detailsView,
-        app.applicationContext.getString(R.string.authorLabel),
-        book.get(BookFields.AUTHOR))
-    // Details.
-    bindDetails(inflater, detailsView, book)
-    // Remaining fields.
-    for (pair in FIELDS) {
-        bindField(inflater,
-            detailsView,
-            app.applicationContext.getString(pair.first),
-            book.get(pair.second))
+
+    private val fields = arrayOf<Triple<Int, String, ((String?) -> Unit)?>>(
+        Triple(R.string.publisherLabel, BookFields.PUBLISHER) {
+            val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
+                publisher = it.toString()
+            )
+            findNavController().navigate(action)
+        },
+        Triple(R.string.genreLabel, BookFields.GENRE) {
+            val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
+                genre = it.toString()
+            )
+            findNavController().navigate(action)
+        },
+        Triple(R.string.yearPublishedLabel, BookFields.YEAR_PUBLISHED, null),
+        Triple(R.string.physicalLocationLabel, BookFields.PHYSICAL_LOCATION) {
+            val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
+                location = it.toString()
+            )
+            findNavController().navigate(action)
+        },
+        Triple(R.string.summaryLabel, BookFields.SUMMARY, null),
+        Triple(R.string.dateAddedLabel, BookFields.DATE_ADDED, null)
+    )
+
+    private fun FragmentDetailsBinding.bind(inflater: LayoutInflater, book: Book) {
+        val app = BooksApplication.app
+        app.title = book.title
+        // Main part of the details.
+        titleView.text = book.title
+        subtitleView.text = book.subtitle
+        if (book.imageFilename != "") {
+            Glide.with(app.applicationContext)
+                .load(app.getCoverUri(book.imageFilename)).centerCrop()
+                .placeholder(R.mipmap.ic_book_cover)
+                .into(coverImageView)
+        } else {
+            Glide.with(app.applicationContext)
+                .load(R.mipmap.ic_book_cover)
+                .into(coverImageView)
+        }
+        // Author.
+        bindField(
+            inflater, detailsView,
+            app.applicationContext.getString(R.string.authorLabel),
+            book.get(BookFields.AUTHOR)
+        ) {
+            val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
+                author = it.toString()
+            )
+            root.findNavController().navigate(action)
+        }
+        // Details.
+        bindDetails(inflater, detailsView, book)
+        // Remaining fields.
+        for (triple in fields) {
+            bindField(
+                inflater,
+                detailsView,
+                app.applicationContext.getString(triple.first),
+                book.get(triple.second),
+                triple.third
+            )
+        }
     }
 }

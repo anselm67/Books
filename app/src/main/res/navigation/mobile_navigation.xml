@@ -88,6 +88,9 @@
         <action
             android:id="@+id/action_DetailsFragment_to_EditFragment"
             app:destination="@id/nav_edit" />
+        <action
+            android:id="@+id/action_DetailsFragment_to_SearchFragment"
+            app:destination="@id/nav_search" />
 
     </fragment>
 
