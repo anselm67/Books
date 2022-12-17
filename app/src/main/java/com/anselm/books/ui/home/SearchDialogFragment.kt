@@ -131,7 +131,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
                 -> listOf<Histo>()
         }
         dataSource.addAll(allValues)
-        adapter.notifyItemRangeInserted(0, allValues.size)
+        adapter.notifyDataSetChanged()
     }
 
     private fun normalize(input: CharSequence): CharSequence {
@@ -155,7 +155,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
         if (values.size != dataSource.size) {
             dataSource.clear()
             dataSource.addAll(values)
-            adapter.notifyItemRangeInserted(0, values.size)
+            adapter.notifyDataSetChanged()
         }
     }
 
