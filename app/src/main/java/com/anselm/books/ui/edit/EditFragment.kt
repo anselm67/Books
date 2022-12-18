@@ -6,6 +6,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.*
+import android.view.View.OnLayoutChangeListener
 import android.widget.EditText
 import android.widget.NumberPicker.OnValueChangeListener
 import androidx.core.content.ContextCompat
@@ -120,23 +121,29 @@ class EditFragment: Fragment() {
             TextEditor(this, inflater, R.string.authorLabel,
                 book::author.getter, book::author.setter),
             SearchDialogEditor(this, inflater,
-                SearchDialogFragment.PHYSICAL_LOCATION,
-                R.string.physicalLocationLabel,
-                book::physicalLocation.getter, book::physicalLocation.setter),
+                SearchDialogFragment.PUBLISHER,
+                R.string.publisherLabel,
+                book::publisher.getter, book::publisher.setter),
             SearchDialogEditor(this, inflater,
                 SearchDialogFragment.GENRE,
                 R.string.genreLabel,
                 book::genre.getter, book::genre.setter),
             SearchDialogEditor(this, inflater,
-                SearchDialogFragment.PUBLISHER,
-                R.string.publisherLabel,
-                book::publisher.getter, book::publisher.setter),
-            TextEditor(this, inflater, R.string.summaryLabel,
-                book::summary.getter, book::summary.setter),
+                SearchDialogFragment.PHYSICAL_LOCATION,
+                R.string.physicalLocationLabel,
+                book::physicalLocation.getter, book::physicalLocation.setter),
             TextEditor(this, inflater, R.string.isbnLabel,
                 book::isbn.getter, book::isbn.setter) {
                 isValidEAN13(it)
             },
+            TextEditor(this, inflater, R.string.languageLabel,
+                book::language.getter, book::language.setter),
+            TextEditor(this, inflater, R.string.numberOfPagesLabel,
+                book::numberOfPages.getter, book::numberOfPages.setter) {
+                isValidNumber(it)
+            },
+            TextEditor(this, inflater, R.string.summaryLabel,
+                book::summary.getter, book::summary.setter),
             YearEditor(this, inflater, book::yearPublished.getter, book::yearPublished.setter))
         fields.forEach {
             binding.editView.addView(it.setup(binding.editView))
@@ -195,6 +202,12 @@ class EditFragment: Fragment() {
         val checksum = (sum1 + sum2) % 10
         val expected = if (checksum == 0) '0' else ('0' + 10 - checksum)
         return expected == isbn[12]
+    }
+
+    private fun isValidNumber(number: String): Boolean {
+        return number.firstOrNull {
+            ! it.isDigit()
+        } == null
     }
 
     private fun getSearchDialogEditorByColumnName(columnName: String): SearchDialogEditor {
@@ -359,21 +372,36 @@ private open class TextEditor(
                     }
                 }
             })
-            // I have no idea what this does, I haven't read the docs. Sigh.
-            // What I can say is that it allows to scroll the EditText widget even though it is
-            // itself in a scrollable view: ScrollView > LinearLayout > Editor (EditText)
-            it.setOnTouchListener { view, event ->
-                view.parent.requestDisallowInterceptTouchEvent(true)
-                if ((event.action and MotionEvent.ACTION_MASK) == MotionEvent.ACTION_UP) {
-                    view.parent.requestDisallowInterceptTouchEvent(false)
-                }
-                return@setOnTouchListener false
-            }
+            // Sets up a layout listener to enable scrolling on this EditText.
+            setupScrollEnableListener(it)
         }
         editor.idUndoEdit.setOnClickListener {
             editor.idEditText.setText(getter())
         }
         return editor.root
+    }
+
+    private fun setupScrollEnableListener(editText: EditText) {
+        editText.addOnLayoutChangeListener(object: OnLayoutChangeListener {
+            override fun onLayoutChange(
+                v: View?,left: Int,top: Int,right: Int,
+                bottom: Int,oldLeft: Int,oldTop: Int,oldRight: Int,oldBottom: Int) {
+                val layoutLines = editText.layout?.lineCount ?: 0
+                if (layoutLines  > editText.maxLines) {
+                    // I have no idea what this does, I haven't read the docs. Sigh.
+                    // What I can say is that it allows to scroll the EditText widget even
+                    // though it is itself in a scrollable view:
+                    // ScrollView > LinearLayout > Editor (EditText)
+                    editText.setOnTouchListener { view, event ->
+                        view.parent.requestDisallowInterceptTouchEvent(true)
+                        if ((event.action and MotionEvent.ACTION_MASK) == MotionEvent.ACTION_UP) {
+                            view.parent.requestDisallowInterceptTouchEvent(false)
+                        }
+                        return@setOnTouchListener false
+                    }
+                }
+            }
+        })
     }
 
     override fun isChanged(): Boolean {
