@@ -63,7 +63,7 @@ class BookRepository(private val bookDao: BookDao) {
                 " publisher: '${query.publisher}'" +
                 " author: ${query.author}"
         )
-        itemCount.value = if ( isEmpty(query.query) ) {
+        val count = if ( isEmpty(query.query) ) {
             val isLocationEmpty = isEmpty(query.location)
             val isGenreEmpty = isEmpty(query.genre)
             val isPublisherEmpty = isEmpty(query.publisher)
@@ -85,7 +85,8 @@ class BookRepository(private val bookDao: BookDao) {
                 isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!,
                 isAuthorEmpty, if (isAuthorEmpty) "" else query.author!!)
         }
-        return itemCount.value!!
+        itemCount.postValue(count)
+        return count
     }
 
     suspend fun deleteAll() {

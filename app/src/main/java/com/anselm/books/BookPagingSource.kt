@@ -33,7 +33,7 @@ class BookPagingSource(
                     else -> page - 1 },
                 nextKey = if (books.isEmpty()) null else page + 1,
                 itemsBefore = page * params.loadSize,
-                itemsAfter = max(0, itemCount - page * params.loadSize)
+                itemsAfter = max(0, itemCount - (page + 1) * params.loadSize)
             )
         } catch (e: Exception) {
             LoadResult.Error(e)
