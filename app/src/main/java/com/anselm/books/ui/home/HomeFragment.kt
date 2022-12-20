@@ -26,9 +26,8 @@ class HomeFragment : ListFragment() {
 
         val app = BooksApplication.app
         app.repository.itemCount.observe(viewLifecycleOwner) {
-            app.title = "$it Books"
+            app.title = getString(R.string.book_count, it)
         }
-
         return root
     }
 

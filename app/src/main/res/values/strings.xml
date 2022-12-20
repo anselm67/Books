@@ -51,6 +51,7 @@
     <string name="titleLabel">Title</string>
     <string name="subtitleLabel">Sub-title</string>
     <string name="searchPrompt">Search &#8230;</string>
-    <string name="search_enabled_fiel">Search this attribute.</string>
+    <string name="search_enabled_field">Search this attribute.</string>
     <string name="item_count_format">%1$d matches.</string>
+    <string name="book_count">%1$d Books</string>
 </resources>
