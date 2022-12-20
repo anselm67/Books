@@ -1,5 +1,6 @@
 package com.anselm.books.ui.edit
 
+import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.Editable
@@ -19,15 +20,13 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.anselm.books.Book
-import com.anselm.books.BooksApplication
-import com.anselm.books.R
-import com.anselm.books.TAG
+import com.anselm.books.*
 import com.anselm.books.databinding.EditFieldLayoutBinding
 import com.anselm.books.databinding.EditYearLayoutBinding
 import com.anselm.books.databinding.FragmentEditBinding
 import com.anselm.books.ui.home.SearchDialogFragment
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import kotlinx.coroutines.launch
 
 class EditFragment: Fragment() {
@@ -57,10 +56,17 @@ class EditFragment: Fragment() {
         val repository = (activity?.application as BooksApplication).repository
         val safeArgs: EditFragmentArgs by navArgs()
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            book = repository.getBook(safeArgs.bookId)
-            book?.let { editors = bind(inflater, it) }
+        if (safeArgs.bookId > 0) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                book = repository.getBook(safeArgs.bookId)
+                book?.let { editors = bind(inflater, it) }
+            }
+        } else if (safeArgs.book != null) {
+            editors = bind(inflater, safeArgs.book!!)
+        } else {
+            Log.d(TAG, "No books to edit.")
         }
+
 
         // Caches the borders corresponding to the various states of individual field editors.
         validBorder = getBorderDrawable(R.drawable.textview_border)
@@ -105,6 +111,13 @@ class EditFragment: Fragment() {
         if (book.imageFilename != "") {
             Glide.with(app.applicationContext)
                 .load(app.getCoverUri(book.imageFilename)).centerCrop()
+                .placeholder(R.mipmap.ic_book_cover)
+                .into(binding.coverImageView)
+        } else if (book.imgUrl != "") {
+            Glide.with(app.applicationContext)
+                .load(book.imgUrl)
+                .centerCrop()
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .placeholder(R.mipmap.ic_book_cover)
                 .into(binding.coverImageView)
         } else {
@@ -277,7 +290,7 @@ private class YearEditor(
     }
 
     fun setEditorValue(value: Int) {
-        if (value in Book.MIN_PUBLISHED_YEAR..Book.MAX_PUBLISHED_YEAR) {
+        if (value in BookFields.MIN_PUBLISHED_YEAR..BookFields.MAX_PUBLISHED_YEAR) {
             editor.yearPublished100Picker.value = value / 100
             editor.yearPublished10Picker.value = (value / 100) % 10
             editor.yearPublished1Picker.value = value % 10
@@ -290,8 +303,8 @@ private class YearEditor(
 
     override fun setup(container: ViewGroup?): View {
         _binding = EditYearLayoutBinding.inflate(inflater, container, false)
-        editor.yearPublished100Picker.minValue = Book.MIN_PUBLISHED_YEAR / 100
-        editor.yearPublished100Picker.maxValue = Book.MAX_PUBLISHED_YEAR / 100
+        editor.yearPublished100Picker.minValue = BookFields.MIN_PUBLISHED_YEAR / 100
+        editor.yearPublished100Picker.maxValue = BookFields.MAX_PUBLISHED_YEAR / 100
         editor.yearPublished10Picker.minValue = 0
         editor.yearPublished10Picker.maxValue = 9
         editor.yearPublished1Picker.minValue = 0
@@ -383,6 +396,7 @@ private open class TextEditor(
 
     private fun setupScrollEnableListener(editText: EditText) {
         editText.addOnLayoutChangeListener(object: OnLayoutChangeListener {
+            @SuppressLint("ClickableViewAccessibility")
             override fun onLayoutChange(
                 v: View?,left: Int,top: Int,right: Int,
                 bottom: Int,oldLeft: Int,oldTop: Int,oldRight: Int,oldBottom: Int) {

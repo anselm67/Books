@@ -43,7 +43,6 @@ private class Factory: ModelLoaderFactory<String, InputStream> {
     override fun teardown() {
         // Nothing to release.
     }
-
 }
 
 @GlideModule

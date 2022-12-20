@@ -66,9 +66,9 @@ class BooksApplication : Application() {
         progressBarView = null
     }
 
-    fun loading(onoff: Boolean) {
+    fun loading(onOff: Boolean) {
         applicationScope.launch(Dispatchers.Main) {
-            progressBarView?.isVisible = onoff
+            progressBarView?.isVisible = onOff
         }
     }
 

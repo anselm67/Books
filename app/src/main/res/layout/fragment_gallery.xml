@@ -15,4 +15,22 @@
         android:layout_gravity="center"
         android:text="@string/import_database" />
 
+    <View
+        style="@style/BookDetailsRuler"
+        />
+
+    <EditText
+        android:id="@+id/idISBNText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="9780393320923"
+        android:hint="Enter ISBN..." />
+
+    <Button
+        android:id="@+id/lookupISBNButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Lookup ISBN" />
+
 </LinearLayout>

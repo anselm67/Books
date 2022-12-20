@@ -71,7 +71,11 @@
         android:id="@+id/nav_gallery"
         android:name="com.anselm.books.ui.gallery.GalleryFragment"
         android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
+        tools:layout="@layout/fragment_gallery">
+
+        <action android:id="@+id/addBook" app:destination="@id/nav_edit"/>
+
+    </fragment>
 
     <fragment
         android:id="@id/nav_settings"
@@ -102,7 +106,12 @@
         tools:layout="@layout/fragment_edit">
 
         <argument android:name="bookId"
-            app:argType="integer" />
+            app:argType="integer"
+            android:defaultValue="-1"/>
+
+        <argument android:name="book"
+            app:argType="com.anselm.books.Book" app:nullable="true"
+            android:defaultValue="@null"/>
 
         <action android:id="@+id/action_EditFragment_to_SearchDialogFragment"
             app:destination="@id/search_dialog_fragment" />

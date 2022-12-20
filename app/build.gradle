@@ -75,6 +75,9 @@ dependencies {
     // Kotlin reflection
     implementation "org.jetbrains.kotlin:kotlin-reflect:$reflectVersion"
 
+    // OkHttp for openlibrary access.
+    implementation("com.squareup.okhttp3:okhttp:$okHttpVersion")
+
     // Testing
     testImplementation "junit:junit:$rootProject.junitVersion"
     androidTestImplementation "androidx.arch.core:core-testing:$rootProject.coreTestingVersion"

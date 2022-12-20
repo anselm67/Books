@@ -8,14 +8,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.anselm.books.BooksApplication
 import com.anselm.books.TAG
 import com.anselm.books.databinding.FragmentGalleryBinding
+import com.anselm.books.openlibrary.OpenLibraryClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class GalleryFragment : Fragment() {
     private var _binding: FragmentGalleryBinding? = null
     private val binding get() = _binding!!
+    private val olClient = OpenLibraryClient()
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -74,6 +79,22 @@ class GalleryFragment : Fragment() {
                 }
             } */
 
+        binding.lookupISBNButton.setOnClickListener {
+            app.loading(true)
+            val isbn = binding.idISBNText.text.toString().trim()
+            olClient.lookup(isbn, { msg: String, e: Exception? ->
+                app.loading(false)
+                Log.e(TAG, "$isbn: ${msg}.", e)
+                app.toast("No matches found for $isbn")
+                binding.idISBNText.setText("")
+            }, {
+                app.loading(false)
+                requireActivity().lifecycleScope.launch(Dispatchers.Main) {
+                    val action = GalleryFragmentDirections.addBook(-1, it)
+                    findNavController().navigate(action)
+                }
+            })
+        }
         return root
     }
 

@@ -1,7 +1,10 @@
 package com.anselm.books
 
+import android.os.Parcel
+import android.os.Parcelable
 import androidx.room.*
 import org.json.JSONObject
+import org.json.JSONTokener
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -20,6 +23,10 @@ object BookFields {
     const val LANGUAGE = "language"
     const val DATE_ADDED = "date_added"
     const val IMAGE_FILENAME = "image_filename"
+
+    const val MIN_PUBLISHED_YEAR = 0
+    const val MAX_PUBLISHED_YEAR = 2100
+
 }
 
 private val DATE_FORMAT = SimpleDateFormat("EEE, MMM d yyy - hh:mm aaa", Locale.US)
@@ -28,7 +35,7 @@ private val DATE_FORMAT = SimpleDateFormat("EEE, MMM d yyy - hh:mm aaa", Locale.
     tableName = "book_table",
     indices = [Index(value = ["title", "author"] )]
 )
-data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0) {
+data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0): Parcelable {
     @ColumnInfo(name = "title")
     var title = ""
 
@@ -70,7 +77,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0) {
     // is stored in the database. The private _dateAdded stores the db value, the public
     // dateAdded returns it properly formatted.
     @ColumnInfo(name = "date_added")
-    protected var raw_dateAdded = ""
+    var raw_dateAdded = ""
 
     val dateAdded: String
         get() = if (raw_dateAdded == "") ""
@@ -79,6 +86,11 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0) {
     @ColumnInfo(name = "image_filename")
     var imageFilename = ""
 
+    constructor(parcel: Parcel) : this(parcel.readInt()) {
+        val obj: JSONObject = JSONTokener(parcel.readString()).nextValue() as JSONObject
+        fromJson(obj)
+    }
+
     constructor(title: String, author: String, imgUrl: String = "") : this() {
         this.title = title
         this.author = author
@@ -86,20 +98,43 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0) {
     }
 
     constructor(o: JSONObject) : this() {
-        this.title = o.optString(BookFields.TITLE, "")
-        this.subtitle = o.optString(BookFields.SUBTITLE, "")
-        this.author = o.optString(BookFields.AUTHOR, "")
-        this.publisher = o.optString(BookFields.PUBLISHER, "")
-        this.imgUrl = o.optString(BookFields.UPLOADED_IMAGE_URL, "")
-        this.physicalLocation = o.optString(BookFields.PHYSICAL_LOCATION, "")
-        this.isbn = o.optString(BookFields.ISBN, "")
-        this.summary = o.optString(BookFields.SUMMARY, "")
-        this.yearPublished = o.optString(BookFields.YEAR_PUBLISHED, "")
-        this.numberOfPages = o.optString(BookFields.NUMBER_OF_PAGES, "")
-        this.genre = o.optString(BookFields.GENRE, "")
-        this.language = o.optString(BookFields.LANGUAGE, "")
-        this.raw_dateAdded = o.optString(BookFields.DATE_ADDED, "")
-        this.imageFilename = o.optString(BookFields.IMAGE_FILENAME, "")
+        fromJson(o)
+    }
+
+    private fun fromJson(obj: JSONObject) {
+        this.title = obj.optString(BookFields.TITLE, "")
+        this.subtitle = obj.optString(BookFields.SUBTITLE, "")
+        this.author = obj.optString(BookFields.AUTHOR, "")
+        this.publisher = obj.optString(BookFields.PUBLISHER, "")
+        this.imgUrl = obj.optString(BookFields.UPLOADED_IMAGE_URL, "")
+        this.physicalLocation = obj.optString(BookFields.PHYSICAL_LOCATION, "")
+        this.isbn = obj.optString(BookFields.ISBN, "")
+        this.summary = obj.optString(BookFields.SUMMARY, "")
+        this.yearPublished = obj.optString(BookFields.YEAR_PUBLISHED, "")
+        this.numberOfPages = obj.optString(BookFields.NUMBER_OF_PAGES, "")
+        this.genre = obj.optString(BookFields.GENRE, "")
+        this.language = obj.optString(BookFields.LANGUAGE, "")
+        this.raw_dateAdded = obj.optString(BookFields.DATE_ADDED, "")
+        this.imageFilename = obj.optString(BookFields.IMAGE_FILENAME, "")
+    }
+
+    private fun toJson(): JSONObject {
+        val obj = JSONObject()
+        obj.put(BookFields.TITLE, title)
+        obj.put(BookFields.SUBTITLE, subtitle)
+        obj.put(BookFields.AUTHOR, author)
+        obj.put(BookFields.PUBLISHER, publisher)
+        obj.put(BookFields.UPLOADED_IMAGE_URL, imgUrl)
+        obj.put(BookFields.PHYSICAL_LOCATION, physicalLocation)
+        obj.put(BookFields.ISBN, isbn)
+        obj.put(BookFields.SUMMARY, summary)
+        obj.put(BookFields.YEAR_PUBLISHED, yearPublished)
+        obj.put(BookFields.NUMBER_OF_PAGES, numberOfPages)
+        obj.put(BookFields.GENRE, genre)
+        obj.put(BookFields.LANGUAGE, language)
+        obj.put(BookFields.DATE_ADDED, raw_dateAdded)
+        obj.put(BookFields.IMAGE_FILENAME, imageFilename)
+        return obj
     }
 
     fun get(key: String): String {
@@ -122,9 +157,25 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0) {
         }
     }
 
-    companion object {
-        const val MIN_PUBLISHED_YEAR = 0
-        const val MAX_PUBLISHED_YEAR = 2100
+    // Parcelable.
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    // Parcelable
+    override fun writeToParcel(dest: Parcel, flags: Int) {
+        val jsonString = toJson().toString()
+        dest.writeString(jsonString)
+    }
+
+    companion object CREATOR : Parcelable.Creator<Book> {
+        override fun createFromParcel(parcel: Parcel): Book {
+            return Book(parcel)
+        }
+
+        override fun newArray(size: Int): Array<Book?> {
+            return arrayOfNulls(size)
+        }
     }
 }
 
