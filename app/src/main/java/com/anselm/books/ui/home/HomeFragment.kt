@@ -25,8 +25,17 @@ class HomeFragment : ListFragment() {
         handleMenu(requireActivity())
 
         val app = BooksApplication.app
+        /**
+         * Updates the item count when the repository says so, but also upon
+         * entering so that we can recover the count we had before leaving for some
+         * other fragment.
+         */
         app.repository.itemCount.observe(viewLifecycleOwner) {
             app.title = getString(R.string.book_count, it)
+            viewModel.itemCount = it
+        }
+        if (viewModel.itemCount >= 0) {
+            app.title = getString(R.string.book_count, viewModel.itemCount)
         }
         return root
     }
@@ -50,5 +59,6 @@ class HomeFragment : ListFragment() {
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
+
 }
 

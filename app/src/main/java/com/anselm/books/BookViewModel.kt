@@ -8,7 +8,9 @@ import androidx.paging.cachedIn
 private const val PAGE_SIZE = 100
 private const val MAX_SIZE = 500
 
-class BookViewModel(private val repository: BookRepository) : ViewModel() {
+class BookViewModel(
+    private val repository: BookRepository
+) : ViewModel() {
     val data = Pager(
         config = PagingConfig(
             pageSize = PAGE_SIZE,

@@ -21,6 +21,7 @@ import com.anselm.books.*
 
 class QueryViewModel : ViewModel() {
     var query: MutableLiveData<Query> = MutableLiveData<Query>()
+    var itemCount: Int = -1
 }
 
 class SearchFragment : ListFragment() {
