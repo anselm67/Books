@@ -4,7 +4,6 @@ import android.util.Log
 import com.anselm.books.Book
 import com.anselm.books.TAG
 import okhttp3.*
-import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.IOException
@@ -12,7 +11,6 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoField
 import java.time.temporal.TemporalAccessor
-import kotlin.collections.ArrayList
 
 class OpenLibraryClient {
     private val client = OkHttpClient()
@@ -107,6 +105,12 @@ class OpenLibraryClient {
         return null
     }
 
+    // typedObject -> { "type": "/type/<some-type>", "valueKey": "the value" }
+    private fun extractValue(typedObject: JSONObject?, valueKey: String): String {
+        val value = typedObject?.optString(valueKey, "")
+        return value ?: ""
+    }
+
     // authors -> {JSONArray@26790} "[{"type":{"key":"\/type\/author_role"},"author":{"key":"\/authors\/OL35793A"}},{"type":{"key":"\/type\/author_role"},"author":{"key":"\/authors\/OL892424A"}}]"
     private fun extractAuthorsFromWork(work: JSONObject): List<String>? {
         val list = work.optJSONArray("authors") ?: return null
@@ -165,7 +169,7 @@ class OpenLibraryClient {
         onError: (msg: String, e: Exception?) -> Unit,
         onBook: (Book?) -> Unit
     ) {
-        book.summary = work.optString("description", "")
+        book.summary = extractValue(work.optJSONObject("description"), "value")
         book.genre = foldAll(work, "subjects")
         if (book.subtitle == "") {
             book.subtitle = work.optString("subtitle", "")
@@ -196,6 +200,7 @@ class OpenLibraryClient {
     private val dateFormatters = arrayOf(
         DateTimeFormatter.ofPattern("MMMM d, yyyy"),
         DateTimeFormatter.ofPattern("MMMM yyyy"),
+        DateTimeFormatter.ofPattern("MMM d, yyyy"),
         DateTimeFormatter.ofPattern("yyyy-MM"),
         DateTimeFormatter.ofPattern("yyyy MMMM"),
         DateTimeFormatter.ofPattern("yyyy"),

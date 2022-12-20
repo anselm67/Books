@@ -23,7 +23,7 @@
         android:id="@+id/idISBNText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="9780393320923"
+        android:text="9781668001226"
         android:hint="Enter ISBN..." />
 
     <Button

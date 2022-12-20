@@ -62,7 +62,8 @@ class EditFragment: Fragment() {
                 book?.let { editors = bind(inflater, it) }
             }
         } else if (safeArgs.book != null) {
-            editors = bind(inflater, safeArgs.book!!)
+            book = safeArgs.book
+            editors = bind(inflater, book!!)
         } else {
             Log.d(TAG, "No books to edit.")
         }
@@ -165,21 +166,29 @@ class EditFragment: Fragment() {
     }
 
     private fun saveChanges() {
-        var changed = false
-        editors?.forEach {
-            if ( it.isChanged() ) {
-                changed = true
-                it.saveChange()
-            }
-        }
-        if (changed) {
+        val app = BooksApplication.app
+        if (book != null && book!!.id <= 0) {
+            // We're inserting a new book into the library.
             activity?.lifecycleScope?.launch {
-                val app = BooksApplication.app
-                app.database.bookDao().update(book!!)
-                app.toast("${book?.title} updated.")
+                app.database.bookDao().insert(book!!)
+                app.toast("${book?.title} added.")
             }
+        } else {
+            var changed = false
+            editors?.forEach {
+                if (it.isChanged()) {
+                    changed = true
+                    it.saveChange()
+                }
+            }
+            if (changed) {
+                activity?.lifecycleScope?.launch {
+                    app.database.bookDao().update(book!!)
+                    app.toast("${book?.title} updated.")
+                }
+            }
+            findNavController().popBackStack()
         }
-        findNavController().popBackStack()
     }
 
     private fun handleMenu(menuHost: MenuHost) {
