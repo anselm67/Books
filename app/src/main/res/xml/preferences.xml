@@ -31,8 +31,8 @@
             app:title="@string/glide_cache_size_title"
             app:showSeekBarValue="true"
             app:key="glide_cache_size_mb"
-            android:defaultValue="520"
-            app:min="5"  android:max="100" />
+            android:defaultValue="250"
+            app:min="5"  android:max="500" />
 
         <Preference
             app:key="glide_clear_cache"

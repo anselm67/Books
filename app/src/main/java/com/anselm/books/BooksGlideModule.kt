@@ -57,10 +57,11 @@ class BooksGlideModule : AppGlideModule() {
 
     override fun applyOptions(context: Context, builder: GlideBuilder) {
         val prefs = BooksApplication.app.prefs
+        val sizeMb = prefs.getInt("glide_cache_size_mb", GLIDE_DEFAULT_CACHE_SIZE_MB)
         builder.setDiskCache(
             InternalCacheDiskCacheFactory(
                 context,
-                prefs.getInt("glide_cache_size_mb", GLIDE_DEFAULT_CACHE_SIZE_MB).toLong()
+                1024L * 1024L * sizeMb.toLong()
             )
         )
     }

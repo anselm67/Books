@@ -22,8 +22,14 @@ class BooksApplication : Application() {
         File(applicationContext?.filesDir, "import")
     }
 
-    fun getCoverUri(filename: String): Uri {
-        return File(basedir, filename).toUri()
+    fun getCoverUri(book: Book): Uri? {
+        return if (book.imageFilename != "") {
+            File(basedir, book.imageFilename).toUri()
+        } else if (book.imgUrl != "") {
+            Uri.parse(book.imgUrl)
+        } else {
+            null
+        }
     }
 
     fun toast(resId: Int) {

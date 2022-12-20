@@ -153,13 +153,14 @@ class DetailsFragment : Fragment() {
 
     private fun FragmentDetailsBinding.bind(inflater: LayoutInflater, book: Book) {
         val app = BooksApplication.app
+        val uri = app.getCoverUri(book)
         app.title = book.title
         // Main part of the details.
         titleView.text = book.title
         subtitleView.text = book.subtitle
-        if (book.imageFilename != "") {
+        if (uri != null) {
             Glide.with(app.applicationContext)
-                .load(app.getCoverUri(book.imageFilename)).centerCrop()
+                .load(uri).centerCrop()
                 .placeholder(R.mipmap.ic_book_cover)
                 .into(coverImageView)
         } else {

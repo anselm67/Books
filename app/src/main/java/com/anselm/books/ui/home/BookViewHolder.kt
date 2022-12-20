@@ -16,11 +16,12 @@ class BookViewHolder(
     fun bind(book: Book) {
         show()
         val app = BooksApplication.app
+        val uri = app.getCoverUri(book)
         binding.titleView.text = book.title
         binding.authorView.text = book.author
-        if (book.imageFilename != "") {
+        if (uri != null) {
             Glide.with(app.applicationContext)
-                .load(app.getCoverUri(book.imageFilename))
+                .load(uri)
                 .placeholder(R.mipmap.ic_book_cover)
                 .centerCrop()
                 .into(binding.coverImageView)

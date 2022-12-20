@@ -13,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import com.anselm.books.BooksApplication
 import com.anselm.books.TAG
 import com.anselm.books.databinding.FragmentGalleryBinding
+import com.anselm.books.hideKeyboard
 import com.anselm.books.openlibrary.OpenLibraryClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -89,6 +90,8 @@ class GalleryFragment : Fragment() {
                 binding.idISBNText.setText("")
             }, {
                 app.loading(false)
+                val activity = requireActivity()
+                view?.let { myself -> activity.hideKeyboard(myself) }
                 requireActivity().lifecycleScope.launch(Dispatchers.Main) {
                     val action = GalleryFragmentDirections.addBook(-1, it)
                     findNavController().navigate(action)

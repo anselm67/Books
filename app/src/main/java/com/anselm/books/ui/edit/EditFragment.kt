@@ -26,7 +26,6 @@ import com.anselm.books.databinding.EditYearLayoutBinding
 import com.anselm.books.databinding.FragmentEditBinding
 import com.anselm.books.ui.home.SearchDialogFragment
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import kotlinx.coroutines.launch
 
 class EditFragment: Fragment() {
@@ -108,17 +107,11 @@ class EditFragment: Fragment() {
 
     private fun bind(inflater: LayoutInflater, book: Book): List<Editor> {
         val app = BooksApplication.app
+        val uri = app.getCoverUri(book)
         // Binds the cover to its image via Glide.
-        if (book.imageFilename != "") {
+        if (uri != null) {
             Glide.with(app.applicationContext)
-                .load(app.getCoverUri(book.imageFilename)).centerCrop()
-                .placeholder(R.mipmap.ic_book_cover)
-                .into(binding.coverImageView)
-        } else if (book.imgUrl != "") {
-            Glide.with(app.applicationContext)
-                .load(book.imgUrl)
-                .centerCrop()
-                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .load(uri).centerCrop()
                 .placeholder(R.mipmap.ic_book_cover)
                 .into(binding.coverImageView)
         } else {
