@@ -180,8 +180,8 @@ class EditFragment: Fragment() {
                     app.toast("${book?.title} updated.")
                 }
             }
-            findNavController().popBackStack()
         }
+        findNavController().popBackStack()
     }
 
     private fun handleMenu(menuHost: MenuHost) {
