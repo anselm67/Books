@@ -47,6 +47,7 @@ class SearchFragment : ListFragment() {
         // Displays filters in this view, that's the whole point.
         binding.idSearchFilters.isVisible = true
         binding.idCountView.isVisible = true
+        binding.fab.isVisible = false
         handleMenu(requireActivity())
 
         // Caches the drawable for the filter buttons.

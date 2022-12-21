@@ -21,6 +21,7 @@ class HomeFragment : ListFragment() {
         val root = super.onCreateView(inflater, container, savedInstanceState)
         binding.idSearchFilters.isVisible = false
         binding.idCountView.isVisible = false
+        binding.fab.isVisible = true
 
         handleMenu(requireActivity())
 

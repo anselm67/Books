@@ -15,9 +15,7 @@
         android:layout_gravity="center"
         android:text="@string/import_database" />
 
-    <View
-        style="@style/BookDetailsRuler"
-        />
+    <View style="@style/BookDetailsRuler" />
 
     <EditText
         android:id="@+id/idISBNText"

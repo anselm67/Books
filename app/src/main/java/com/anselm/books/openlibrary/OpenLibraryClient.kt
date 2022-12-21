@@ -98,7 +98,6 @@ class OpenLibraryClient {
                 return fmt.parse(value)
             } catch (e: DateTimeParseException) {
                 // Ignored.
-                Log.e(TAG, "Failed to parse $value using $fmt", e)
             }
         }
         Log.d(TAG, "Failed to parse date: $value.")

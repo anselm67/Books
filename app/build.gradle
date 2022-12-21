@@ -78,6 +78,10 @@ dependencies {
     // OkHttp for openlibrary access.
     implementation("com.squareup.okhttp3:okhttp:$okHttpVersion")
 
+    // Barcode scanning
+    implementation 'com.google.android.gms:play-services-base:18.1.0'
+    implementation 'com.google.android.gms:play-services-code-scanner:16.0.0-beta3'
+
     // Testing
     testImplementation "junit:junit:$rootProject.junitVersion"
     androidTestImplementation "androidx.arch.core:core-testing:$rootProject.coreTestingVersion"

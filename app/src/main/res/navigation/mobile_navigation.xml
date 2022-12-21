@@ -27,6 +27,10 @@
             app:popEnterAnim="@android:anim/slide_in_left"
             app:popExitAnim="@android:anim/slide_out_right" />
 
+        <action
+            android:id="@+id/action_EditNewBook"
+            app:destination="@id/nav_edit" />
+
     </fragment>
 
     <fragment

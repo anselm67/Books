@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
+import com.anselm.books.openlibrary.OpenLibraryClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,6 +18,7 @@ import java.io.File
 
 class BooksApplication : Application() {
     val applicationScope = CoroutineScope(SupervisorJob())
+    val olClient = OpenLibraryClient()
 
     private val basedir by lazy {
         File(applicationContext?.filesDir, "import")
