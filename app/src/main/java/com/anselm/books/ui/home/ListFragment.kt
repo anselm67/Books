@@ -16,15 +16,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.*
 import com.anselm.books.databinding.FragmentListBinding
-import com.google.mlkit.vision.barcode.common.Barcode
-import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
-import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 open class ListFragment: Fragment() {
-    private val app = BooksApplication.app
+    protected val app = BooksApplication.app
     private var _binding: FragmentListBinding? = null
     protected val binding get() = _binding!!
     protected val viewModel: QueryViewModel by viewModels()
@@ -80,9 +76,6 @@ open class ListFragment: Fragment() {
             }
         }
 
-        binding.fab.setOnClickListener {
-            scanISBN()
-        }
         return root
     }
 
@@ -94,45 +87,6 @@ open class ListFragment: Fragment() {
     private fun adapterOnClick(book: Book) {
         val action = HomeFragmentDirections.actionHomeFragmentToDetailsFragment(book.id)
         findNavController().navigate(action)
-    }
-
-    private fun scanISBN() {
-        val options = GmsBarcodeScannerOptions.Builder()
-            .setBarcodeFormats(Barcode.FORMAT_EAN_13)
-            .build()
-        val scanner = GmsBarcodeScanning.getClient(requireContext(), options)
-        scanner.startScan()
-            .addOnSuccessListener { barcode ->
-                // Task completed successfully
-                Log.d(TAG, "Found ISBN $barcode.")
-                if (barcode.valueType == Barcode.TYPE_ISBN && barcode.rawValue != null) {
-                    handleISBN(barcode.rawValue!!)
-                }
-            }.addOnCanceledListener {
-                // Task canceled
-                Log.d(TAG, "Scanner canceled")
-            }.addOnFailureListener { e ->
-                // Task failed with an exception
-                Log.e(TAG, "Scanner failed.", e)
-                app.toast(getString(R.string.scan_failed, e.message))
-            }
-    }
-
-    private fun handleISBN(isbn: String) {
-        app.loading(true)
-        app.olClient.lookup(isbn, { msg: String, e: Exception? ->
-            app.loading(false)
-            Log.e(TAG, "$isbn: ${msg}.", e)
-            app.toast("No matches found for $isbn")
-        }, {
-            app.loading(false)
-            val activity = requireActivity()
-            view?.let { myself -> activity.hideKeyboard(myself) }
-            requireActivity().lifecycleScope.launch(Dispatchers.Main) {
-                val action = HomeFragmentDirections.actionEditNewBook(-1, it)
-                findNavController().navigate(action)
-            }
-        })
     }
 
 }

@@ -67,15 +67,14 @@ class SearchFragment : ListFragment() {
         if (safeArgs.author != null) viewModel.query.value?.author = safeArgs.author
 
         // Let's go.
-        BooksApplication.app.repository.query = viewModel.query.value!!
+        app.repository.query = viewModel.query.value!!
         updateFiltersUi()
 
         viewModel.query.observe(viewLifecycleOwner) {
-            BooksApplication.app.repository.query = viewModel.query.value!!
+            app.repository.query = viewModel.query.value!!
             updateFiltersUi()
         }
 
-        val app = BooksApplication.app
         app.repository.itemCount.observe(viewLifecycleOwner) {
             binding.idCountView.text = getString(R.string.item_count_format, it)
         }
