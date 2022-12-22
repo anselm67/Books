@@ -17,6 +17,9 @@ interface BookDao {
     @Query("DELETE FROM book_table")
     suspend fun deleteAll(): Int
 
+    @Query("SELECT COUNT(*) FROM book_table")
+    suspend fun getTotalCount(): Int
+
     @Update
     suspend fun update(book: Book)
 

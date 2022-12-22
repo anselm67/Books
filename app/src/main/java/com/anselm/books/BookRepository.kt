@@ -21,6 +21,11 @@ class BookRepository(private val bookDao: BookDao) {
         return s == null || s == ""
     }
 
+
+    suspend fun getTotalCount(): Int {
+        return bookDao.getTotalCount()
+    }
+
     suspend fun getPagedList(limit: Int, offset: Int): List<Book> {
         Log.d(TAG, "getPagedList [$offset, $limit] ${query.query}/${query.partial}," +
                 " location: '${query.location}'," +

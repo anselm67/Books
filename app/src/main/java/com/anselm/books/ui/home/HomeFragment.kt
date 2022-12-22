@@ -8,6 +8,7 @@ import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.anselm.books.R
 import com.anselm.books.TAG
@@ -32,9 +33,10 @@ class HomeFragment : ListFragment() {
         binding.fab.isVisible = true
 
         handleMenu(requireActivity())
-
-        app.repository.itemCount.observe(viewLifecycleOwner) {
-            app.title = getString(R.string.book_count, it)
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                app.title = getString(R.string.book_count, app.repository.getTotalCount())
+            }
         }
 
         binding.fab.setOnClickListener {
