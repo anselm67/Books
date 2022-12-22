@@ -1,3 +1,6 @@
+Google Book API:
+https://www.googleapis.com/books/v1/volumes?q=isbn:9782072442193
+
 Debugging SQLListe statements:
 - Turn it on:
 Android/Sdk$ ./platform-tools/adb shell setprop log.tag.SQLiteStatements VERBOSE
