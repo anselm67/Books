@@ -162,13 +162,24 @@ class OpenLibraryClient {
         }
     }
 
+    private fun getDescription(work: JSONObject): String {
+        val value = work.opt("description")
+        return if (value is String) {
+            // We might have a direct string description.
+            value
+        } else {
+            // Or an RDF-like typed value:
+            extractValue(work.optJSONObject("description"), "value")
+        }
+    }
+
     private fun setupWorkAndAuthors(
         book: Book,
         work:JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
         onBook: (Book?) -> Unit
     ) {
-        book.summary = extractValue(work.optJSONObject("description"), "value")
+        book.summary = getDescription(work)
         book.genre = foldAll(work, "subjects")
         if (book.subtitle == "") {
             book.subtitle = work.optString("subtitle", "")

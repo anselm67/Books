@@ -21,7 +21,7 @@
         android:id="@+id/idISBNText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="9781668001226"
+        android:text="9782070528189"
         android:hint="Enter ISBN..." />
 
     <Button

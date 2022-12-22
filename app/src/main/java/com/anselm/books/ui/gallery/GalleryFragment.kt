@@ -3,11 +3,12 @@ package com.anselm.books.ui.gallery
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.anselm.books.BooksApplication
@@ -60,8 +61,11 @@ class GalleryFragment : Fragment() {
 
         binding.lookupISBNButton.setOnClickListener {
             val isbn = binding.idISBNText.text.toString().trim()
+            view?.let { myself -> activity?.hideKeyboard(myself) }
             handleISBN(isbn)
         }
+
+        handleMenu(requireActivity())
         return root
     }
 
@@ -76,13 +80,26 @@ class GalleryFragment : Fragment() {
             binding.idISBNText.setText("")
         }, {
             app.loading(false)
-            val activity = requireActivity()
-            view?.let { myself -> activity.hideKeyboard(myself) }
             requireActivity().lifecycleScope.launch(Dispatchers.Main) {
                 val action = GalleryFragmentDirections.addBook(-1, it)
                 findNavController().navigate(action)
             }
         })
+    }
+
+    private fun handleMenu(menuHost: MenuHost) {
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menu.findItem(R.id.idEditBook)?.isVisible = false
+                menu.findItem(R.id.idSaveBook)?.isVisible = false
+                menu.findItem(R.id.idSearchView)?.isVisible = false
+                menu.findItem(R.id.idGotoSearchView)?.isVisible = false
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return false
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     override fun onDestroyView() {
