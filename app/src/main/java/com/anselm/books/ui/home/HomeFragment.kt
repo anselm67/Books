@@ -74,6 +74,8 @@ class HomeFragment : ListFragment() {
                 Log.d(TAG, "Found ISBN $barcode.")
                 if (barcode.valueType == Barcode.TYPE_ISBN && barcode.rawValue != null) {
                     handleISBN(barcode.rawValue!!)
+                } else {
+                    app.toast(getString(R.string.scanned_invalid_isbn, barcode.rawValue))
                 }
             }.addOnCanceledListener {
                 // Task canceled
@@ -86,23 +88,20 @@ class HomeFragment : ListFragment() {
     }
 
     private fun handleISBN(isbn: String) {
-        app.loading(true)
+        app.loading(true, "$TAG.handleISBM")
         app.olClient.lookup(isbn, { msg: String, e: Exception? ->
-            app.loading(false)
             Log.e(TAG, "$isbn: ${msg}.", e)
             app.toast("No matches found for $isbn")
+            app.loading(false, "$TAG.handleISBM")
         }, {
-            app.loading(false)
             val activity = requireActivity()
             view?.let { myself -> activity.hideKeyboard(myself) }
             requireActivity().lifecycleScope.launch(Dispatchers.Main) {
                 val action = HomeFragmentDirections.actionEditNewBook(-1, it)
                 findNavController().navigate(action)
             }
+            app.loading(false, "$TAG.handleISBM")
         })
     }
-
-
-
 }
 

@@ -74,9 +74,12 @@ class BooksApplication : Application() {
         progressBarView = null
     }
 
-    fun loading(onOff: Boolean) {
+    private val loadingTags = mutableMapOf<String, Boolean>()
+    fun loading(onOff: Boolean, tag: String = "global" ) {
+        loadingTags[tag] = onOff
+        val anyOn = loadingTags.toList().any(Pair<String, Boolean>::second)
         applicationScope.launch(Dispatchers.Main) {
-            progressBarView?.isVisible = onOff
+            progressBarView?.isVisible = anyOn
         }
     }
 

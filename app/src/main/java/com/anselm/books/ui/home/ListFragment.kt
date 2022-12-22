@@ -71,7 +71,7 @@ open class ListFragment: Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 adapter.loadStateFlow.collect {
                     app.loading(it.source.prepend is LoadState.Loading
-                            || it.source.append is LoadState.Loading)
+                                || it.source.append is LoadState.Loading, "$TAG.recycler")
                 }
             }
         }

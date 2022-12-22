@@ -57,5 +57,6 @@
     <string name="select_import_file_prompt">Select a file to import.</string>
     <string name="import_status">Imported %1$d books and %2$d images.</string>
     <string name="scan_failed">Scanner failed: %1$s.</string>
+    <string name="scanned_invalid_isbn">%1$s is not a valid ISBN.</string>
 
 </resources>
