@@ -15,6 +15,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
@@ -24,6 +25,7 @@ import com.anselm.books.*
 import com.anselm.books.databinding.EditFieldLayoutBinding
 import com.anselm.books.databinding.EditYearLayoutBinding
 import com.anselm.books.databinding.FragmentEditBinding
+import com.anselm.books.ui.home.QueryViewModel
 import com.anselm.books.ui.home.SearchDialogFragment
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
@@ -36,6 +38,8 @@ class EditFragment: Fragment() {
     private var validBorder: Drawable? = null
     private var invalidBorder: Drawable? = null
     private var changedBorder: Drawable? = null
+
+    protected val viewModel: QueryViewModel by viewModels()
 
     private var editors: List<Editor>? = null
 
@@ -52,9 +56,13 @@ class EditFragment: Fragment() {
         _binding = FragmentEditBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val repository = (activity?.application as BooksApplication).repository
-        val safeArgs: EditFragmentArgs by navArgs()
+        val repository = BooksApplication.app.repository
 
+
+        // Parses the arguments, we can have either:
+        // - A bookId, which means we want to edit/update an existing book,
+        // - A Book instance which is to be created/ inserted.
+        val safeArgs: EditFragmentArgs by navArgs()
         if (safeArgs.bookId > 0) {
             viewLifecycleOwner.lifecycleScope.launch {
                 book = repository.getBook(safeArgs.bookId)
@@ -67,6 +75,11 @@ class EditFragment: Fragment() {
             Log.d(TAG, "No books to edit.")
         }
 
+        // Clears the current search query so the search dialog gives the
+        // full list of values for location, genre and authors.
+        val query = Query()
+        viewModel.query.value = query
+        repository.query = query
 
         // Caches the borders corresponding to the various states of individual field editors.
         validBorder = getBorderDrawable(R.drawable.textview_border)

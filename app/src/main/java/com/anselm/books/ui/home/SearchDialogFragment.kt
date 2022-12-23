@@ -170,15 +170,19 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
         dismiss()
     }
 
+//    requireActivity().getWindow().setSoftInputMode(WindowManager.LayoutParam s.SOFT_INPUT_STATE_VISIBLE | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         //  if you wanna show the bottom sheet as full screen,
         val bottomSheetDialog = super.onCreateDialog(savedInstanceState) as BottomSheetDialog
         bottomSheetDialog.setOnShowListener { dialog: DialogInterface ->
-            (dialog as BottomSheetDialog).findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let {
-                val layoutParams = it.layoutParams
-                layoutParams.height = Resources.getSystem().displayMetrics.heightPixels
-                it.layoutParams = layoutParams
-                BottomSheetBehavior.from(it).state = BottomSheetBehavior.STATE_EXPANDED
+            (dialog as BottomSheetDialog)
+                .findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
+                ?.let {
+                    val layoutParams = it.layoutParams
+                    layoutParams.height = Resources.getSystem().displayMetrics.heightPixels
+                    it.layoutParams = layoutParams
+                    BottomSheetBehavior.from(it).state = BottomSheetBehavior.STATE_EXPANDED
             }
         }
         return bottomSheetDialog
