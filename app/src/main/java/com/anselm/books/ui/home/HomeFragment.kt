@@ -2,9 +2,9 @@ package com.anselm.books.ui.home
 
 import android.os.Bundle
 import android.util.Log
-import android.view.*
-import androidx.core.view.MenuHost
-import androidx.core.view.MenuProvider
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -29,7 +29,27 @@ class HomeFragment : ListFragment() {
         binding.idCountView.isVisible = false
         binding.fab.isVisible = true
 
-        handleMenu(requireActivity())
+        // Handles the menu items we care about.
+        handleMenu(listOf(
+            Pair(R.id.idGotoSearchView) {
+                val action = HomeFragmentDirections.actionHomeFragmentToSearchFragment(
+                    sortBy = viewModel.query.value?.sortBy ?: BookDao.SortByTitle
+                )
+                findNavController().navigate(action)
+            },
+            Pair(R.id.idSortByDateAdded) {
+                val query = viewModel.query.value?.copy(sortBy = BookDao.SortByDateAdded)
+                viewModel.query.value = query
+                app.repository.query = query!!
+                bindAdapter()
+            },
+            Pair(R.id.idSortByTitle) {
+                val query = viewModel.query.value?.copy(sortBy = BookDao.SortByTitle)
+                viewModel.query.value = query
+                app.repository.query = query!!
+                bindAdapter()
+            }
+        ))
 
         // Initializes the query for this fragment and updates the repository.
         if (viewModel.query.value == null) {
@@ -47,44 +67,6 @@ class HomeFragment : ListFragment() {
             scanISBN()
         }
         return root
-    }
-
-    private fun handleMenu(menuHost: MenuHost) {
-        menuHost.addMenuProvider(object: MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menu.findItem(R.id.idEditBook)?.isVisible = false
-                menu.findItem(R.id.idSaveBook)?.isVisible = false
-                menu.findItem(R.id.idSearchView)?.isVisible = false
-                menu.findItem(R.id.idGotoSearchView)?.isVisible = true
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return when (menuItem.itemId) {
-                    R.id.idGotoSearchView -> {
-                        val action = HomeFragmentDirections.actionHomeFragmentToSearchFragment(
-                            sortBy = viewModel.query.value?.sortBy ?: BookDao.SortByTitle
-                        )
-                        findNavController().navigate(action)
-                        true
-                    }
-                    R.id.idSortByDateAdded -> {
-                        val query = viewModel.query.value?.copy(sortBy = BookDao.SortByDateAdded)
-                        viewModel.query.value = query
-                        app.repository.query = query!!
-                        bindAdapter()
-                        true
-                    }
-                    R.id.idSortByTitle -> {
-                        val query = viewModel.query.value?.copy(sortBy = BookDao.SortByTitle)
-                        viewModel.query.value = query
-                        app.repository.query = query!!
-                        bindAdapter()
-                        true
-                    }
-                    else -> false
-                }
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun scanISBN() {

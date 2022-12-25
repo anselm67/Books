@@ -8,8 +8,6 @@ import android.view.*
 import android.widget.Button
 import android.widget.SearchView
 import androidx.core.content.ContextCompat
-import androidx.core.view.MenuHost
-import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -48,7 +46,22 @@ class SearchFragment : ListFragment() {
         binding.idSearchFilters.isVisible = true
         binding.idCountView.isVisible = true
         binding.fab.isVisible = false
-        handleMenu(requireActivity())
+
+        // Customizes the toolbar menu.
+        handleMenu(listOf(
+            Pair(R.id.idSortByDateAdded) {
+                val query = viewModel.query.value?.copy(sortBy = BookDao.SortByDateAdded)
+                viewModel.query.value = query
+                app.repository.query = query!!
+                bindAdapter()
+            },
+            Pair(R.id.idSortByTitle) {
+                val query = viewModel.query.value?.copy(sortBy = BookDao.SortByTitle)
+                viewModel.query.value = query
+                app.repository.query = query!!
+                bindAdapter()
+            }
+        ))
 
         // Caches the drawable for the filter buttons.
         filterDrawable = ContextCompat.getDrawable(
@@ -83,31 +96,8 @@ class SearchFragment : ListFragment() {
         return root
     }
 
-    private fun handleMenu(menuHost: MenuHost) {
-        menuHost.addMenuProvider(object: MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                bindSearch(menu)
-            }
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return when (menuItem.itemId) {
-                    R.id.idSortByDateAdded -> {
-                        val query = viewModel.query.value?.copy(sortBy = BookDao.SortByDateAdded)
-                        viewModel.query.value = query
-                        app.repository.query = query!!
-                        bindAdapter()
-                        true
-                    }
-                    R.id.idSortByTitle -> {
-                        val query = viewModel.query.value?.copy(sortBy = BookDao.SortByTitle)
-                        viewModel.query.value = query
-                        app.repository.query = query!!
-                        bindAdapter()
-                        true
-                    }
-                    else -> false
-                }
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    override fun onCreateMenu(menu: Menu) {
+        bindSearch(menu)
     }
 
     private fun clearFilter(columnName: String) {
