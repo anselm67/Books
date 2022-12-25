@@ -3,17 +3,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/idSortByDateAdded"
+        android:icon="@drawable/ic_baseline_sort_by_time_24"
+        android:title="@string/sort_by_date_added"
+        app:showAsAction="collapseActionView" />
+
+    <item
+        android:id="@+id/idSortByTitle"
+        android:icon="@drawable/ic_baseline_sort_by_alpha_24"
+        android:title="@string/sort_by_title"
+        app:showAsAction="collapseActionView" />
+
+    <item
         android:id="@+id/idGotoSearchView"
         android:icon="@drawable/ic_baseline_search_24"
         android:title="@string/search_title"
         app:showAsAction="ifRoom|withText" />
-
-    <item
-        android:id="@+id/idSearchView"
-        android:icon="@drawable/ic_baseline_search_24"
-        android:title="@string/search_title"
-        app:showAsAction="ifRoom|withText"
-        app:actionViewClass="android.widget.SearchView" />
 
     <item
         android:id="@+id/idEditBook"
@@ -26,5 +31,12 @@
         android:icon="@drawable/ic_baseline_save_24"
         android:title="@string/save_book_title"
         app:showAsAction="ifRoom|withText" />
+
+    <item
+        android:id="@+id/idSearchView"
+        android:icon="@drawable/ic_baseline_search_24"
+        android:title="@string/search_title"
+        app:showAsAction="collapseActionView"
+        app:actionViewClass="android.widget.SearchView" />
 
 </menu>

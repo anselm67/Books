@@ -21,7 +21,6 @@ class BookRepository(private val bookDao: BookDao) {
         return s == null || s == ""
     }
 
-
     suspend fun getTotalCount(): Int {
         return bookDao.getTotalCount()
     }
@@ -31,7 +30,8 @@ class BookRepository(private val bookDao: BookDao) {
                 " location: '${query.location}'," +
                 " genre: '${query.genre}'" +
                 " publisher: '${query.publisher}'" +
-                " author: ${query.author}"
+                " author: ${query.author}" +
+                " sort: ${query.sortBy}"
         )
         return if ( isEmpty(query.query) ) {
             val isLocationEmpty = isEmpty(query.location)
@@ -43,7 +43,7 @@ class BookRepository(private val bookDao: BookDao) {
                 isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
                 isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!,
                 isAuthorEmpty, if (isAuthorEmpty) "" else query.author!!,
-                limit, offset)
+                query.sortBy, limit, offset)
         } else /* Requests text matching. */ {
             val isLocationEmpty = isEmpty(query.location)
             val isGenreEmpty = isEmpty(query.genre)
@@ -55,7 +55,7 @@ class BookRepository(private val bookDao: BookDao) {
                 isGenreEmpty, if (isGenreEmpty) "" else query.genre!!,
                 isPublisherEmpty, if (isPublisherEmpty) "" else query.publisher!!,
                 isAuthorEmpty, if (isAuthorEmpty) "" else query.author!!,
-                limit, offset)
+                query.sortBy, limit, offset)
         }
     }
 

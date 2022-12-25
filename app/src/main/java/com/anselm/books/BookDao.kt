@@ -33,14 +33,17 @@ interface BookDao {
             "   AND (:genreCond OR genre = :genre)" +
             "   AND (:publisherCond OR publisher = :publisher)" +
             "   AND (:authorCond OR book_table.author = :author)" +
-            " ORDER BY title, author DESC LIMIT :limit OFFSET :offset")
+            " ORDER BY " +
+            "   CASE WHEN :param = 1 THEN book_table.title END ASC, " +
+            "   CASE WHEN :param = 2 THEN date_added END DESC " +
+            "LIMIT :limit OFFSET :offset")
     suspend fun getTitlePagedList(
         query: String,
         locationCond: Boolean, physicalLocation: String,
         genreCond: Boolean, genre: String,
         publisherCond: Boolean, publisher: String,
         authorCond: Boolean, author: String,
-        limit: Int, offset: Int) : List<Book>
+        param: Int, limit: Int, offset: Int) : List<Book>
 
     @Query("SELECT COUNT(*) FROM book_table " +
             " JOIN book_fts ON book_table.id = book_fts.rowid " +
@@ -62,13 +65,16 @@ interface BookDao {
             "   AND (:genreCond OR genre = :genre)" +
             "   AND (:publisherCond OR publisher = :publisher)" +
             "   AND (:authorCond OR book_table.author = :author)" +
-            " ORDER BY title, author DESC LIMIT :limit OFFSET :offset")
+            " ORDER BY " +
+            "   CASE WHEN :param = 1 THEN book_table.title END ASC, " +
+            "   CASE WHEN :param = 2 THEN date_added END DESC " +
+            "LIMIT :limit OFFSET :offset")
     suspend fun getFilteredPagedList(
         locationCond: Boolean, physicalLocation: String,
         genreCond: Boolean, genre: String,
         publisherCond: Boolean, publisher: String,
         authorCond: Boolean, author: String,
-        limit: Int, offset: Int) : List<Book>
+        param: Int, limit: Int, offset: Int) : List<Book>
 
     @Query("SELECT COUNT(*) FROM book_table " +
             " JOIN book_fts ON book_table.id = book_fts.rowid " +
@@ -200,7 +206,10 @@ interface BookDao {
         genreCond: Boolean, genre: String,
         publisherCond: Boolean, publisher: String): List<Histo>
 
-
+    companion object {
+        const val SortByTitle = 1
+        const val SortByDateAdded = 2
+    }
 }
 
 data class Histo(val text: String, val count: Int)

@@ -49,6 +49,9 @@
             app:nullable="true" android:defaultValue="@null" />
         <argument android:name="author" app:argType="string"
             app:nullable="true" android:defaultValue="@null" />
+        <!-- BookDao.SortByTitle == 1 -->
+        <argument android:name="sortBy" app:argType="integer"
+            android:defaultValue="1" />
 
         <action
             android:id="@+id/action_HomeFragment_to_DetailsFragment"

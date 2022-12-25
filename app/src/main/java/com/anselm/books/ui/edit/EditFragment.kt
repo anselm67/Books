@@ -176,6 +176,7 @@ class EditFragment: Fragment() {
         if (book != null && book!!.id <= 0) {
             // We're inserting a new book into the library.
             activity?.lifecycleScope?.launch {
+                book!!.raw_dateAdded = System.currentTimeMillis() / 1000
                 app.database.bookDao().insert(book!!)
                 app.toast("${book?.title} added.")
             }
@@ -200,6 +201,8 @@ class EditFragment: Fragment() {
     private fun handleMenu(menuHost: MenuHost) {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menu.findItem(R.id.idSortByDateAdded)?.isVisible = false
+                menu.findItem(R.id.idSortByTitle)?.isVisible = false
                 menu.findItem(R.id.idSearchView)?.isVisible = false
                 menu.findItem(R.id.idEditBook)?.isVisible = false
                 menu.findItem(R.id.idSaveBook)?.isVisible = true

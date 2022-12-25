@@ -6,5 +6,6 @@ data class Query (
     var location: String? = null,
     var genre: String? = null,
     var publisher: String? = null,
-    var author: String? = null
+    var author: String? = null,
+    var sortBy: Int = BookDao.SortByTitle,
 )

@@ -61,6 +61,8 @@ class DetailsFragment : Fragment() {
     private fun handleMenu(menuHost: MenuHost) {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menu.findItem(R.id.idSortByDateAdded)?.isVisible = false
+                menu.findItem(R.id.idSortByTitle)?.isVisible = false
                 menu.findItem(R.id.idSearchView)?.isVisible = false
                 menu.findItem(R.id.idEditBook)?.isVisible = true
                 menu.findItem(R.id.idSaveBook)?.isVisible = false

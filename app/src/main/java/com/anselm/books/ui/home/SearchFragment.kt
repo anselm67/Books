@@ -65,6 +65,7 @@ class SearchFragment : ListFragment() {
         if (safeArgs.genre != null) viewModel.query.value?.genre = safeArgs.genre
         if (safeArgs.publisher != null) viewModel.query.value?.publisher = safeArgs.publisher
         if (safeArgs.author != null) viewModel.query.value?.author = safeArgs.author
+        viewModel.query.value?.sortBy = safeArgs.sortBy
 
         // Let's go.
         app.repository.query = viewModel.query.value!!
@@ -88,7 +89,23 @@ class SearchFragment : ListFragment() {
                 bindSearch(menu)
             }
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return false
+                return when (menuItem.itemId) {
+                    R.id.idSortByDateAdded -> {
+                        val query = viewModel.query.value?.copy(sortBy = BookDao.SortByDateAdded)
+                        viewModel.query.value = query
+                        app.repository.query = query!!
+                        bindAdapter()
+                        true
+                    }
+                    R.id.idSortByTitle -> {
+                        val query = viewModel.query.value?.copy(sortBy = BookDao.SortByTitle)
+                        viewModel.query.value = query
+                        app.repository.query = query!!
+                        bindAdapter()
+                        true
+                    }
+                    else -> false
+                }
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
@@ -157,12 +174,30 @@ class SearchFragment : ListFragment() {
     }
 
     private fun bindSearch(menu: Menu) {
+        menu.findItem(R.id.idSortByDateAdded)?.isVisible = true
+        menu.findItem(R.id.idSortByTitle)?.isVisible = true
         menu.findItem(R.id.idEditBook)?.isVisible = false
         menu.findItem(R.id.idSaveBook)?.isVisible = false
         menu.findItem(R.id.idGotoSearchView)?.isVisible = false
         // Handles the search view:
         val item = menu.findItem(R.id.idSearchView)
         item.isVisible = true
+
+        // Expands the menu item.
+        // As this pushes an event to the backstack, we need to pop it automatically so that
+        // when back is pressed it backs out to HomeFragment rather than just collapsing
+        // the SearchView.
+        item.expandActionView()
+        item.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean  = true
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                findNavController().popBackStack()
+                return true
+            }
+        })
+
+        // Customizes the search view's action view.
         (item.actionView as SearchView).let {
             it.setQuery(viewModel.query.value?.query, false)
             it.isIconified = false

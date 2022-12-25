@@ -10,9 +10,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import com.anselm.books.R
-import com.anselm.books.TAG
-import com.anselm.books.hideKeyboard
+import com.anselm.books.*
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
@@ -20,7 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class HomeFragment : ListFragment() {
-
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
@@ -33,6 +30,13 @@ class HomeFragment : ListFragment() {
         binding.fab.isVisible = true
 
         handleMenu(requireActivity())
+
+        // Initializes the query for this fragment and updates the repository.
+        if (viewModel.query.value == null) {
+            viewModel.query.value = Query()
+        }
+        app.repository.query = viewModel.query.value!!
+
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 app.title = getString(R.string.book_count, app.repository.getTotalCount())
@@ -53,13 +57,31 @@ class HomeFragment : ListFragment() {
                 menu.findItem(R.id.idSearchView)?.isVisible = false
                 menu.findItem(R.id.idGotoSearchView)?.isVisible = true
             }
+
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return if (menuItem.itemId == R.id.idGotoSearchView) {
-                    val action = HomeFragmentDirections.actionHomeFragmentToSearchFragment()
-                    findNavController().navigate(action)
-                    true
-                } else {
-                    false
+                return when (menuItem.itemId) {
+                    R.id.idGotoSearchView -> {
+                        val action = HomeFragmentDirections.actionHomeFragmentToSearchFragment(
+                            sortBy = viewModel.query.value?.sortBy ?: BookDao.SortByTitle
+                        )
+                        findNavController().navigate(action)
+                        true
+                    }
+                    R.id.idSortByDateAdded -> {
+                        val query = viewModel.query.value?.copy(sortBy = BookDao.SortByDateAdded)
+                        viewModel.query.value = query
+                        app.repository.query = query!!
+                        bindAdapter()
+                        true
+                    }
+                    R.id.idSortByTitle -> {
+                        val query = viewModel.query.value?.copy(sortBy = BookDao.SortByTitle)
+                        viewModel.query.value = query
+                        app.repository.query = query!!
+                        bindAdapter()
+                        true
+                    }
+                    else -> false
                 }
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)

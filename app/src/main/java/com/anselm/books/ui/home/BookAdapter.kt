@@ -28,11 +28,11 @@ class BookAdapter (private val onClick: (Book) -> Unit)
 
     class BooksComparator: DiffUtil.ItemCallback<Book>() {
         override fun areItemsTheSame(oldItem: Book, newItem: Book): Boolean {
-            return oldItem == newItem
+            return oldItem.id == newItem.id
         }
 
         override fun areContentsTheSame(oldItem: Book, newItem: Book): Boolean {
-            return oldItem.id == newItem.id
+            return oldItem == newItem
         }
     }
 }

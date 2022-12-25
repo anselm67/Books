@@ -26,14 +26,16 @@ object BookFields {
 
     const val MIN_PUBLISHED_YEAR = 0
     const val MAX_PUBLISHED_YEAR = 2100
-
 }
 
 private val DATE_FORMAT = SimpleDateFormat("EEE, MMM d yyy - hh:mm aaa", Locale.US)
 
 @Entity(
     tableName = "book_table",
-    indices = [Index(value = ["title", "author"] )]
+    indices = [
+        Index(value = ["title"] ),
+        Index(value = ["date_added"])
+    ]
 )
 data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0): Parcelable {
     @ColumnInfo(name = "title")
@@ -77,11 +79,11 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0): Parcelable {
     // is stored in the database. The private _dateAdded stores the db value, the public
     // dateAdded returns it properly formatted.
     @ColumnInfo(name = "date_added")
-    var raw_dateAdded = ""
+    var raw_dateAdded = 0L
 
     val dateAdded: String
-        get() = if (raw_dateAdded == "") ""
-                else DATE_FORMAT.format(Date(raw_dateAdded.toLong() * 1000))
+        get() = if (raw_dateAdded == 0L) ""
+                else DATE_FORMAT.format(Date(raw_dateAdded * 1000))
 
     @ColumnInfo(name = "image_filename")
     var imageFilename = ""
@@ -114,7 +116,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0): Parcelable {
         this.numberOfPages = obj.optString(BookFields.NUMBER_OF_PAGES, "")
         this.genre = obj.optString(BookFields.GENRE, "")
         this.language = obj.optString(BookFields.LANGUAGE, "")
-        this.raw_dateAdded = obj.optString(BookFields.DATE_ADDED, "")
+        this.raw_dateAdded = obj.optLong(BookFields.DATE_ADDED, 0)
         this.imageFilename = obj.optString(BookFields.IMAGE_FILENAME, "")
     }
 
