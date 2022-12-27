@@ -48,9 +48,6 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
     @ColumnInfo(name = "author")
     var author = ""
 
-    @ColumnInfo(name = "publisher")
-    var publisher = ""
-
     @ColumnInfo(name = "imgUrl")
     var imgUrl = ""
 
@@ -243,6 +240,16 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
             check(value == null || value.type == Label.PhysicalLocation)
             setOrReplace(Label.PhysicalLocation, value)
         }
+
+    var publisher: String
+        get() {
+            check(decorated)
+            return labels!!.firstOrNull { it.type == Label.Publisher }?.name ?: ""
+        }
+        set(value) {
+            setOrReplace(Label.Publisher, Label(Label.Publisher,value))
+        }
+
 }
 
 @Entity(tableName = "book_fts")

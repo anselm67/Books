@@ -66,7 +66,7 @@ class EditFragment: Fragment() {
         val safeArgs: EditFragmentArgs by navArgs()
         if (safeArgs.bookId > 0) {
             viewLifecycleOwner.lifecycleScope.launch {
-                book = repository.load(safeArgs.bookId)
+                book = repository.load(safeArgs.bookId, decorate = true)
                 book?.let { editors = bind(inflater, it) }
             }
         } else if (safeArgs.book != null) {

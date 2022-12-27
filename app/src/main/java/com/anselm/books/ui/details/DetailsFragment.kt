@@ -44,7 +44,7 @@ class DetailsFragment : Fragment() {
         val safeArgs: DetailsFragmentArgs by navArgs()
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val book: Book = repository.load(safeArgs.bookId)
+            val book: Book = repository.load(safeArgs.bookId, decorate = true)
             bookId = book.id
             binding.bind(inflater, book)
         }

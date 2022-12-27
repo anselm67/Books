@@ -14,7 +14,7 @@ interface BookDao {
      * Handling Book: insert, load and update.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(book: Book)
+    suspend fun insert(book: Book): Long
 
     @Query("SELECT * FROM book_table WHERE id = :bookId")
     suspend fun load(bookId: Long) : Book
@@ -67,7 +67,6 @@ interface BookDao {
             " WHERE book_fts MATCH :query " +
             "   AND (:locationCond OR physicalLocation = :physicalLocation)" +
             "   AND (:genreCond OR genre = :genre)" +
-            "   AND (:publisherCond OR publisher = :publisher)" +
             "   AND (:authorCond OR book_table.author = :author)" +
             " ORDER BY " +
             "   CASE WHEN :param = 1 THEN book_table.title END ASC, " +
@@ -77,7 +76,6 @@ interface BookDao {
         query: String,
         locationCond: Boolean, physicalLocation: String,
         genreCond: Boolean, genre: String,
-        publisherCond: Boolean, publisher: String,
         authorCond: Boolean, author: String,
         param: Int, limit: Int, offset: Int) : List<Book>
 
@@ -86,20 +84,17 @@ interface BookDao {
             " WHERE book_fts MATCH :query " +
             "   AND (:locationCond OR physicalLocation = :physicalLocation)" +
             "   AND (:genreCond OR genre = :genre)" +
-            "   AND (:publisherCond OR publisher = :publisher)" +
             "   AND (:authorCond OR book_table.author = :author)")
     suspend fun getTitlePagedListCount(
         query: String,
         locationCond: Boolean, physicalLocation: String,
         genreCond: Boolean, genre: String,
-        publisherCond: Boolean, publisher: String,
         authorCond: Boolean, author: String) : Int
 
     @Query("SELECT * FROM book_table " +
             " JOIN book_fts ON book_table.id = book_fts.rowid " +
             " WHERE (:locationCond OR physicalLocation = :physicalLocation)" +
             "   AND (:genreCond OR genre = :genre)" +
-            "   AND (:publisherCond OR publisher = :publisher)" +
             "   AND (:authorCond OR book_table.author = :author)" +
             " ORDER BY " +
             "   CASE WHEN :param = 1 THEN book_table.title END ASC, " +
@@ -108,7 +103,6 @@ interface BookDao {
     suspend fun getFilteredPagedList(
         locationCond: Boolean, physicalLocation: String,
         genreCond: Boolean, genre: String,
-        publisherCond: Boolean, publisher: String,
         authorCond: Boolean, author: String,
         param: Int, limit: Int, offset: Int) : List<Book>
 
@@ -116,12 +110,10 @@ interface BookDao {
             " JOIN book_fts ON book_table.id = book_fts.rowid " +
             " WHERE (:locationCond OR physicalLocation = :physicalLocation)" +
             "   AND (:genreCond OR genre = :genre)" +
-            "   AND (:publisherCond OR publisher = :publisher)" +
             "   AND (:authorCond OR book_table.author = :author)")
     suspend fun getFilteredPagedListCount(
         locationCond: Boolean, physicalLocation: String,
         genreCond: Boolean, genre: String,
-        publisherCond: Boolean, publisher: String,
         authorCond: Boolean, author: String) : Int
 
 
@@ -133,25 +125,21 @@ interface BookDao {
             " WHERE book_fts MATCH :query " +
             "   AND text != \"\"" +
             "   AND (:genreCond OR genre = :genre)" +
-            "   AND (:publisherCond OR publisher = :publisher)" +
             "   AND (:authorCond OR book_table.author = :author)" +
             "  GROUP by physicalLocation ORDER by count DESC")
     suspend fun getTitlePhysicalLocation(
         query: String,
         genreCond: Boolean, genre: String,
-        publisherCond: Boolean, publisher: String,
         authorCond: Boolean, author: String): List<Histo>
 
 
     @Query("SELECT physicalLocation as text, count(*) as count FROM book_table " +
             " WHERE text != \"\" " +
             "   AND (:genreCond OR genre = :genre)" +
-            "   AND (:publisherCond OR publisher = :publisher)" +
             "   AND (:authorCond OR book_table.author = :author)" +
             " GROUP by physicalLocation ORDER by count DESC")
     suspend fun getFilteredPhysicalLocation(
         genreCond: Boolean, genre: String,
-        publisherCond: Boolean, publisher: String,
         authorCond: Boolean, author: String
     ): List<Histo>
 
@@ -163,51 +151,51 @@ interface BookDao {
             " WHERE book_fts MATCH :query " +
             "   AND text != \"\"" +
             "   AND (:locationCond OR physicalLocation= :location)" +
-            "   AND (:publisherCond OR publisher = :publisher)" +
             "   AND (:authorCond OR book_table.author = :author)" +
             "  GROUP by genre ORDER by count DESC")
     suspend fun getTitleGenre(
         query: String,
         locationCond: Boolean, location: String,
-        publisherCond: Boolean, publisher: String,
         authorCond: Boolean, author: String): List<Histo>
 
 
     @Query("SELECT genre as text, count(*) as count FROM book_table " +
             " WHERE text != \"\" " +
             "   AND (:locationCond OR physicalLocation= :location)" +
-            "   AND (:publisherCond OR publisher = :publisher)" +
             "   AND (:authorCond OR book_table.author = :author)" +
             " GROUP by genre ORDER by count DESC")
     suspend fun getFilteredGenre(
         locationCond: Boolean, location: String,
-        publisherCond: Boolean, publisher: String,
         authorCond: Boolean, author: String): List<Histo>
 
     /**
      * Two queries for publisher histograms.
      */
-    @Query("SELECT publisher as text, count(*) as count FROM book_table " +
-            " JOIN book_fts ON book_table.id = book_fts.rowid " +
-            " WHERE book_fts MATCH :query " +
-            "   AND text != \"\"" +
-            "   AND (:locationCond OR physicalLocation= :location)" +
-            "   AND (:genreCond OR genre = :genre)" +
-            "   AND (:authorCond OR book_table.author = :author)" +
-            "  GROUP by publisher ORDER by count DESC")
+    @Query("SELECT CAST(book_labels.labelId as text) as text, COUNT(*) as count FROM book_table " +
+            "  JOIN book_fts ON book_table.id = book_fts.rowid," +
+            "       book_labels ON book_labels.bookId = book_table.id," +
+            "       label_table ON label_table.id = book_labels.labelId " +
+            " WHERE " +
+            "    book_fts MATCH :query" +
+            "    AND label_table.type = 4" +
+            "    AND (:locationCond OR physicalLocation= :location)" +
+            "    AND (:genreCond OR genre = :genre)" +
+            "    AND (:authorCond OR book_table.author = :author)" +
+            " GROUP BY labelId ORDER BY count DESC")
     suspend fun getTitlePublisher(
         query: String,
         locationCond: Boolean, location: String,
         genreCond: Boolean, genre: String,
         authorCond: Boolean, author: String): List<Histo>
 
-
-    @Query("SELECT publisher as text, count(*) as count FROM book_table " +
-            " WHERE text != \"\" " +
-            "   AND (:locationCond OR physicalLocation= :location)" +
-            "   AND (:genreCond OR genre = :genre)" +
-            "   AND (:authorCond OR book_table.author = :author)" +
-            " GROUP by publisher ORDER by count DESC")
+    @Query("SELECT CAST(book_labels.labelId as text) as text, COUNT(*) as count FROM book_table " +
+            "  JOIN book_labels ON book_labels.bookId = book_table.id," +
+            "       label_table ON label_table.id = book_labels.labelId " +
+            " WHERE label_table.type = 4" +
+            "    AND (:locationCond OR physicalLocation= :location)" +
+            "    AND (:genreCond OR genre = :genre)" +
+            "    AND (:authorCond OR book_table.author = :author)" +
+            " GROUP BY text ORDER BY count DESC")
     suspend fun getFilteredPublisher(
         locationCond: Boolean, location: String,
         genreCond: Boolean, genre: String,
@@ -222,25 +210,21 @@ interface BookDao {
             "   AND text != \"\"" +
             "   AND (:locationCond OR physicalLocation= :location)" +
             "   AND (:genreCond OR genre = :genre)" +
-            "   AND (:publisherCond OR publisher = :publisher)" +
             "  GROUP by text ORDER by count DESC")
     suspend fun getTitleAuthor(
         query: String,
         locationCond: Boolean, location: String,
-        genreCond: Boolean, genre: String,
-        publisherCond: Boolean, publisher: String): List<Histo>
+        genreCond: Boolean, genre: String): List<Histo>
 
 
     @Query("SELECT author as text, count(*) as count FROM book_table " +
             " WHERE text != \"\" " +
             "   AND (:locationCond OR physicalLocation= :location)" +
             "   AND (:genreCond OR genre = :genre)" +
-            "   AND (:publisherCond OR publisher = :publisher)" +
             " GROUP by author ORDER by count DESC")
     suspend fun getFilteredAuthor(
         locationCond: Boolean, location: String,
-        genreCond: Boolean, genre: String,
-        publisherCond: Boolean, publisher: String): List<Histo>
+        genreCond: Boolean, genre: String): List<Histo>
 
     companion object {
         const val SortByTitle = 1
@@ -248,5 +232,5 @@ interface BookDao {
     }
 }
 
-data class Histo(val text: String, val count: Int)
+data class Histo(var /* FIXME */ text: String, val count: Int)
 
