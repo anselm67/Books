@@ -39,7 +39,7 @@ class ImportExport(private val repository: BookRepository,
             val obj = books.getJSONObject(i)
             try {
                 val book = Book(obj)
-                repository.insert(book)
+                repository.save(book)
                 count++
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to parse $obj, skipping.")

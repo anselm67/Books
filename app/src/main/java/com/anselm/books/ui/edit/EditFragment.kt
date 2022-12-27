@@ -65,7 +65,7 @@ class EditFragment: Fragment() {
         val safeArgs: EditFragmentArgs by navArgs()
         if (safeArgs.bookId > 0) {
             viewLifecycleOwner.lifecycleScope.launch {
-                book = repository.getBook(safeArgs.bookId)
+                book = repository.load(safeArgs.bookId)
                 book?.let { editors = bind(inflater, it) }
             }
         } else if (safeArgs.book != null) {
@@ -171,29 +171,26 @@ class EditFragment: Fragment() {
         return fields
     }
 
+    private fun saveEditorChanges(): Boolean {
+        var changed = false
+        editors?.forEach {
+            if (it.isChanged()) {
+                changed = true
+                it.saveChange()
+            }
+        }
+        return changed
+    }
+
     private fun saveChanges() {
         val app = BooksApplication.app
-        if (book != null && book!!.id <= 0) {
-            // We're inserting a new book into the library.
+        check(book != null)
+        val theBook = book!!
+        if (theBook.id <= 0 || saveEditorChanges()) {
             activity?.lifecycleScope?.launch {
-                book!!.raw_dateAdded = System.currentTimeMillis() / 1000
-                app.database.bookDao().insert(book!!)
-                app.toast("${book?.title} added.")
+                app.repository.save(theBook)
             }
-        } else {
-            var changed = false
-            editors?.forEach {
-                if (it.isChanged()) {
-                    changed = true
-                    it.saveChange()
-                }
-            }
-            if (changed) {
-                activity?.lifecycleScope?.launch {
-                    app.database.bookDao().update(book!!)
-                    app.toast("${book?.title} updated.")
-                }
-            }
+            app.toast("${book?.title} saved.")
         }
         findNavController().popBackStack()
     }

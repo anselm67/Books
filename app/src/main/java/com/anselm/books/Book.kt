@@ -85,6 +85,9 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0): Parcelable {
         get() = if (raw_dateAdded == 0L) ""
                 else DATE_FORMAT.format(Date(raw_dateAdded * 1000))
 
+    @ColumnInfo(name = "lastModified")
+    var lastModified = 0L
+
     @ColumnInfo(name = "image_filename")
     var imageFilename = ""
 

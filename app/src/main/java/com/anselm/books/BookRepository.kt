@@ -1,7 +1,6 @@
 package com.anselm.books
 
 import android.util.Log
-import androidx.annotation.WorkerThread
 import androidx.lifecycle.MutableLiveData
 
 class BookRepository(private val bookDao: BookDao) {
@@ -98,10 +97,6 @@ class BookRepository(private val bookDao: BookDao) {
         bookDao.deleteAll()
     }
 
-    suspend fun getBook(bookId: Int): Book {
-        return bookDao.getBook(bookId)
-    }
-
     suspend fun getLocations(): List<Histo> {
         return if ( isEmpty(query.query) ) {
             val isGenreEmpty = isEmpty(query.genre)
@@ -186,13 +181,28 @@ class BookRepository(private val bookDao: BookDao) {
         }
     }
 
-    @Suppress("RedundantSuspendModifier")
-    @WorkerThread
-    suspend fun insert(book: Book) {
-        bookDao.insert(book)
-    }
-
     fun invalidate() {
         pagingSource?.invalidate()
     }
+
+    /**
+     * Loads a book by id.
+     */
+    suspend fun load(bookId: Int): Book {
+        return bookDao.getBook(bookId)
+    }
+
+    suspend fun save(book: Book) {
+        val timestamp = System.currentTimeMillis() / 1000
+        if (book.id <= 0) {
+            book.raw_dateAdded = timestamp
+            book.lastModified = timestamp
+            bookDao.insert(book)
+        } else {
+            book.lastModified = timestamp
+            bookDao.update(book)
+        }
+    }
+
+
 }
