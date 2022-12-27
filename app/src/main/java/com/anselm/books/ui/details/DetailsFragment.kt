@@ -40,7 +40,7 @@ class DetailsFragment : Fragment() {
 
         val root: View = binding.root
 
-        val repository = (activity?.application as BooksApplication).repository
+        val repository = BooksApplication.app.repository
         val safeArgs: DetailsFragmentArgs by navArgs()
 
         viewLifecycleOwner.lifecycleScope.launch {
