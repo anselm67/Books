@@ -21,6 +21,27 @@ interface BookDao {
     @Update
     suspend fun update(book: Book)
 
+    /**
+     * Handling of labels.
+     * This section covers lookup by id and value, insertion and fetching.
+     */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(label: Label): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(vararg bookLabels: BookLabels)
+
+    @Query("SELECT * FROM label_table WHERE type = :type AND name = :name")
+    suspend fun label(type: Int, name: String): Label?
+
+    @Query("SELECT * FROM label_table WHERE id = :id")
+    suspend fun label(id: Long): Label
+
+    @Query("SELECT labelId from book_labels WHERE bookId = :bookId ORDER BY sortKey ASC")
+    suspend fun labels(bookId: Long): LongArray
+
+    @Query("DELETE FROM book_labels WHERE bookId = :bookId")
+    suspend fun clearLabels(bookId: Long)
 
     /**
      * Clears everything.
