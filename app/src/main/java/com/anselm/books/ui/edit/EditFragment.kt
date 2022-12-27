@@ -40,7 +40,7 @@ class EditFragment: Fragment() {
     private var invalidBorder: Drawable? = null
     private var changedBorder: Drawable? = null
 
-    protected val viewModel: QueryViewModel by viewModels()
+    private val viewModel: QueryViewModel by viewModels()
 
     private var editors: List<Editor>? = null
 
