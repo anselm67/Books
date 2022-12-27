@@ -13,7 +13,7 @@ private const val NUMBER_OF_FAKE_ITEMS = 3000
 
 @Database(
     entities = [ Book::class, BookFTS::class ],
-    version = 7,
+    version = 8,
     exportSchema = false)
 abstract class BookDatabase : RoomDatabase() {
 

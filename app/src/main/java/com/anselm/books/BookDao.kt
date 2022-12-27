@@ -8,20 +8,30 @@ import androidx.room.Update
 
 @Dao
 interface BookDao {
+    /**
+     * Handling Book: insert, load and update.
+     */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(book: Book)
 
     @Query("SELECT * FROM book_table WHERE id = :bookId")
-    suspend fun getBook(bookId: Int) : Book
-
-    @Query("DELETE FROM book_table")
-    suspend fun deleteAll(): Int
-
-    @Query("SELECT COUNT(*) FROM book_table")
-    suspend fun getTotalCount(): Int
+    suspend fun load(bookId: Int) : Book
 
     @Update
     suspend fun update(book: Book)
+
+
+    /**
+     * Clears everything.
+     */
+    @Query("DELETE FROM book_table")
+    suspend fun deleteAll(): Int
+
+    /**
+     * Gets the total number of books in the library.
+     */
+    @Query("SELECT COUNT(*) FROM book_table")
+    suspend fun getTotalCount(): Int
 
     /**
      * Two queries for top level search.

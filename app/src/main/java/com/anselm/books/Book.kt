@@ -79,11 +79,11 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0): Parcelable {
     // is stored in the database. The private _dateAdded stores the db value, the public
     // dateAdded returns it properly formatted.
     @ColumnInfo(name = "date_added")
-    var raw_dateAdded = 0L
+    var rawDateAdded = 0L
 
     val dateAdded: String
-        get() = if (raw_dateAdded == 0L) ""
-                else DATE_FORMAT.format(Date(raw_dateAdded * 1000))
+        get() = if (rawDateAdded == 0L) ""
+                else DATE_FORMAT.format(Date(rawDateAdded * 1000))
 
     @ColumnInfo(name = "lastModified")
     var lastModified = 0L
@@ -119,7 +119,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0): Parcelable {
         this.numberOfPages = obj.optString(BookFields.NUMBER_OF_PAGES, "")
         this.genre = obj.optString(BookFields.GENRE, "")
         this.language = obj.optString(BookFields.LANGUAGE, "")
-        this.raw_dateAdded = obj.optLong(BookFields.DATE_ADDED, 0)
+        this.rawDateAdded = obj.optLong(BookFields.DATE_ADDED, 0)
         this.imageFilename = obj.optString(BookFields.IMAGE_FILENAME, "")
     }
 
@@ -137,7 +137,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0): Parcelable {
         obj.put(BookFields.NUMBER_OF_PAGES, numberOfPages)
         obj.put(BookFields.GENRE, genre)
         obj.put(BookFields.LANGUAGE, language)
-        obj.put(BookFields.DATE_ADDED, raw_dateAdded)
+        obj.put(BookFields.DATE_ADDED, rawDateAdded)
         obj.put(BookFields.IMAGE_FILENAME, imageFilename)
         return obj
     }
