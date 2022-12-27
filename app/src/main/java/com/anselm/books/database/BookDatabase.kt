@@ -15,8 +15,12 @@ import kotlinx.coroutines.launch
 private const val NUMBER_OF_FAKE_ITEMS = 3000
 
 @Database(
-    entities = [ Book::class, BookFTS::class ],
-    version = 8,
+    entities = [
+        Book::class, BookFTS::class,
+        Label::class, LabelFTS::class,
+        BookLabels::class
+    ],
+    version = 9,
     exportSchema = false)
 abstract class BookDatabase : RoomDatabase() {
 
