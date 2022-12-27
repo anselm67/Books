@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.BooksApplication
-import com.anselm.books.Histo
+import com.anselm.books.database.Histo
 import com.anselm.books.R
 import com.anselm.books.databinding.SearchDialogFragmentBinding
 import com.anselm.books.databinding.SearchDialogItemLayoutBinding

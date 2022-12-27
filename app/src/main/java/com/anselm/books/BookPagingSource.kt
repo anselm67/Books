@@ -3,12 +3,14 @@ package com.anselm.books
 import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.anselm.books.database.BookRepository
 import java.lang.Integer.max
 
 private const val START_PAGE = 0
 
 class BookPagingSource(
-    private val repository: BookRepository) : PagingSource<Int, Book>() {
+    private val repository: BookRepository
+) : PagingSource<Int, Book>() {
     private var itemCount = -1
 
     override val jumpingSupported: Boolean

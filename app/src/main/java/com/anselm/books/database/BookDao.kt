@@ -1,10 +1,11 @@
-package com.anselm.books
+package com.anselm.books.database
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.anselm.books.Book
 
 @Dao
 interface BookDao {

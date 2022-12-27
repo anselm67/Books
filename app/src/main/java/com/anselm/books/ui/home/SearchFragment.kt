@@ -16,6 +16,8 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.anselm.books.*
+import com.anselm.books.database.BookDao
+import com.anselm.books.database.Query
 
 class QueryViewModel : ViewModel() {
     var query: MutableLiveData<Query> = MutableLiveData<Query>()

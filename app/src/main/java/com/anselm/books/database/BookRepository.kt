@@ -1,7 +1,10 @@
-package com.anselm.books
+package com.anselm.books.database
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import com.anselm.books.Book
+import com.anselm.books.BookPagingSource
+import com.anselm.books.TAG
 
 class BookRepository(private val bookDao: BookDao) {
     private var pagingSource: BookPagingSource? = null

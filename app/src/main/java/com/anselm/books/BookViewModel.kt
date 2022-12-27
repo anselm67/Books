@@ -4,6 +4,7 @@ import androidx.lifecycle.*
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
+import com.anselm.books.database.BookRepository
 
 private const val PAGE_SIZE = 100
 private const val MAX_SIZE = 500
@@ -23,7 +24,8 @@ class BookViewModel(
 
 
 class BookViewModelFactory(
-    private val bookRepository: BookRepository) : ViewModelProvider.Factory {
+    private val bookRepository: BookRepository
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(BookViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

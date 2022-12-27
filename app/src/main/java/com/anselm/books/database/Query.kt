@@ -1,4 +1,4 @@
-package com.anselm.books
+package com.anselm.books.database
 
 data class Query (
     var query: String? = null,

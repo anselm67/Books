@@ -9,6 +9,8 @@ import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
+import com.anselm.books.database.BookDatabase
+import com.anselm.books.database.BookRepository
 import com.anselm.books.openlibrary.OpenLibraryClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

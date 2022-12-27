@@ -1,4 +1,4 @@
-package com.anselm.books
+package com.anselm.books.database
 
 import android.content.Context
 import android.util.Log
@@ -6,6 +6,9 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.anselm.books.Book
+import com.anselm.books.BookFTS
+import com.anselm.books.TAG
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
