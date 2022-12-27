@@ -60,5 +60,6 @@
     <string name="scanned_invalid_isbn">%1$s is not a valid ISBN.</string>
     <string name="sort_by_date_added">Sort by date added.</string>
     <string name="sort_by_title">Sort by title.</string>
+    <string name="lastModifiedLabel">Last modified</string>
 
 </resources>

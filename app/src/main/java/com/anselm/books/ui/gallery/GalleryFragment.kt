@@ -37,6 +37,7 @@ class GalleryFragment : Fragment() {
         val importExport = app.importExport
         val getContent =
             registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                val context = app.applicationContext
                 Log.d(TAG, "Opening file $uri")
                 if (uri == null) {
                     Log.d(TAG, "No file selected, nothing to import")
@@ -49,7 +50,7 @@ class GalleryFragment : Fragment() {
                     }.invokeOnCompletion {
                         // We're running on the application lifecycle scope, so this view that we're
                         // launching from might be done by the time we get here, protect against that.
-                        app.toast(getString(R.string.import_status, counts.first, counts.second))
+                        app.toast(context.getString(R.string.import_status, counts.first, counts.second))
                         app.loading(false)
                     }
                 }

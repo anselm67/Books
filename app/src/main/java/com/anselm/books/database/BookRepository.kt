@@ -187,7 +187,7 @@ class BookRepository(private val dao: BookDao) {
     /**
      * Loads a book by id.
      */
-    suspend fun load(bookId: Int): Book {
+    suspend fun load(bookId: Long): Book {
         return dao.load(bookId)
     }
 
@@ -200,10 +200,9 @@ class BookRepository(private val dao: BookDao) {
             if (book.rawDateAdded <= 0) {
                 book.rawDateAdded = timestamp
             }
-            book.lastModified = timestamp
             dao.insert(book)
         } else {
-            book.lastModified = timestamp
+            book.rawLastModified = timestamp
             dao.update(book)
         }
     }
@@ -240,5 +239,10 @@ class BookRepository(private val dao: BookDao) {
         }
         return label
     }
+
+    suspend fun decorate(book: Book) {
+        book.decorate(dao.labels(book.id).map { label(it) })
+    }
+
 
 }

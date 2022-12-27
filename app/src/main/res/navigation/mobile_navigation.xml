@@ -97,7 +97,7 @@
         android:label="@string/book_details"
         tools:layout="@layout/fragment_details" >
 
-        <argument android:name="bookId" app:argType="integer" />
+        <argument android:name="bookId" app:argType="long" />
 
         <action android:id="@+id/action_DetailsFragment_to_EditFragment"
             app:destination="@id/nav_edit" />
@@ -113,8 +113,8 @@
         tools:layout="@layout/fragment_edit">
 
         <argument android:name="bookId"
-            app:argType="integer"
-            android:defaultValue="-1"/>
+            app:argType="long"
+            android:defaultValue="-1L"/>
 
         <argument android:name="book"
             app:argType="com.anselm.books.Book" app:nullable="true"

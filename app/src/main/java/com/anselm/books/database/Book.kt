@@ -3,6 +3,7 @@ package com.anselm.books
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.room.*
+import com.anselm.books.database.Label
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.text.SimpleDateFormat
@@ -23,7 +24,7 @@ object BookFields {
     const val LANGUAGE = "language"
     const val DATE_ADDED = "date_added"
     const val IMAGE_FILENAME = "image_filename"
-
+    const val LAST_MODIFIED = "last_modified"
     const val MIN_PUBLISHED_YEAR = 0
     const val MAX_PUBLISHED_YEAR = 2100
 }
@@ -37,7 +38,7 @@ private val DATE_FORMAT = SimpleDateFormat("EEE, MMM d yyy - hh:mm aaa", Locale.
         Index(value = ["date_added"])
     ]
 )
-data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0): Parcelable {
+data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
     @ColumnInfo(name = "title")
     var title = ""
 
@@ -81,17 +82,21 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0): Parcelable {
     @ColumnInfo(name = "date_added")
     var rawDateAdded = 0L
 
-    val dateAdded: String
+    private val dateAdded: String
         get() = if (rawDateAdded == 0L) ""
                 else DATE_FORMAT.format(Date(rawDateAdded * 1000))
 
-    @ColumnInfo(name = "lastModified")
-    var lastModified = 0L
+    @ColumnInfo(name = "last_modified")
+    var rawLastModified = 0L
+
+    private val lastMofified: String
+        get() = if (rawLastModified == 0L) ""
+        else DATE_FORMAT.format(Date(rawLastModified * 1000))
 
     @ColumnInfo(name = "image_filename")
     var imageFilename = ""
 
-    constructor(parcel: Parcel) : this(parcel.readInt()) {
+    constructor(parcel: Parcel) : this(parcel.readLong()) {
         val obj: JSONObject = JSONTokener(parcel.readString()).nextValue() as JSONObject
         fromJson(obj)
     }
@@ -121,6 +126,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0): Parcelable {
         this.language = obj.optString(BookFields.LANGUAGE, "")
         this.rawDateAdded = obj.optLong(BookFields.DATE_ADDED, 0)
         this.imageFilename = obj.optString(BookFields.IMAGE_FILENAME, "")
+        this.rawLastModified = obj.optLong(BookFields.LAST_MODIFIED, 0)
     }
 
     private fun toJson(): JSONObject {
@@ -139,6 +145,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0): Parcelable {
         obj.put(BookFields.LANGUAGE, language)
         obj.put(BookFields.DATE_ADDED, rawDateAdded)
         obj.put(BookFields.IMAGE_FILENAME, imageFilename)
+        obj.put(BookFields.LAST_MODIFIED, rawLastModified)
         return obj
     }
 
@@ -158,6 +165,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0): Parcelable {
             BookFields.LANGUAGE -> language
             BookFields.DATE_ADDED -> dateAdded
             BookFields.IMAGE_FILENAME -> imageFilename
+            BookFields.LAST_MODIFIED -> lastMofified
             else -> "UNKNOWN KEY $key"
         }
     }
@@ -182,6 +190,59 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Int = 0): Parcelable {
             return arrayOfNulls(size)
         }
     }
+
+    @Ignore
+    var labels: MutableList<Label>? = if (id == 0L) mutableListOf() else null
+        private set
+
+    @Ignore
+    private var decorated = (id == 0L)
+    @Ignore
+    var labelsChanged = false
+        private set
+
+    fun decorate(databaseLabels: List<Label>): List<Label> {
+        synchronized(this) {
+            assert(this.labels == null)
+            if ( ! decorated ) {
+                this.labels = mutableListOf()
+                this.labels!!.addAll(databaseLabels)
+                decorated = true
+            }
+        }
+        return this.labels!!
+    }
+
+    fun label(type: Int, name: String) = label(Label(type, name))
+
+    fun label(label: Label) {
+        check(decorated)
+        labels!!.add(label)
+        labelsChanged = true
+    }
+
+    private fun setOrReplace(type: Int, tag: Label?) {
+        check(decorated)
+        val index = labels!!.indexOfFirst { it.type == type }
+        if (index >= 0) {
+            labels!!.removeAt(index)
+            labelsChanged = true
+        }
+        if (tag != null) {
+            labels!!.add(tag)
+            labelsChanged = true
+        }
+    }
+
+    var location: Label?
+        get() {
+            check(decorated)
+            return labels!!.firstOrNull { it.type == Label.PhysicalLocation }
+        }
+        set(value) {
+            check(value == null || value.type == Label.PhysicalLocation)
+            setOrReplace(Label.PhysicalLocation, value)
+        }
 }
 
 @Entity(tableName = "book_fts")

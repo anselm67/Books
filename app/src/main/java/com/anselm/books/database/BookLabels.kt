@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey
     ]
 )
 data class BookLabels(
-    @PrimaryKey(autoGenerate=true) val id: Int = 0,
+    @PrimaryKey(autoGenerate=true) val id: Long = 0,
     val bookId: Long,
     val labelId: Long,
     val sortKey: Int,

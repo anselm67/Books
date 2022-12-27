@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 class DetailsFragment : Fragment() {
     private var _binding: FragmentDetailsBinding? = null
     private val binding get() = _binding!!
-    private var bookId: Int = -1
+    private var bookId: Long = -1L
     private lateinit var navController: NavController
 
     override fun onCreateView(
@@ -179,7 +179,7 @@ class DetailsFragment : Fragment() {
         // Details.
         bindDetails(inflater, detailsView, book)
         // Remaining fields.
-        arrayOf<Triple<Int, String, ((String?) -> Unit)?>>(
+        val fields = mutableListOf<Triple<Int, String, ((String?) -> Unit)?>>(
             Triple(R.string.publisherLabel, BookFields.PUBLISHER) {
                 val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
                     query="", location="", genre="", publisher = it.toString(), author="")
@@ -197,8 +197,12 @@ class DetailsFragment : Fragment() {
                 navController.navigate(action)
             },
             Triple(R.string.summaryLabel, BookFields.SUMMARY, null),
-            Triple(R.string.dateAddedLabel, BookFields.DATE_ADDED, null)
-        ).forEach { (labelId, columnName, onClick) ->
+            Triple(R.string.dateAddedLabel, BookFields.DATE_ADDED, null),
+        )
+        if (app.prefs.getBoolean("display_last_modified", true)) {
+            fields.add(Triple(R.string.lastModifiedLabel, BookFields.LAST_MODIFIED, null))
+        }
+        fields.forEach { (labelId, columnName, onClick) ->
             bindField(
                 inflater,
                 detailsView,

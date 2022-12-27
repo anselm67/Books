@@ -25,6 +25,15 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="Display">
+
+        <CheckBoxPreference
+            app:key="display_last_modified"
+            app:title="Display last modified date?"
+            android:defaultValue="true"/>
+
+    </PreferenceCategory>
+
     <PreferenceCategory app:title="@string/glide_preferences_header">
 
         <SeekBarPreference
