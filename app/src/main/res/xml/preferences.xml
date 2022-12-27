@@ -28,9 +28,14 @@
     <PreferenceCategory app:title="Display">
 
         <CheckBoxPreference
+            app:key="display_book_id"
+            app:title="Display last modified date?"
+            android:defaultValue="false"/>
+
+        <CheckBoxPreference
             app:key="display_last_modified"
             app:title="Display last modified date?"
-            android:defaultValue="true"/>
+            android:defaultValue="false"/>
 
     </PreferenceCategory>
 

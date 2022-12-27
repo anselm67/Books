@@ -77,7 +77,7 @@ interface BookDao {
         locationCond: Boolean, physicalLocation: String,
         genreCond: Boolean, genre: String,
         authorCond: Boolean, author: String,
-        param: Int, limit: Int, offset: Int) : List<Book>
+        param: Int, limit: Int, offset: Int): List<Book>
 
     @Query("SELECT COUNT(*) FROM book_table " +
             " JOIN book_fts ON book_table.id = book_fts.rowid " +

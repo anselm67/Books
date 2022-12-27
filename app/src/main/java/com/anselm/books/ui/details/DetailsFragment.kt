@@ -199,9 +199,13 @@ class DetailsFragment : Fragment() {
             Triple(R.string.summaryLabel, BookFields.SUMMARY, null),
             Triple(R.string.dateAddedLabel, BookFields.DATE_ADDED, null),
         )
-        if (app.prefs.getBoolean("display_last_modified", true)) {
+        if (app.prefs.getBoolean("display_last_modified", false)) {
             fields.add(Triple(R.string.lastModifiedLabel, BookFields.LAST_MODIFIED, null))
         }
+        if (app.prefs.getBoolean("display_book_id", false)) {
+            fields.add(Triple(R.string.bookIdLabel, BookFields.BOOK_ID, null))
+        }
+
         fields.forEach { (labelId, columnName, onClick) ->
             bindField(
                 inflater,

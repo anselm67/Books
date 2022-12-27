@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 object BookFields {
+    const val BOOK_ID = "book_id" // Virtual field, for DetailsFragment only.
     const val TITLE = "title"
     const val SUBTITLE = "subtitle"
     const val AUTHOR = "author"
@@ -148,6 +149,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
 
     fun get(key: String): String {
         return when(key) {
+            BookFields.BOOK_ID -> id.toString()
             BookFields.TITLE -> title
             BookFields.SUBTITLE -> subtitle
             BookFields.AUTHOR -> author
