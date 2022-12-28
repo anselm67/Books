@@ -17,6 +17,7 @@ import com.anselm.books.BooksApplication
 import com.anselm.books.R
 import com.anselm.books.database.Book
 import com.anselm.books.database.BookFields
+import com.anselm.books.database.Label
 import com.anselm.books.databinding.DetailsDetailsLayoutBinding
 import com.anselm.books.databinding.DetailsFieldLayoutBinding
 import com.anselm.books.databinding.FragmentDetailsBinding
@@ -173,7 +174,9 @@ class DetailsFragment : Fragment() {
         // Author.
         bindField(inflater, detailsView, app.applicationContext.getString(R.string.authorLabel), book.get(BookFields.AUTHOR)) {
             val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                query="", location=0L, genre=0L, publisher = 0L, author=1L /* FIXME */)
+                query = "", location = 0L, genre = 0L, publisher = 0L,
+                author = book.firstLabel(Label.Authors)?.id ?: 0L,
+            )
             navController.navigate(action)
         }
         // Details.
@@ -182,18 +185,24 @@ class DetailsFragment : Fragment() {
         val fields = mutableListOf<Triple<Int, String, ((String?) -> Unit)?>>(
             Triple(R.string.publisherLabel, BookFields.PUBLISHER) {
                 val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                    query="", location=0L, genre=0L, publisher = 1L /* FIXME */, author=0L)
+                    query="", location=0L, genre=0L,
+                    publisher = book.firstLabel(Label.Publisher)?.id ?: 0L,
+                    author=0L)
                 navController.navigate(action)
             },
             Triple(R.string.genreLabel, BookFields.GENRE) {
                 val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                    query="", location=0L, genre=1L /* FIXME */, publisher = 0L, author=0L)
+                    query="", location=0L,
+                    genre = book.firstLabel(Label.Genres)?.id ?: 0L,
+                    publisher = 0L, author=0L)
                 navController.navigate(action)
             },
             Triple(R.string.yearPublishedLabel, BookFields.YEAR_PUBLISHED, null),
             Triple(R.string.physicalLocationLabel, BookFields.PHYSICAL_LOCATION) {
                 val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                    query="", location=1L /* FIXME */, genre=0L, publisher = 0L, author=0L)
+                    query="",
+                    location = book.firstLabel(Label.PhysicalLocation)?.id ?: 0L,
+                    genre=0L, publisher = 0L, author=0L)
                 navController.navigate(action)
             },
             Triple(R.string.summaryLabel, BookFields.SUMMARY, null),

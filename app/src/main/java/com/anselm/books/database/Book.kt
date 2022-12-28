@@ -103,7 +103,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         val values = obj.optJSONArray(key)
         if (values != null) {
             for (i in 0 until values.length()) {
-                label(type, values.optString(i))
+                addLabel(type, values.optString(i))
             }
         }
     }
@@ -190,10 +190,12 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         }
     }
 
+    /**
+     * Handling labels for this book.
+     */
     @Ignore
     var labels: MutableList<Label>? = if (id == 0L) mutableListOf() else null
         private set
-
     @Ignore
     private var decorated = (id == 0L)
     @Ignore
@@ -212,15 +214,15 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         return this.labels!!
     }
 
-    fun label(type: Int, name: String) = label(Label(type, name))
+    fun addLabel(type: Int, name: String) = addLabel(Label(type, name))
 
-    fun label(label: Label) {
+    fun addLabel(label: Label) {
         check(decorated)
         labels!!.add(label)
         labelsChanged = true
     }
 
-    private fun setOrReplace(type: Int, tag: Label?) {
+    private fun setOrReplaceLabel(type: Int, tag: Label?) {
         check(decorated)
         val index = labels!!.indexOfFirst { it.type == type }
         if (index >= 0) {
@@ -239,7 +241,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
             return labels!!.firstOrNull { it.type == Label.Publisher }?.name ?: ""
         }
         set(value) {
-            setOrReplace(Label.Publisher, Label(Label.Publisher,value))
+            setOrReplaceLabel(Label.Publisher, Label(Label.Publisher,value))
         }
 
     var physicalLocation: String
@@ -248,25 +250,25 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
             return labels!!.firstOrNull { it.type == Label.PhysicalLocation }?.name ?: ""
         }
         set(value) {
-            setOrReplace(Label.PhysicalLocation, Label(Label.PhysicalLocation,value))
+            setOrReplaceLabel(Label.PhysicalLocation, Label(Label.PhysicalLocation, value))
         }
 
-    private fun labels(type: Int): List<Label> {
+    private fun getLabels(type: Int): List<Label> {
         check(decorated)
         return labels!!.filter { it.type == type }
     }
 
-    var genre: String = ""
-        get() = labels(Label.Genres).joinToString { it -> it.name }
+    fun firstLabel(type: Int): Label? {
+        check(decorated)
+        return labels!!.firstOrNull { it.type == type }
+    }
 
-    val genres: List<Label>
-        get() = labels(Label.Genres)
+    var genre: String = ""
+        get() = getLabels(Label.Genres).joinToString { it -> it.name }
 
     var author: String = ""
-        get() = labels(Label.Authors).joinToString { it -> it.name }
+        get() = getLabels(Label.Authors).joinToString { it -> it.name }
 
-    val authors: List<Label>
-        get() = labels(Label.Authors)
 
 }
 

@@ -215,5 +215,11 @@ interface BookDao {
     }
 }
 
-data class Histo(val labelId: Long, val count: Int, var text: String? = null)
+data class Histo(
+    val labelId: Long,
+    val count: Int)
+{
+    @Ignore
+    var text: String? = null
+}
 
