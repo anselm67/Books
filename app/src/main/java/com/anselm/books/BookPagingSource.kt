@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.anselm.books.database.BookRepository
+import com.anselm.books.database.Book
 import java.lang.Integer.max
 
 private const val START_PAGE = 0
@@ -21,6 +22,7 @@ class BookPagingSource(
 
         return try {
             val books = repository.getPagedList(params.loadSize, page * params.loadSize)
+            books.forEach { repository.decorate(it) }
             if (itemCount < 0) {
                 itemCount = repository.getPagedListCount()
             }

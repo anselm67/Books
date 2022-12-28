@@ -13,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anselm.books.*
+import com.anselm.books.database.Book
 import com.anselm.books.databinding.FragmentListBinding
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest

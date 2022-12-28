@@ -11,13 +11,16 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.MutableLiveData
+
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.anselm.books.*
 import com.anselm.books.database.BookDao
 import com.anselm.books.database.Query
+import kotlinx.coroutines.launch
 
 class QueryViewModel : ViewModel() {
     var query: MutableLiveData<Query> = MutableLiveData<Query>()
@@ -75,11 +78,11 @@ class SearchFragment : ListFragment() {
         if (viewModel.query.value == null) {
             viewModel.query.value = Query()
         }
-        if (safeArgs.query != null) viewModel.query.value?.query = safeArgs.query
-        if (safeArgs.location != null) viewModel.query.value?.location = safeArgs.location
-        if (safeArgs.genre != null) viewModel.query.value?.genre = safeArgs.genre
-        if (safeArgs.publisher != null) viewModel.query.value?.publisher = safeArgs.publisher
-        if (safeArgs.author != null) viewModel.query.value?.author = safeArgs.author
+        viewModel.query.value?.query = safeArgs.query
+        viewModel.query.value?.location = safeArgs.location
+        viewModel.query.value?.genre = safeArgs.genre
+        viewModel.query.value?.publisher = safeArgs.publisher
+        viewModel.query.value?.author = safeArgs.author
         viewModel.query.value?.sortBy = safeArgs.sortBy
 
         // Let's go.
@@ -106,13 +109,13 @@ class SearchFragment : ListFragment() {
         var query: Query? = null
         when(columnName) {
             SearchDialogFragment.PHYSICAL_LOCATION ->
-                query = viewModel.query.value?.copy(location = null)
+                query = viewModel.query.value?.copy(location = 0L)
             SearchDialogFragment.GENRE ->
-                query = viewModel.query.value?.copy(genre = null)
+                query = viewModel.query.value?.copy(genre = 0L)
             SearchDialogFragment.PUBLISHER ->
-                query = viewModel.query.value?.copy(publisher = null)
+                query = viewModel.query.value?.copy(publisher = 0L)
             SearchDialogFragment.AUTHOR ->
-                query = viewModel.query.value?.copy(author = null)
+                query = viewModel.query.value?.copy(author = 0L)
         }
         query?.let { viewModel.query.value = it }
     }
@@ -126,41 +129,47 @@ class SearchFragment : ListFragment() {
     data class Filter(
         val columnName: String,
         val button: Button,
-        val value: String?,
-        val label: Int)
+        val value: Long,
+        val label: Int,
+    )
 
     private fun updateFiltersUi() {
         val filters = arrayOf(
             Filter(SearchDialogFragment.PHYSICAL_LOCATION,
                 binding.idLocationFilter,
-                viewModel.query.value?.location,
+                viewModel.query.value?.location?: 0L,
                 R.string.physicalLocationLabel),
             Filter(SearchDialogFragment.GENRE,
                 binding.idGenreFilter,
-                viewModel.query.value?.genre,
+                viewModel.query.value?.genre?: 0L,
                 R.string.genreLabel),
             Filter(SearchDialogFragment.PUBLISHER,
                 binding.idPublisherFilter,
-                viewModel.query.value?.publisher,
+                viewModel.query.value?.publisher?: 0L,
                 R.string.publisherLabel),
             Filter(SearchDialogFragment.AUTHOR,
                 binding.idAuthorFilter,
-                viewModel.query.value?.author,
+                viewModel.query.value?.author?: 0L,
                 R.string.authorLabel))
-        for (f in filters) {
-            if (f.value!= null && f.value != "") {
-                f.button.text = f.value
-                f.button.typeface = Typeface.create(f.button.typeface, Typeface.BOLD)
-                f.button.setOnClickListener { clearFilter(f.columnName) }
-                f.button.setCompoundDrawablesWithIntrinsicBounds(
-                    /* left, top, right, bottom */
-                    null,  null, clearFilterDrawable, null)
-            } else {
-                f.button.text = getString(f.label)
-                f.button.setOnClickListener { dialogFilter(f.columnName) }
-                f.button.setCompoundDrawablesWithIntrinsicBounds(
-                    /* left, top, right, bottom */
-                    null, null, filterDrawable, null)
+        val repository = BooksApplication.app.repository
+        viewLifecycleOwner.lifecycleScope.launch {
+            for (f in filters) {
+                if (f.value != 0L) {
+                    f.button.text = repository.label(f.value).name
+                    f.button.typeface = Typeface.create(f.button.typeface, Typeface.BOLD)
+                    f.button.setOnClickListener { clearFilter(f.columnName) }
+                    f.button.setCompoundDrawablesWithIntrinsicBounds(
+                        /* left, top, right, bottom */
+                        null, null, clearFilterDrawable, null
+                    )
+                } else {
+                    f.button.text = getString(f.label)
+                    f.button.setOnClickListener { dialogFilter(f.columnName) }
+                    f.button.setCompoundDrawablesWithIntrinsicBounds(
+                        /* left, top, right, bottom */
+                        null, null, filterDrawable, null
+                    )
+                }
             }
         }
     }
@@ -230,7 +239,7 @@ class SearchFragment : ListFragment() {
             if (event == Lifecycle.Event.ON_RESUME
                 && navBackStackEntry.savedStateHandle.contains("filter")) {
                 val result =
-                    navBackStackEntry.savedStateHandle.get<Pair<String, String>>("filter")
+                    navBackStackEntry.savedStateHandle.get<Pair<String, Long>>("filter")
                 if (result != null) {
                     val (columnName, value) = result
                     Log.d(TAG, "Filter $columnName with $value")

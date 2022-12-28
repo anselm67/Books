@@ -153,7 +153,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
     @SuppressLint("NotifyDataSetChanged")
     private fun filter(prefixInput: String) {
         val prefix = normalize(prefixInput)
-        val values = allValues.filter { h -> normalize(h.text).startsWith(prefix) }
+        val values = allValues.filter { h -> normalize(h.text!!).startsWith(prefix) }
         if (values.size != dataSource.size) {
             dataSource.clear()
             dataSource.addAll(values)
@@ -166,7 +166,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
      */
     private fun selectHisto(histo: Histo) {
         findNavController().previousBackStackEntry?.savedStateHandle?.set(
-            "filter", Pair(columnName, histo.text))
+            "filter", Pair(columnName, histo.labelId))
         dismiss()
     }
 

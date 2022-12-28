@@ -41,14 +41,14 @@
 
         <argument android:name="query" app:argType="string"
             app:nullable="true" android:defaultValue="@null" />
-        <argument android:name="location" app:argType="string"
-            app:nullable="true" android:defaultValue="@null" />
-        <argument android:name="genre" app:argType="string"
-            app:nullable="true" android:defaultValue="@null" />
-        <argument android:name="publisher" app:argType="string"
-            app:nullable="true" android:defaultValue="@null" />
-        <argument android:name="author" app:argType="string"
-            app:nullable="true" android:defaultValue="@null" />
+        <argument android:name="location" app:argType="long"
+            android:defaultValue="0L" />
+        <argument android:name="genre" app:argType="long"
+            android:defaultValue="0L" />
+        <argument android:name="publisher" app:argType="long"
+            android:defaultValue="0L" />
+        <argument android:name="author" app:argType="long"
+            android:defaultValue="0L" />
         <!-- BookDao.SortByTitle == 1 -->
         <argument android:name="sortBy" app:argType="integer"
             android:defaultValue="1" />
@@ -117,7 +117,7 @@
             android:defaultValue="-1L"/>
 
         <argument android:name="book"
-            app:argType="com.anselm.books.Book" app:nullable="true"
+            app:argType="com.anselm.books.database.Book" app:nullable="true"
             android:defaultValue="@null"/>
 
         <action android:id="@+id/action_EditFragment_to_SearchDialogFragment"

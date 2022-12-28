@@ -1,7 +1,7 @@
 package com.anselm.books.openlibrary
 
 import android.util.Log
-import com.anselm.books.Book
+import com.anselm.books.database.Book
 import com.anselm.books.TAG
 import okhttp3.*
 import org.json.JSONObject

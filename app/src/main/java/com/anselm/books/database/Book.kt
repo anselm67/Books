@@ -1,9 +1,8 @@
-package com.anselm.books
+package com.anselm.books.database
 
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.room.*
-import com.anselm.books.database.Label
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.text.SimpleDateFormat
@@ -46,14 +45,8 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
     @ColumnInfo(name = "subtitle")
     var subtitle = ""
 
-    @ColumnInfo(name = "author")
-    var author = ""
-
     @ColumnInfo(name = "imgUrl")
     var imgUrl = ""
-
-    @ColumnInfo(name = "physicalLocation")
-    var physicalLocation = ""
 
     @ColumnInfo(name = "ISBN")
     var isbn = ""
@@ -66,9 +59,6 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
 
     @ColumnInfo(name = "numberOfPages")
     var numberOfPages = ""
-
-    @ColumnInfo(name = "genre")
-    var genre  = ""
 
     @ColumnInfo(name = "language")
     var language = ""
@@ -87,7 +77,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
     @ColumnInfo(name = "last_modified")
     var rawLastModified = 0L
 
-    private val lastMofified: String
+    private val lastModified: String
         get() = if (rawLastModified == 0L) ""
         else DATE_FORMAT.format(Date(rawLastModified * 1000))
 
@@ -109,10 +99,18 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         fromJson(o)
     }
 
+    private fun arrayToLabels(type: Int, obj: JSONObject, key: String) {
+        val values = obj.optJSONArray(key)
+        if (values != null) {
+            for (i in 0 until values.length()) {
+                label(type, values.optString(i))
+            }
+        }
+    }
+
     private fun fromJson(obj: JSONObject) {
         this.title = obj.optString(BookFields.TITLE, "")
         this.subtitle = obj.optString(BookFields.SUBTITLE, "")
-        this.author = obj.optString(BookFields.AUTHOR, "")
         this.publisher = obj.optString(BookFields.PUBLISHER, "")
         this.imgUrl = obj.optString(BookFields.UPLOADED_IMAGE_URL, "")
         this.physicalLocation = obj.optString(BookFields.PHYSICAL_LOCATION, "")
@@ -120,11 +118,13 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         this.summary = obj.optString(BookFields.SUMMARY, "")
         this.yearPublished = obj.optString(BookFields.YEAR_PUBLISHED, "")
         this.numberOfPages = obj.optString(BookFields.NUMBER_OF_PAGES, "")
-        this.genre = obj.optString(BookFields.GENRE, "")
         this.language = obj.optString(BookFields.LANGUAGE, "")
         this.rawDateAdded = obj.optLong(BookFields.DATE_ADDED, 0)
         this.imageFilename = obj.optString(BookFields.IMAGE_FILENAME, "")
         this.rawLastModified = obj.optLong(BookFields.LAST_MODIFIED, 0)
+        // Handles multi-value fields:
+        arrayToLabels(Label.Authors, obj, "author")
+        arrayToLabels(Label.Genres, obj, "genre")
     }
 
     private fun toJson(): JSONObject {
@@ -164,7 +164,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
             BookFields.LANGUAGE -> language
             BookFields.DATE_ADDED -> dateAdded
             BookFields.IMAGE_FILENAME -> imageFilename
-            BookFields.LAST_MODIFIED -> lastMofified
+            BookFields.LAST_MODIFIED -> lastModified
             else -> "UNKNOWN KEY $key"
         }
     }
@@ -233,16 +233,6 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         }
     }
 
-    var location: Label?
-        get() {
-            check(decorated)
-            return labels!!.firstOrNull { it.type == Label.PhysicalLocation }
-        }
-        set(value) {
-            check(value == null || value.type == Label.PhysicalLocation)
-            setOrReplace(Label.PhysicalLocation, value)
-        }
-
     var publisher: String
         get() {
             check(decorated)
@@ -251,6 +241,32 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         set(value) {
             setOrReplace(Label.Publisher, Label(Label.Publisher,value))
         }
+
+    var physicalLocation: String
+        get() {
+            check(decorated)
+            return labels!!.firstOrNull { it.type == Label.PhysicalLocation }?.name ?: ""
+        }
+        set(value) {
+            setOrReplace(Label.PhysicalLocation, Label(Label.PhysicalLocation,value))
+        }
+
+    private fun labels(type: Int): List<Label> {
+        check(decorated)
+        return labels!!.filter { it.type == type }
+    }
+
+    var genre: String = ""
+        get() = labels(Label.Genres).joinToString { it -> it.name }
+
+    val genres: List<Label>
+        get() = labels(Label.Genres)
+
+    var author: String = ""
+        get() = labels(Label.Authors).joinToString { it -> it.name }
+
+    val authors: List<Label>
+        get() = labels(Label.Authors)
 
 }
 

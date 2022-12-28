@@ -3,9 +3,9 @@ package com.anselm.books.database
 data class Query (
     var query: String? = null,
     var partial: Boolean = false,
-    var location: String? = null,
-    var genre: String? = null,
-    var publisher: String? = null,
-    var author: String? = null,
+    var location: Long = 0,
+    var genre: Long = 0,
+    var publisher: Long = 0,
+    var author: Long = 0,
     var sortBy: Int = BookDao.SortByTitle,
 )

@@ -6,8 +6,6 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.anselm.books.Book
-import com.anselm.books.BookFTS
 import com.anselm.books.TAG
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -20,7 +18,7 @@ private const val NUMBER_OF_FAKE_ITEMS = 3000
         Label::class, LabelFTS::class,
         BookLabels::class
     ],
-    version = 13,
+    version = 15,
     exportSchema = false)
 abstract class BookDatabase : RoomDatabase() {
 

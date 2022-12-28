@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import com.anselm.books.Book
+import com.anselm.books.database.Book
 import com.anselm.books.databinding.RecyclerviewBookItemBinding
 
 class BookAdapter (private val onClick: (Book) -> Unit)

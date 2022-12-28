@@ -3,7 +3,7 @@ package com.anselm.books.ui.home
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import com.anselm.books.Book
+import com.anselm.books.database.Book
 import com.anselm.books.BooksApplication
 import com.anselm.books.R
 import com.anselm.books.databinding.RecyclerviewBookItemBinding
