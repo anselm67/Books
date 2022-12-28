@@ -183,7 +183,36 @@ interface BookDao {
     suspend fun getTitleHisto(
         type: Int,
         query: String,
-        labelId1: Long, labelId2: Long,labelId3: Long,labelId4: Long
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
+    ): List<Histo>
+
+    @Query("SELECT book_labels.labelId, COUNT(*) as count FROM book_table " +
+            "  JOIN book_fts ON book_table.id = book_fts.rowid," +
+            "       book_labels ON book_labels.bookId = book_table.id," +
+            "       label_table ON label_table.id = book_labels.labelId, " +
+            "       label_fts ON label_table.id = label_fts.rowid " +
+            " WHERE " +
+            "    book_fts MATCH :query " +
+            "    AND label_fts MATCH :labelQuery" +
+            "    AND label_table.type = :type" +
+            "    AND book_table.id IN (" +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId1 = 0 OR labelId = :labelId1" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId2 = 0 OR labelId = :labelId2" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId3 = 0 OR labelId = :labelId3" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            ") " +
+            " GROUP BY labelId ORDER BY count DESC")
+    suspend fun searchTitleHisto(
+        type: Int,
+        labelQuery: String, query: String,
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
     ): List<Histo>
 
     @Query("SELECT book_labels.labelId, COUNT(*) as count FROM book_table " +
@@ -207,6 +236,32 @@ interface BookDao {
             " GROUP BY labelId ORDER BY count DESC")
     suspend fun getFilteredHisto(
         type: Int, labelId1: Long, labelId2: Long,labelId3: Long,labelId4: Long
+    ): List<Histo>
+
+    @Query("SELECT book_labels.labelId, COUNT(*) as count FROM book_table " +
+            "  JOIN book_labels ON book_labels.bookId = book_table.id," +
+            "       label_table ON label_table.id = book_labels.labelId, " +
+            "       label_fts ON label_table.id = label_fts.rowid " +
+            " WHERE label_fts MATCH :labelQuery" +
+            "    AND label_table.type = :type" +
+            "    AND book_table.id IN (" +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId1 = 0 OR labelId = :labelId1" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId2 = 0 OR labelId = :labelId2" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId3 = 0 OR labelId = :labelId3" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            ") " +
+            " GROUP BY labelId ORDER BY count DESC")
+    suspend fun searchFilteredHisto(
+        type: Int,
+        labelQuery: String,
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
     ): List<Histo>
 
     companion object {

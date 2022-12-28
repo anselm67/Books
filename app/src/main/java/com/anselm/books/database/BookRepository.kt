@@ -75,23 +75,36 @@ class BookRepository(private val dao: BookDao) {
         dao.deleteAll()
     }
 
-    private suspend fun getHisto(type: Int): List<Histo> {
+    suspend fun getHisto(type: Int, labelQuery: String?): List<Histo> {
         val histos = if ( query.query.isNullOrEmpty() ) {
-            dao.getFilteredHisto(type, query.genre, query.author, query.location, query.publisher)
+            if (labelQuery.isNullOrEmpty()) {
+                dao.getFilteredHisto(
+                    type, query.genre, query.author, query.location, query.publisher
+                )
+            } else {
+                dao.searchFilteredHisto(
+                    type, labelQuery, query.genre, query.author, query.location, query.publisher
+                )
+            }
         } else /* Requests text match. */ {
-            dao.getTitleHisto(
-                type,
-                if (query.partial) query.query!! + '*' else query.query!!,
-                query.genre, query.author, query.location, query.publisher)
+            if (labelQuery.isNullOrEmpty()) {
+                dao.getTitleHisto(
+                    type,
+                    if (query.partial) query.query!! + '*' else query.query!!,
+                    query.genre, query.author, query.location, query.publisher
+                )
+            } else {
+                dao.searchTitleHisto(
+                    type,
+                    labelQuery,
+                    if (query.partial) query.query!! + '*' else query.query!!,
+                    query.genre, query.author, query.location, query.publisher
+                )
+            }
         }
         histos.forEach { it.text = label(it.labelId).name }
         return histos
     }
-
-    suspend fun getLocations(): List<Histo> = getHisto(Label.PhysicalLocation)
-    suspend fun getGenres(): List<Histo> = getHisto(Label.Genres)
-    suspend fun getPublishers(): List<Histo> = getHisto(Label.Publisher)
-    suspend fun getAuthors(): List<Histo> = getHisto(Label.Authors)
 
     /**
      * Loads a book by id.

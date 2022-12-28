@@ -92,6 +92,7 @@ class SearchFragment : ListFragment() {
         viewModel.query.observe(viewLifecycleOwner) {
             app.repository.query = viewModel.query.value!!
             updateFiltersUi()
+            binding.list.scrollToPosition(0)
         }
 
         app.repository.itemCount.observe(viewLifecycleOwner) {

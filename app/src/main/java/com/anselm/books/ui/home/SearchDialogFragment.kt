@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.BooksApplication
 import com.anselm.books.database.Histo
 import com.anselm.books.R
+import com.anselm.books.database.Label
 import com.anselm.books.databinding.SearchDialogFragmentBinding
 import com.anselm.books.databinding.SearchDialogItemLayoutBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -62,9 +63,9 @@ class HistoAdapter(
 class SearchDialogFragment: BottomSheetDialogFragment() {
     private lateinit var adapter: HistoAdapter
     private val dataSource: MutableList<Histo> = mutableListOf()
-    private var allValues = listOf<Histo>()
 
-    private var columnName = PHYSICAL_LOCATION
+    private var columnName = ""
+    private var histoType = 0
 
     companion object {
         const val PHYSICAL_LOCATION = "physicalLocation"
@@ -89,6 +90,12 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
         // Selects the column on which to filter.
         val safeArgs: SearchDialogFragmentArgs by navArgs()
         columnName = safeArgs.columnName
+        when (columnName) {
+            PHYSICAL_LOCATION -> histoType = Label.PhysicalLocation
+            GENRE -> histoType = Label.Genres
+            PUBLISHER -> histoType = Label.Publisher
+            AUTHOR -> histoType = Label.Authors
+        }
 
         // Prepares the recycler view and kicks the values fetch.
         adapter = HistoAdapter(dataSource, onClick = { h: Histo -> selectHisto(h)  })
@@ -97,9 +104,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
             it.layoutManager = LinearLayoutManager(requireActivity())
             it.addItemDecoration(DividerItemDecoration(requireActivity(), RecyclerView.VERTICAL))
         }
-        viewLifecycleOwner.lifecycleScope.launch {
-            loadValues()
-        }
+        loadValues()
 
         // Handles cancellation without value selected.
         binding.idCancelDialog.setOnClickListener {
@@ -111,53 +116,29 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
             override fun afterTextChanged(s: Editable?) { }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                filter(s.toString())
+                val labelQuery = s.toString()
+                if (labelQuery.isEmpty()) {
+                    loadValues()
+                } else {
+                    loadValues(s.toString() + "*")
+                }
             }
         })
         return binding.root
     }
 
+
     @SuppressLint("NotifyDataSetChanged")
-    private suspend fun loadValues() {
-        when (columnName) {
-            PHYSICAL_LOCATION ->
-                allValues = BooksApplication.app.repository.getLocations()
-            GENRE ->
-                allValues = BooksApplication.app.repository.getGenres()
-            PUBLISHER ->
-                allValues = BooksApplication.app.repository.getPublishers()
-            AUTHOR ->
-                allValues = BooksApplication.app.repository.getAuthors()
-            else
-                -> listOf<Histo>()
-        }
-        dataSource.addAll(allValues)
+    private fun updateData(histos: List<Histo>) {
+        dataSource.clear()
+        dataSource.addAll(histos)
         adapter.notifyDataSetChanged()
     }
 
-    private fun normalize(input: CharSequence): CharSequence {
-        val sb = StringBuilder()
-        var spaced = true
-        input.forEach { c ->
-            if (c.isLetter()) {
-                sb.append(c.lowercase())
-                spaced = false
-            } else if ( ! spaced ) {
-                sb.append(' ')
-                spaced = true
-            }
-        }
-        return sb.trim()
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    private fun filter(prefixInput: String) {
-        val prefix = normalize(prefixInput)
-        val values = allValues.filter { h -> normalize(h.text!!).startsWith(prefix) }
-        if (values.size != dataSource.size) {
-            dataSource.clear()
-            dataSource.addAll(values)
-            adapter.notifyDataSetChanged()
+    private fun loadValues(labelQuery: String? = null) {
+        val repository = BooksApplication.app.repository
+        viewLifecycleOwner.lifecycleScope.launch {
+            updateData(repository.getHisto(histoType, labelQuery))
         }
     }
 
