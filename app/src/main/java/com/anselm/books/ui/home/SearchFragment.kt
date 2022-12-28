@@ -92,11 +92,13 @@ class SearchFragment : ListFragment() {
         viewModel.query.observe(viewLifecycleOwner) {
             app.repository.query = viewModel.query.value!!
             updateFiltersUi()
-            binding.list.scrollToPosition(0)
         }
 
         app.repository.itemCount.observe(viewLifecycleOwner) {
             binding.idCountView.text = getString(R.string.item_count_format, it)
+            // The count is updated once query processing is finished.
+            // It's a good time to scroll back up.
+            binding.list.scrollToPosition(0)
         }
 
         return root
