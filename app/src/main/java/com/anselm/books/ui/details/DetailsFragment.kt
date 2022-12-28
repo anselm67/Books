@@ -13,10 +13,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.anselm.books.database.Book
-import com.anselm.books.database.BookFields
 import com.anselm.books.BooksApplication
 import com.anselm.books.R
+import com.anselm.books.database.Book
+import com.anselm.books.database.BookFields
 import com.anselm.books.databinding.DetailsDetailsLayoutBinding
 import com.anselm.books.databinding.DetailsFieldLayoutBinding
 import com.anselm.books.databinding.FragmentDetailsBinding
