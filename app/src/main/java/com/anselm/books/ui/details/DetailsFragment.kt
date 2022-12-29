@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.anselm.books.BooksApplication
 import com.anselm.books.R
 import com.anselm.books.database.Book
@@ -20,7 +21,9 @@ import com.anselm.books.database.BookFields
 import com.anselm.books.database.Label
 import com.anselm.books.databinding.DetailsDetailsLayoutBinding
 import com.anselm.books.databinding.DetailsFieldLayoutBinding
+import com.anselm.books.databinding.DetailsMultiLabelLayoutBinding
 import com.anselm.books.databinding.FragmentDetailsBinding
+import com.anselm.books.ui.widgets.DnDList
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
@@ -153,6 +156,38 @@ class DetailsFragment : Fragment() {
         detailsView?.addView(container)
     }
 
+    private fun bindMultiLabelField(
+        inflater: LayoutInflater,
+        detailsView: ViewGroup?,
+        label: String,
+        labels: List<Label>
+    ) {
+        // No labels? Skip.
+        if ( labels.isEmpty() ) {
+            return
+        }
+        // Inflates this field's container.
+        val container = LinearLayout(detailsView?.context)
+        container.layoutDirection = View.LAYOUT_DIRECTION_RTL
+        container.layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            LayoutParams.WRAP_CONTENT
+        )
+        val binding = DetailsMultiLabelLayoutBinding.inflate(inflater, container, true)
+        binding.labels.layoutManager = LinearLayoutManager(binding.labels.context)
+        binding.labelView.text = label
+        DnDList(binding.labels, labels) {
+            // FIXME - SearchFragment should take a list of Pair<Int, Long>
+            val type = labels[0].type
+            val genreId = if (type == Label.Genres)  it.id else 0L
+            val authorId = if (type == Label.Authors)  it.id else 0L
+
+            val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
+                query="", location=0L, genre = genreId, publisher = 0L, author=authorId)
+            navController.navigate(action)
+        }
+        detailsView?.addView(container)
+    }
 
     private fun FragmentDetailsBinding.bind(inflater: LayoutInflater, book: Book) {
         val app = BooksApplication.app
@@ -171,14 +206,13 @@ class DetailsFragment : Fragment() {
                 .load(R.mipmap.ic_book_cover)
                 .into(coverImageView)
         }
-        // Author.
-        bindField(inflater, detailsView, app.applicationContext.getString(R.string.authorLabel), book.get(BookFields.AUTHOR)) {
-            val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                query = "", location = 0L, genre = 0L, publisher = 0L,
-                author = book.firstLabel(Label.Authors)?.id ?: 0L,
-            )
-            navController.navigate(action)
-        }
+        // Authors and Genres.
+        bindMultiLabelField(inflater, detailsView, getString(R.string.authorLabel),
+            book.getLabels(Label.Authors)
+        )
+        bindMultiLabelField(inflater, detailsView, getString(R.string.genreLabel),
+            book.getLabels(Label.Genres)
+        )
         // Details.
         bindDetails(inflater, detailsView, book)
         // Remaining fields.
@@ -188,13 +222,6 @@ class DetailsFragment : Fragment() {
                     query="", location=0L, genre=0L,
                     publisher = book.firstLabel(Label.Publisher)?.id ?: 0L,
                     author=0L)
-                navController.navigate(action)
-            },
-            Triple(R.string.genreLabel, BookFields.GENRE) {
-                val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                    query="", location=0L,
-                    genre = book.firstLabel(Label.Genres)?.id ?: 0L,
-                    publisher = 0L, author=0L)
                 navController.navigate(action)
             },
             Triple(R.string.yearPublishedLabel, BookFields.YEAR_PUBLISHED, null),

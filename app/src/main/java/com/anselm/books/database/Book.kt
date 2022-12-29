@@ -253,7 +253,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
             setOrReplaceLabel(Label.PhysicalLocation, Label(Label.PhysicalLocation, value))
         }
 
-    private fun getLabels(type: Int): List<Label> {
+    fun getLabels(type: Int): List<Label> {
         check(decorated)
         return labels!!.filter { it.type == type }
     }
