@@ -89,6 +89,7 @@ open class ListFragment: Fragment() {
         adapter = newAdapter
     }
 
+    // FIXME This should somehow move to BooksApplication.
     private val allItemIds = arrayOf(
         R.id.idSortByDateAdded,
         R.id.idSortByTitle,
