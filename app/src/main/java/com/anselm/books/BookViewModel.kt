@@ -14,23 +14,23 @@ class BookViewModel(
 ) : ViewModel() {
     val data = Pager(
         config = PagingConfig(
-            pageSize = PAGE_SIZE,
-            enablePlaceholders = true,
-            maxSize = MAX_SIZE,
-            jumpThreshold = 2 * PAGE_SIZE)) {
+        pageSize = PAGE_SIZE,
+        enablePlaceholders = true,
+        maxSize = MAX_SIZE,
+        jumpThreshold = 2 * PAGE_SIZE)
+    ) {
         repository.bookPagingSource()
     }.flow.cachedIn(viewModelScope)
-}
 
-
-class BookViewModelFactory(
-    private val bookRepository: BookRepository
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(BookViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return BookViewModel(bookRepository) as T
+    companion object {
+        val Factory = object: ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(BookViewModel::class.java)) {
+                    @Suppress("UNCHECKED_CAST")
+                    return BookViewModel(BooksApplication.app.repository) as T
+                }
+                throw IllegalArgumentException("Unknown ViewModel class")
+            }
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

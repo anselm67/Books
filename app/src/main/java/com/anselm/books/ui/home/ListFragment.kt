@@ -14,6 +14,7 @@ import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anselm.books.*
 import com.anselm.books.database.Book
+import com.anselm.books.database.Query
 import com.anselm.books.databinding.FragmentListBinding
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
@@ -23,8 +24,8 @@ open class ListFragment: Fragment() {
     protected val app = BooksApplication.app
     private var _binding: FragmentListBinding? = null
     protected val binding get() = _binding!!
+    private val bookViewModel: BookViewModel by viewModels { BookViewModel.Factory }
     protected val viewModel: QueryViewModel by viewModels()
-    private lateinit var bookViewModel: BookViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,31 +34,34 @@ open class ListFragment: Fragment() {
     ): View {
         super.onCreateView(inflater, container, savedInstanceState)
         _binding = FragmentListBinding.inflate(inflater, container, false)
-        val root: View = binding.root
 
         bindAdapter()
 
-        val _bookViewModel: BookViewModel by viewModels {
-            BookViewModelFactory(app.repository)
-        }
-        bookViewModel = _bookViewModel
-
-        return root
+        return binding.root
     }
 
     private var dataCollector: Job? = null
     private var stateCollector: Job? = null
-    private var adapter: BookAdapter? = null
 
-    protected fun bindAdapter() {
+    protected open fun changeQuery(query: Query?, rebind: Boolean = false) {
+        viewModel.query.value = query
+        BooksApplication.app.repository.query = query!!
+        if ( rebind ) {
+            bindAdapter()
+        }
+    }
+
+    protected fun changeSortOrder(sortOrder: Int) {
+        changeQuery(viewModel.query.value?.copy(sortBy = sortOrder), true)
+    }
+
+    private fun bindAdapter(): BookAdapter {
         // Cancels any jobs we have running with the previous adapter.
         dataCollector?.cancel()
         stateCollector?.cancel()
 
         // Creates the new adapter and restarts the jobs.
-        val newAdapter = BookAdapter { book -> adapterOnClick(book) }
-        binding.list.adapter = newAdapter
-        binding.list.layoutManager = LinearLayoutManager(binding.list.context)
+        val adapter = BookAdapter { book -> adapterOnClick(book) }
 
         // Collects from the Article Flow in the ViewModel, and submits to the adapter.
         dataCollector = viewLifecycleOwner.lifecycleScope.launch {
@@ -65,28 +69,23 @@ open class ListFragment: Fragment() {
             // but still visible on the screen, for example in a multi window app
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 bookViewModel.data.collectLatest {
-                    Log.d(TAG, "Submitting data to the adapter.")
-                    newAdapter.submitData(it)
+                    Log.d(TAG, "Submitting data to adapter $adapter.")
+                    adapter.submitData(it)
                 }
             }
         }
         // Collects from the state and updates the progress bar accordingly.
         stateCollector = viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                newAdapter.loadStateFlow.collect {
+                adapter.loadStateFlow.collect {
                     app.loading(it.source.prepend is LoadState.Loading
                             || it.source.append is LoadState.Loading, "$TAG.recycler")
                 }
             }
         }
-
-        // Swaps the adapter.
-        if (adapter != null) {
-            binding.list.swapAdapter(newAdapter, true)
-        } else {
-            binding.list.adapter = newAdapter
-        }
-        adapter = newAdapter
+        binding.list.adapter = adapter
+        binding.list.layoutManager = LinearLayoutManager(binding.list.context)
+        return adapter
     }
 
     // FIXME This should somehow move to BooksApplication.
@@ -135,5 +134,16 @@ open class ListFragment: Fragment() {
         findNavController().navigate(action)
     }
 
+    override fun onPause() {
+        super.onPause()
+        viewModel.pagingSource = BooksApplication.app.repository.pagingSource
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if ( viewModel.pagingSource != null) {
+            BooksApplication.app.repository.pagingSource = viewModel.pagingSource
+        }
+    }
 }
 

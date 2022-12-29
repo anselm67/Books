@@ -10,9 +10,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import com.anselm.books.*
+import com.anselm.books.R
+import com.anselm.books.TAG
 import com.anselm.books.database.BookDao
 import com.anselm.books.database.Query
+import com.anselm.books.hideKeyboard
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
@@ -25,7 +27,6 @@ class HomeFragment : ListFragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View {
-        super.onCreateView(inflater, container, savedInstanceState)
         val root = super.onCreateView(inflater, container, savedInstanceState)
         binding.idSearchFilters.isVisible = false
         binding.idCountView.isVisible = false
@@ -40,16 +41,10 @@ class HomeFragment : ListFragment() {
                 findNavController().navigate(action)
             },
             Pair(R.id.idSortByDateAdded) {
-                val query = viewModel.query.value?.copy(sortBy = BookDao.SortByDateAdded)
-                viewModel.query.value = query
-                app.repository.query = query!!
-                bindAdapter()
+                changeSortOrder(BookDao.SortByDateAdded)
             },
             Pair(R.id.idSortByTitle) {
-                val query = viewModel.query.value?.copy(sortBy = BookDao.SortByTitle)
-                viewModel.query.value = query
-                app.repository.query = query!!
-                bindAdapter()
+                changeSortOrder(BookDao.SortByTitle)
             }
         ))
 

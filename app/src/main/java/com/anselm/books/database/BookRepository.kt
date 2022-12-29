@@ -6,7 +6,7 @@ import com.anselm.books.BookPagingSource
 import com.anselm.books.TAG
 
 class BookRepository(private val dao: BookDao) {
-    private var pagingSource: BookPagingSource? = null
+    var pagingSource: BookPagingSource? = null
     var query = Query()
         set(value) {
             field = value

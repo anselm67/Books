@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 
 class QueryViewModel : ViewModel() {
     var query: MutableLiveData<Query> = MutableLiveData<Query>()
+    var pagingSource: BookPagingSource? = null
 }
 
 class SearchFragment : ListFragment() {
@@ -37,7 +38,6 @@ class SearchFragment : ListFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        super.onCreateView(inflater, container, savedInstanceState)
         val root = super.onCreateView(inflater, container, savedInstanceState)
         val safeArgs: SearchFragmentArgs by navArgs()
         Log.d(TAG, "SearchFragment query : ${viewModel.query.value}")
@@ -55,16 +55,10 @@ class SearchFragment : ListFragment() {
         // Customizes the toolbar menu.
         handleMenu(listOf(
             Pair(R.id.idSortByDateAdded) {
-                val query = viewModel.query.value?.copy(sortBy = BookDao.SortByDateAdded)
-                viewModel.query.value = query
-                app.repository.query = query!!
-                bindAdapter()
+                changeSortOrder(BookDao.SortByDateAdded)
             },
             Pair(R.id.idSortByTitle) {
-                val query = viewModel.query.value?.copy(sortBy = BookDao.SortByTitle)
-                viewModel.query.value = query
-                app.repository.query = query!!
-                bindAdapter()
+                changeSortOrder(BookDao.SortByTitle)
             }
         ))
 
@@ -89,19 +83,18 @@ class SearchFragment : ListFragment() {
         app.repository.query = viewModel.query.value!!
         updateFiltersUi()
 
-        viewModel.query.observe(viewLifecycleOwner) {
-            app.repository.query = viewModel.query.value!!
-            updateFiltersUi()
-        }
-
         app.repository.itemCount.observe(viewLifecycleOwner) {
             binding.idCountView.text = getString(R.string.item_count_format, it)
             // The count is updated once query processing is finished.
             // It's a good time to scroll back up.
             binding.list.scrollToPosition(0)
         }
-
         return root
+    }
+
+    override fun changeQuery(query: Query?, rebind: Boolean) {
+        super.changeQuery(query, rebind)
+        updateFiltersUi()
     }
 
     override fun onCreateMenu(menu: Menu) {
@@ -120,7 +113,7 @@ class SearchFragment : ListFragment() {
             SearchDialogFragment.AUTHOR ->
                 query = viewModel.query.value?.copy(author = 0L)
         }
-        query?.let { viewModel.query.value = it }
+        query?.let { changeQuery(it) }
     }
     
     private fun dialogFilter(columnName: String) {
@@ -178,11 +171,6 @@ class SearchFragment : ListFragment() {
     }
 
     private fun bindSearch(menu: Menu) {
-        menu.findItem(R.id.idSortByDateAdded)?.isVisible = true
-        menu.findItem(R.id.idSortByTitle)?.isVisible = true
-        menu.findItem(R.id.idEditBook)?.isVisible = false
-        menu.findItem(R.id.idSaveBook)?.isVisible = false
-        menu.findItem(R.id.idGotoSearchView)?.isVisible = false
         // Handles the search view:
         val item = menu.findItem(R.id.idSearchView)
         item.isVisible = true
@@ -208,15 +196,15 @@ class SearchFragment : ListFragment() {
             it.clearFocus()
             it.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(text: String?): Boolean {
-                    viewModel.query.value = viewModel.query.value?.copy(
-                        query = text, partial = false)
+                    changeQuery(viewModel.query.value?.copy(
+                        query = text, partial = false))
                     return false
                 }
                 override fun onQueryTextChange(text: String?): Boolean {
                     val emptyText = (text == null || text == "")
-                    viewModel.query.value = viewModel.query.value?.copy(
+                    changeQuery(viewModel.query.value?.copy(
                         query = if  (emptyText) null else text,
-                        partial = ! emptyText)
+                        partial = ! emptyText))
                     return true
                 }
             })
@@ -248,13 +236,13 @@ class SearchFragment : ListFragment() {
                     Log.d(TAG, "Filter $columnName with $value")
                     when (columnName) {
                         SearchDialogFragment.PHYSICAL_LOCATION ->
-                            viewModel.query.value = viewModel.query.value?.copy(location = value)
+                            changeQuery(viewModel.query.value?.copy(location = value))
                         SearchDialogFragment.GENRE ->
-                            viewModel.query.value = viewModel.query.value?.copy(genre = value)
+                            changeQuery(viewModel.query.value?.copy(genre = value))
                         SearchDialogFragment.PUBLISHER ->
-                            viewModel.query.value = viewModel.query.value?.copy(publisher = value)
+                            changeQuery(viewModel.query.value?.copy(publisher = value))
                         SearchDialogFragment.AUTHOR ->
-                            viewModel.query.value = viewModel.query.value?.copy(author = value)
+                            changeQuery(viewModel.query.value?.copy(author = value))
                     }
                 }
             }
