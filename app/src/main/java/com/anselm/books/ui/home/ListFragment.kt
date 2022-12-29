@@ -43,6 +43,12 @@ open class ListFragment: Fragment() {
     private var dataCollector: Job? = null
     private var stateCollector: Job? = null
 
+    /**
+     * Updates the query and let the repository knows.
+     * This invalidates the underlying data source and optionally triggers a full rebinding of
+     * the adapter - e.g. if you're changing the sort order.
+     * This is overwritten by SearchFragment.
+     */
     protected open fun changeQuery(query: Query?, rebind: Boolean = false) {
         viewModel.query.value = query
         BooksApplication.app.repository.query = query!!
@@ -51,10 +57,18 @@ open class ListFragment: Fragment() {
         }
     }
 
+    /**
+     * Changes the sort order of the list and takes action to have the UI reflect the change.
+     */
     protected fun changeSortOrder(sortOrder: Int) {
         changeQuery(viewModel.query.value?.copy(sortBy = sortOrder), true)
     }
 
+    /**
+     * Binds a new adapter to the recycler.
+     * Quite frankly this is meant to work around the weakness of recyclerview to handle
+     * changing sort order. It tries to resync the pre/post lists and ends up in hell.
+     */
     private fun bindAdapter(): BookAdapter {
         // Cancels any jobs we have running with the previous adapter.
         dataCollector?.cancel()
@@ -124,6 +138,7 @@ open class ListFragment: Fragment() {
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -134,6 +149,11 @@ open class ListFragment: Fragment() {
         findNavController().navigate(action)
     }
 
+    /**
+     * Save/restore the dataSource associated with the fragment.
+     * You can't just change the dataSource of a recycler view when switching fragments, so we
+     * make it sound like we didn't by saving and restoring it.
+     */
     override fun onPause() {
         super.onPause()
         viewModel.pagingSource = BooksApplication.app.repository.pagingSource
