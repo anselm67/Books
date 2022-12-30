@@ -161,7 +161,7 @@ open class ListFragment: Fragment() {
 
     override fun onResume() {
         super.onResume()
-        if ( viewModel.pagingSource != null) {
+        if (viewModel.pagingSource != null && viewModel.pagingSource?.invalid != true) {
             BooksApplication.app.repository.pagingSource = viewModel.pagingSource
         }
     }
