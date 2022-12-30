@@ -39,20 +39,8 @@
         android:label="@string/menu_home"
         tools:layout="@layout/fragment_list">
 
-        <argument android:name="query" app:argType="string"
+        <argument android:name="query" app:argType="com.anselm.books.database.Query"
             app:nullable="true" android:defaultValue="@null" />
-        <argument android:name="location" app:argType="long"
-            android:defaultValue="0L" />
-        <argument android:name="genre" app:argType="long"
-            android:defaultValue="0L" />
-        <argument android:name="publisher" app:argType="long"
-            android:defaultValue="0L" />
-        <argument android:name="author" app:argType="long"
-            android:defaultValue="0L" />
-        <!-- BookDao.SortByTitle == 1 -->
-        <argument android:name="sortBy" app:argType="integer"
-            android:defaultValue="1" />
-
         <action
             android:id="@+id/action_HomeFragment_to_DetailsFragment"
             app:destination="@id/nav_details"
@@ -70,7 +58,10 @@
     <dialog
         android:id="@+id/search_dialog_fragment"
         android:name="com.anselm.books.ui.home.SearchDialogFragment" >
-        <argument android:name="columnName" android:defaultValue="physicalLocation" />
+
+        <!-- Label.PhysicalLocation == 3 -->
+        <argument android:name="type" app:nullable="false" app:argType="integer" />
+
     </dialog>
 
 

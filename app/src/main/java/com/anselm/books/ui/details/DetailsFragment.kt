@@ -19,6 +19,7 @@ import com.anselm.books.R
 import com.anselm.books.database.Book
 import com.anselm.books.database.BookFields
 import com.anselm.books.database.Label
+import com.anselm.books.database.Query
 import com.anselm.books.databinding.DetailsDetailsLayoutBinding
 import com.anselm.books.databinding.DetailsFieldLayoutBinding
 import com.anselm.books.databinding.DetailsMultiLabelLayoutBinding
@@ -178,12 +179,8 @@ class DetailsFragment : Fragment() {
         binding.labelView.text = label
         DnDList(binding.labels, labels) {
             // FIXME - SearchFragment should take a list of Pair<Int, Long>
-            val type = labels[0].type
-            val genreId = if (type == Label.Genres)  it.id else 0L
-            val authorId = if (type == Label.Authors)  it.id else 0L
-
             val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                query="", location=0L, genre = genreId, publisher = 0L, author=authorId)
+                Query(filters = mutableListOf(Query.Filter(it))))
             navController.navigate(action)
         }
         detailsView?.addView(container)
@@ -219,17 +216,15 @@ class DetailsFragment : Fragment() {
         val fields = mutableListOf<Triple<Int, String, ((String?) -> Unit)?>>(
             Triple(R.string.publisherLabel, BookFields.PUBLISHER) {
                 val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                    query="", location=0L, genre=0L,
-                    publisher = book.firstLabel(Label.Publisher)?.id ?: 0L,
-                    author=0L)
+                    Query(filters = Query.asFilter(book.firstLabel(Label.Publisher)))
+                )
                 navController.navigate(action)
             },
             Triple(R.string.yearPublishedLabel, BookFields.YEAR_PUBLISHED, null),
             Triple(R.string.physicalLocationLabel, BookFields.PHYSICAL_LOCATION) {
                 val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                    query="",
-                    location = book.firstLabel(Label.PhysicalLocation)?.id ?: 0L,
-                    genre=0L, publisher = 0L, author=0L)
+                    Query(filters = Query.asFilter(book.firstLabel(Label.PhysicalLocation)))
+                )
                 navController.navigate(action)
             },
             Triple(R.string.summaryLabel, BookFields.SUMMARY, null),

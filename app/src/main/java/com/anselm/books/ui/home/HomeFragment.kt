@@ -36,7 +36,7 @@ class HomeFragment : ListFragment() {
         handleMenu(listOf(
             Pair(R.id.idGotoSearchView) {
                 val action = HomeFragmentDirections.actionHomeFragmentToSearchFragment(
-                    sortBy = viewModel.query.value?.sortBy ?: BookDao.SortByTitle
+                    Query(sortBy = viewModel.query.value?.sortBy ?: BookDao.SortByTitle)
                 )
                 findNavController().navigate(action)
             },

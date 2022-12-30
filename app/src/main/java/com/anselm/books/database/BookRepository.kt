@@ -28,21 +28,18 @@ class BookRepository(private val dao: BookDao) {
 
     suspend fun getPagedList(limit: Int, offset: Int): List<Book> {
         Log.d(TAG, "getPagedList [$offset, $limit] ${query.query}/${query.partial}," +
-                " location: '${query.location}'," +
-                " genre: '${query.genre}'" +
-                " publisher: '${query.publisher}'" +
-                " author: ${query.author}" +
+                " filters: '${query.filters}'," +
                 " sort: ${query.sortBy}"
         )
         return if ( query.query.isNullOrEmpty() ) {
             dao.getFilteredPagedList(
-                query.author, query.genre, query.publisher, query.location,
+                query.filters.map { it -> it.labelId },
                 query.sortBy, limit, offset
             )
         } else /* Requests text matching. */ {
             dao.getTitlePagedList(
                 if (query.partial) query.query!! + '*' else query.query!!,
-                query.author, query.genre, query.publisher, query.location,
+                query.filters.map { it -> it.labelId },
                 query.sortBy, limit, offset
             )
         }
@@ -52,19 +49,16 @@ class BookRepository(private val dao: BookDao) {
 
     suspend fun getPagedListCount(): Int {
         Log.d(TAG, "getPagedListCount ${query.query}/${query.partial}," +
-                " location: '${query.location}'," +
-                " genre: '${query.genre}'" +
-                " publisher: '${query.publisher}'" +
-                " author: ${query.author}"
+                " filters: '${query.filters}',"
         )
         val count = if ( query.query.isNullOrEmpty() ) {
             dao.getFilteredPagedListCount(
-                query.author, query.genre, query.publisher, query.location,
+                query.filters.map { it -> it.labelId },
             )
         } else /* Requests text matching. */ {
             dao.getTitlePagedListCount(
                 if (query.partial) query.query!! + '*' else query.query!!,
-                query.author, query.genre, query.publisher, query.location,
+                query.filters.map { it -> it.labelId },
             )
         }
         itemCount.postValue(count)
@@ -79,11 +73,12 @@ class BookRepository(private val dao: BookDao) {
         val histos = if ( query.query.isNullOrEmpty() ) {
             if (labelQuery.isNullOrEmpty()) {
                 dao.getFilteredHisto(
-                    type, query.genre, query.author, query.location, query.publisher
-                )
+                    type, query.filters.map { it -> it.labelId },
+
+                    )
             } else {
                 dao.searchFilteredHisto(
-                    type, labelQuery, query.genre, query.author, query.location, query.publisher
+                    type, labelQuery, query.filters.map { it -> it.labelId },
                 )
             }
         } else /* Requests text match. */ {
@@ -91,14 +86,14 @@ class BookRepository(private val dao: BookDao) {
                 dao.getTitleHisto(
                     type,
                     if (query.partial) query.query!! + '*' else query.query!!,
-                    query.genre, query.author, query.location, query.publisher
+                    query.filters.map { it -> it.labelId },
                 )
             } else {
                 dao.searchTitleHisto(
                     type,
                     labelQuery,
                     if (query.partial) query.query!! + '*' else query.query!!,
-                    query.genre, query.author, query.location, query.publisher
+                    query.filters.map { it -> it.labelId },
                 )
             }
         }

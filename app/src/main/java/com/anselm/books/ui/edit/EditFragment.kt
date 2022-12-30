@@ -24,12 +24,12 @@ import androidx.navigation.fragment.navArgs
 import com.anselm.books.*
 import com.anselm.books.database.Book
 import com.anselm.books.database.BookFields
+import com.anselm.books.database.Label
 import com.anselm.books.database.Query
 import com.anselm.books.databinding.EditFieldLayoutBinding
 import com.anselm.books.databinding.EditYearLayoutBinding
 import com.anselm.books.databinding.FragmentEditBinding
 import com.anselm.books.ui.home.QueryViewModel
-import com.anselm.books.ui.home.SearchDialogFragment
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
@@ -144,15 +144,15 @@ class EditFragment: Fragment() {
             TextEditor(this, inflater, R.string.authorLabel,
                 book::author.getter, book::author.setter),
             SearchDialogEditor(this, inflater,
-                SearchDialogFragment.PUBLISHER,
+                Label.Publisher,
                 R.string.publisherLabel,
                 book::publisher.getter, book::publisher.setter),
             SearchDialogEditor(this, inflater,
-                SearchDialogFragment.GENRE,
+                Label.Genres,
                 R.string.genreLabel,
                 book::genre.getter, book::genre.setter),
             SearchDialogEditor(this, inflater,
-                SearchDialogFragment.PHYSICAL_LOCATION,
+                Label.PhysicalLocation,
                 R.string.physicalLocationLabel,
                 book::physicalLocation.getter, book::physicalLocation.setter),
             TextEditor(this, inflater, R.string.isbnLabel,
@@ -241,9 +241,9 @@ class EditFragment: Fragment() {
         } == null
     }
 
-    private fun getSearchDialogEditorByColumnName(columnName: String): SearchDialogEditor {
+    private fun getSearchDialogEditorByColumnName(type: Int): SearchDialogEditor {
         return (editors?.firstOrNull {
-            (it is SearchDialogEditor) && it.columnName == columnName
+            (it is SearchDialogEditor) && it.type == type
         } as SearchDialogEditor)
     }
 
@@ -261,11 +261,12 @@ class EditFragment: Fragment() {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME
                 && navBackStackEntry.savedStateHandle.contains("filter")) {
-                val result = navBackStackEntry.savedStateHandle.get<Pair<String, String>>("filter")
+                val result = navBackStackEntry.savedStateHandle.get<Query.Filter>("filter")
                 if (result != null) {
-                    val (columnName, value) = result
-                    getSearchDialogEditorByColumnName(columnName).
-                        setEditorValue(value)
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        val label = BooksApplication.app.repository.label(result.labelId)
+                        getSearchDialogEditorByColumnName(result.type).setEditorValue(label.name)
+                    }
                 }
             }
         }
@@ -450,7 +451,7 @@ private open class TextEditor(
 private class SearchDialogEditor(
     override val fragment: EditFragment,
     override val inflater: LayoutInflater,
-    val columnName: String,
+    val type: Int,
     override val labelId: Int,
     override val getter: () -> String,
     override val setter: (String) -> Unit
@@ -459,8 +460,7 @@ private class SearchDialogEditor(
     override fun setup(container: ViewGroup?): View {
         val root = super.setup(container)
         editor.idEditLabel.setOnClickListener {
-            val action = EditFragmentDirections.actionEditFragmentToSearchDialogFragment(
-                columnName)
+            val action = EditFragmentDirections.actionEditFragmentToSearchDialogFragment(type)
             fragment.findNavController().navigate(action)
         }
         return root

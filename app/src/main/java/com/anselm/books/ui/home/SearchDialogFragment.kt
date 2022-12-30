@@ -21,6 +21,7 @@ import com.anselm.books.BooksApplication
 import com.anselm.books.database.Histo
 import com.anselm.books.R
 import com.anselm.books.database.Label
+import com.anselm.books.database.Query
 import com.anselm.books.databinding.SearchDialogFragmentBinding
 import com.anselm.books.databinding.SearchDialogItemLayoutBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -64,16 +65,8 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
     private lateinit var adapter: HistoAdapter
     private val dataSource: MutableList<Histo> = mutableListOf()
 
-    private var columnName = ""
-    private var histoType = 0
+    private var type = Label.PhysicalLocation
 
-    companion object {
-        const val PHYSICAL_LOCATION = "physicalLocation"
-        const val GENRE = "genre"
-        const val PUBLISHER = "publisher"
-        const val AUTHOR = "author"
-    }
-    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // set custom style for bottom sheet rounded top corners
@@ -89,13 +82,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
 
         // Selects the column on which to filter.
         val safeArgs: SearchDialogFragmentArgs by navArgs()
-        columnName = safeArgs.columnName
-        when (columnName) {
-            PHYSICAL_LOCATION -> histoType = Label.PhysicalLocation
-            GENRE -> histoType = Label.Genres
-            PUBLISHER -> histoType = Label.Publisher
-            AUTHOR -> histoType = Label.Authors
-        }
+        type = safeArgs.type
 
         // Prepares the recycler view and kicks the values fetch.
         adapter = HistoAdapter(dataSource, onClick = { h: Histo -> selectHisto(h)  })
@@ -138,7 +125,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
     private fun loadValues(labelQuery: String? = null) {
         val repository = BooksApplication.app.repository
         viewLifecycleOwner.lifecycleScope.launch {
-            updateData(repository.getHisto(histoType, labelQuery))
+            updateData(repository.getHisto(type, labelQuery))
         }
     }
 
@@ -147,7 +134,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
      */
     private fun selectHisto(histo: Histo) {
         findNavController().previousBackStackEntry?.savedStateHandle?.set(
-            "filter", Pair(columnName, histo.labelId))
+            "filter", Query.Filter(type, histo.labelId))
         dismiss()
     }
 

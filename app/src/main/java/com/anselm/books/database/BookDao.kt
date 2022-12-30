@@ -94,6 +94,31 @@ interface BookDao {
         param: Int, limit: Int, offset: Int
     ): List<Book>
 
+    suspend fun getTitlePagedList(
+        query: String, labelIds: List<Long>, param: Int, limit: Int, offset: Int
+    ): List<Book> {
+        when (labelIds.size) {
+            0 -> return getTitlePagedList(
+                query, 0L, 0L, 0L, 0L, param, limit, offset
+            )
+            1 -> return getTitlePagedList(
+                query, labelIds[0], 0L, 0L, 0L, param, limit, offset
+            )
+            2 -> return getTitlePagedList(
+                query, labelIds[0], labelIds[1], 0L, 0L, param, limit, offset
+            )
+            3 -> return getTitlePagedList(
+                query, labelIds[0], labelIds[1], labelIds[2], 0L, param, limit, offset
+            )
+            4 -> return getTitlePagedList(
+                query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], param, limit, offset
+            )
+            else -> assert(value = false)
+        }
+        // NOT REACHED, not sure why the compiler doesn't see this.
+        return emptyList()
+    }
+
     @Query("SELECT COUNT(*) FROM book_table " +
             " JOIN book_fts ON book_table.id = book_fts.rowid " +
             " WHERE book_fts MATCH :query " +
@@ -112,8 +137,34 @@ interface BookDao {
             ")")
     suspend fun getTitlePagedListCount(
         query: String,
-        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
     ): Int
+
+    suspend fun getTitlePagedListCount(
+        query: String, labelIds: List<Long>,
+    ): Int {
+        when (labelIds.size) {
+            0 -> return getTitlePagedListCount(
+                query, 0L, 0L, 0L, 0L,
+            )
+            1 -> return getTitlePagedListCount(
+                query, labelIds[0], 0L, 0L, 0L,
+            )
+            2 -> return getTitlePagedListCount(
+                query, labelIds[0], labelIds[1], 0L, 0L,
+            )
+            3 -> return getTitlePagedListCount(
+                query, labelIds[0], labelIds[1], labelIds[2], 0L,
+            )
+            4 -> return getTitlePagedListCount(
+                query, labelIds[0], labelIds[1], labelIds[2], labelIds[3],
+            )
+            else -> assert(value = false)
+        }
+        // NOT REACHED, not sure why the compiler doesn't see this.
+        return 0
+    }
+
 
     @Query("SELECT * FROM book_table " +
             " WHERE id IN (" +
@@ -138,6 +189,31 @@ interface BookDao {
         param: Int, limit: Int, offset: Int
     ): List<Book>
 
+    suspend fun getFilteredPagedList(
+        labelIds: List<Long>, param: Int, limit: Int, offset: Int
+    ): List<Book> {
+        when (labelIds.size) {
+            0 -> return getFilteredPagedList(
+                0L, 0L, 0L, 0L, param, limit, offset
+            )
+            1 -> return getFilteredPagedList(
+                labelIds[0], 0L, 0L, 0L, param, limit, offset
+            )
+            2 -> return getFilteredPagedList(
+                labelIds[0], labelIds[1], 0L, 0L, param, limit, offset
+            )
+            3 -> return getFilteredPagedList(
+                labelIds[0], labelIds[1], labelIds[2], 0L, param, limit, offset
+            )
+            4 -> return getFilteredPagedList(
+                labelIds[0], labelIds[1], labelIds[2], labelIds[3], param, limit, offset
+            )
+            else -> assert(value = false)
+        }
+        // NOT REACHED, not sure why the compiler doesn't see this.
+        return emptyList()
+    }
+
     @Query("SELECT COUNT(*) FROM book_table " +
             " WHERE id IN (" +
             "   SELECT bookId FROM book_labels " +
@@ -155,6 +231,31 @@ interface BookDao {
     suspend fun getFilteredPagedListCount(
         labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
     ): Int
+
+    suspend fun getFilteredPagedListCount(
+        labelIds: List<Long>,
+    ): Int {
+        when (labelIds.size) {
+            0 -> return getFilteredPagedListCount(
+                0L, 0L, 0L, 0L,
+            )
+            1 -> return getFilteredPagedListCount(
+                labelIds[0], 0L, 0L, 0L,
+            )
+            2 -> return getFilteredPagedListCount(
+                labelIds[0], labelIds[1], 0L, 0L,
+            )
+            3 -> return getFilteredPagedListCount(
+                labelIds[0], labelIds[1], labelIds[2], 0L,
+            )
+            4 -> return getFilteredPagedListCount(
+                labelIds[0], labelIds[1], labelIds[2], labelIds[3],
+            )
+            else -> assert(value = false)
+        }
+        // NOT REACHED, not sure why the compiler doesn't see this.
+        return 0
+    }
 
     /**
      * Two queries for histograms.
@@ -186,6 +287,31 @@ interface BookDao {
         labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
     ): List<Histo>
 
+    suspend fun getTitleHisto(
+        type: Int, query: String, labelIds: List<Long>,
+    ): List<Histo> {
+        when (labelIds.size) {
+            0 -> return getTitleHisto(
+                type, query, 0L, 0L, 0L, 0L,
+            )
+            1 -> return getTitleHisto(
+                type, query, labelIds[0], 0L, 0L, 0L,
+            )
+            2 -> return getTitleHisto(
+                type, query, labelIds[0], labelIds[1], 0L, 0L,
+            )
+            3 -> return getTitleHisto(
+                type, query, labelIds[0], labelIds[1], labelIds[2], 0L,
+            )
+            4 -> return getTitleHisto(
+                type, query, labelIds[0], labelIds[1], labelIds[2], labelIds[3],
+            )
+            else -> assert(value = false)
+        }
+        // NOT REACHED, not sure why the compiler doesn't see this.
+        return emptyList()
+    }
+
     @Query("SELECT book_labels.labelId, COUNT(*) as count FROM book_table " +
             "  JOIN book_fts ON book_table.id = book_fts.rowid," +
             "       book_labels ON book_labels.bookId = book_table.id," +
@@ -215,6 +341,33 @@ interface BookDao {
         labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
     ): List<Histo>
 
+    suspend fun searchTitleHisto(
+        type: Int,
+        labelQuery: String, query: String,
+        labelIds: List<Long>,
+    ): List<Histo> {
+        when (labelIds.size) {
+            0 -> return searchTitleHisto(
+                type, labelQuery, query, 0L, 0L, 0L, 0L,
+            )
+            1 -> return searchTitleHisto(
+                type, labelQuery, query, labelIds[0], 0L, 0L, 0L,
+            )
+            2 -> return searchTitleHisto(
+                type, labelQuery, query, labelIds[0], labelIds[1], 0L, 0L,
+            )
+            3 -> return searchTitleHisto(
+                type, labelQuery, query, labelIds[0], labelIds[1], labelIds[2], 0L,
+            )
+            4 -> return searchTitleHisto(
+                type, labelQuery, query, labelIds[0], labelIds[1], labelIds[2], labelIds[3],
+            )
+            else -> assert(value = false)
+        }
+        // NOT REACHED, not sure why the compiler doesn't see this.
+        return emptyList()
+    }
+
     @Query("SELECT book_labels.labelId, COUNT(*) as count FROM book_table " +
             "  JOIN book_labels ON book_labels.bookId = book_table.id," +
             "       label_table ON label_table.id = book_labels.labelId " +
@@ -237,6 +390,31 @@ interface BookDao {
     suspend fun getFilteredHisto(
         type: Int, labelId1: Long, labelId2: Long,labelId3: Long,labelId4: Long
     ): List<Histo>
+
+    suspend fun getFilteredHisto(
+        type: Int, labelIds: List<Long>,
+    ): List<Histo> {
+        when (labelIds.size) {
+            0 -> return getFilteredHisto(
+                type, 0L, 0L, 0L, 0L,
+            )
+            1 -> return getFilteredHisto(
+                type, labelIds[0], 0L, 0L, 0L,
+            )
+            2 -> return getFilteredHisto(
+                type, labelIds[0], labelIds[1], 0L, 0L,
+            )
+            3 -> return getFilteredHisto(
+                type, labelIds[0], labelIds[1], labelIds[2], 0L,
+            )
+            4 -> return getFilteredHisto(
+                type, labelIds[0], labelIds[1], labelIds[2], labelIds[3],
+            )
+            else -> assert(value = false)
+        }
+        // NOT REACHED, not sure why the compiler doesn't see this.
+        return emptyList()
+    }
 
     @Query("SELECT book_labels.labelId, COUNT(*) as count FROM book_table " +
             "  JOIN book_labels ON book_labels.bookId = book_table.id," +
@@ -263,6 +441,33 @@ interface BookDao {
         labelQuery: String,
         labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
     ): List<Histo>
+
+    suspend fun searchFilteredHisto(
+        type: Int,
+        labelQuery: String,
+        labelIds: List<Long>,
+    ): List<Histo> {
+        when (labelIds.size) {
+            0 -> return searchFilteredHisto(
+                type, labelQuery, 0L, 0L, 0L, 0L,
+            )
+            1 -> return searchFilteredHisto(
+                type, labelQuery, labelIds[0], 0L, 0L, 0L,
+            )
+            2 -> return searchFilteredHisto(
+                type, labelQuery, labelIds[0], labelIds[1], 0L, 0L,
+            )
+            3 -> return searchFilteredHisto(
+                type, labelQuery, labelIds[0], labelIds[1], labelIds[2], 0L,
+            )
+            4 -> return searchFilteredHisto(
+                type, labelQuery, labelIds[0], labelIds[1], labelIds[2], labelIds[3],
+            )
+            else -> assert(value = false)
+        }
+        // NOT REACHED, not sure why the compiler doesn't see this.
+        return emptyList()
+    }
 
     companion object {
         const val SortByTitle = 1
