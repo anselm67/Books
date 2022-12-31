@@ -65,7 +65,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
     private lateinit var adapter: HistoAdapter
     private val dataSource: MutableList<Histo> = mutableListOf()
 
-    private var type = Label.PhysicalLocation
+    private var type = Label.Type.Location
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

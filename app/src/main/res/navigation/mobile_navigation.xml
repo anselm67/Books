@@ -60,7 +60,8 @@
         android:name="com.anselm.books.ui.home.SearchDialogFragment" >
 
         <!-- Label.PhysicalLocation == 3 -->
-        <argument android:name="type" app:nullable="false" app:argType="integer" />
+        <argument android:name="type"
+            app:argType="com.anselm.books.database.Label$Type" />
 
     </dialog>
 

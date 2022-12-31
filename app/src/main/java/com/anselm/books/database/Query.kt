@@ -13,17 +13,17 @@ data class Query(
 
     @Parcelize
     data class Filter(
-        val type: Int,
+        val type: Label.Type,
         val labelId: Long,
     ): Parcelable {
         constructor(label: Label) : this(label.type, label.id)
     }
 
-    fun clearFilter(type: Int) {
+    fun clearFilter(type: Label.Type) {
         this.filters = filters.filter { it.type != type }.toMutableList()
     }
 
-    fun firstFilter(type: Int): Filter? {
+    fun firstFilter(type: Label.Type): Filter? {
         return filters.firstOrNull { it.type == type }
     }
 

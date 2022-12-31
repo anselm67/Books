@@ -93,20 +93,20 @@ class SearchFragment : ListFragment() {
         bindSearch(menu)
     }
 
-    private fun clearFilter(type: Int) {
+    private fun clearFilter(type: Label.Type) {
         val query = viewModel.query.value?.copy()
         query?.clearFilter(type)
         query?.let { changeQuery(it) }
     }
     
-    private fun dialogFilter(type: Int) {
+    private fun dialogFilter(type: Label.Type) {
         view?.let { activity?.hideKeyboard(it) }
         val action = SearchFragmentDirections.actionSearchFragmentToSearchDialogFragment(type)
         findNavController().navigate(action)
     }
 
     data class Filter(
-        val type: Int,
+        val type: Label.Type,
         val button: Button,
         val filter: Query.Filter?,
         val label: Int,
@@ -114,21 +114,21 @@ class SearchFragment : ListFragment() {
 
     private fun updateFiltersUi() {
         val filters = arrayOf(
-            Filter(Label.PhysicalLocation,
+            Filter(Label.Type.Location,
                 binding.idLocationFilter,
-                viewModel.query.value?.firstFilter(Label.PhysicalLocation),
+                viewModel.query.value?.firstFilter(Label.Type.Location),
                 R.string.physicalLocationLabel),
-            Filter(Label.Genres,
+            Filter(Label.Type.Genres,
                 binding.idGenreFilter,
-                viewModel.query.value?.firstFilter(Label.Genres),
+                viewModel.query.value?.firstFilter(Label.Type.Genres),
                 R.string.genreLabel),
-            Filter(Label.Publisher,
+            Filter(Label.Type.Publisher,
                 binding.idPublisherFilter,
-                viewModel.query.value?.firstFilter(Label.Publisher),
+                viewModel.query.value?.firstFilter(Label.Type.Publisher),
                 R.string.publisherLabel),
-            Filter(Label.Authors,
+            Filter(Label.Type.Authors,
                 binding.idAuthorFilter,
-                viewModel.query.value?.firstFilter(Label.Authors),
+                viewModel.query.value?.firstFilter(Label.Type.Authors),
                 R.string.authorLabel))
         val repository = BooksApplication.app.repository
         viewLifecycleOwner.lifecycleScope.launch {

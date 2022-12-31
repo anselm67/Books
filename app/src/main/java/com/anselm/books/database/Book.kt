@@ -99,7 +99,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         fromJson(o)
     }
 
-    private fun arrayToLabels(type: Int, obj: JSONObject, key: String) {
+    private fun arrayToLabels(type: Label.Type, obj: JSONObject, key: String) {
         val values = obj.optJSONArray(key)
         if (values != null) {
             for (i in 0 until values.length()) {
@@ -123,8 +123,8 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         this.imageFilename = obj.optString(BookFields.IMAGE_FILENAME, "")
         this.rawLastModified = obj.optLong(BookFields.LAST_MODIFIED, 0)
         // Handles multi-value fields:
-        arrayToLabels(Label.Authors, obj, "author")
-        arrayToLabels(Label.Genres, obj, "genre")
+        arrayToLabels(Label.Type.Authors, obj, "author")
+        arrayToLabels(Label.Type.Genres, obj, "genre")
     }
 
     private fun toJson(): JSONObject {
@@ -214,15 +214,39 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         return this.labels!!
     }
 
-    fun addLabel(type: Int, name: String) = addLabel(Label(type, name))
+    private fun addLabel(type: Label.Type, name: String) = addLabel(Label(type, name))
 
-    fun addLabel(label: Label) {
+    private fun addLabel(label: Label) {
         check(decorated)
         labels!!.add(label)
         labelsChanged = true
     }
 
-    private fun setOrReplaceLabel(type: Int, tag: Label?) {
+    private fun addLabels(labels: List<Label>) {
+        check(decorated)
+        this.labels!!.addAll(labels)
+        labelsChanged = true
+    }
+
+    private fun clearLabels(type: Label.Type) {
+        check(decorated)
+        labels = labels?.filter {
+            labelsChanged = labelsChanged || (it.type == type)
+            it.type != type
+        }?.toMutableList()
+    }
+
+    fun getLabels(type: Label.Type): List<Label> {
+        check(decorated)
+        return labels!!.filter { it.type == type }
+    }
+
+    fun firstLabel(type: Label.Type): Label? {
+        check(decorated)
+        return labels!!.firstOrNull { it.type == type }
+    }
+
+    private fun setOrReplaceLabel(type: Label.Type, tag: Label?) {
         check(decorated)
         val index = labels!!.indexOfFirst { it.type == type }
         if (index >= 0) {
@@ -235,39 +259,42 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         }
     }
 
+    private fun setOrReplaceLabels(type: Label.Type, labels: List<Label>?) {
+        clearLabels(type)
+        if (labels != null) {
+            addLabels(labels)
+        }
+    }
+
     var publisher: String
         get() {
             check(decorated)
-            return labels!!.firstOrNull { it.type == Label.Publisher }?.name ?: ""
+            return labels!!.firstOrNull { it.type == Label.Type.Publisher }?.name ?: ""
         }
         set(value) {
-            setOrReplaceLabel(Label.Publisher, Label(Label.Publisher,value))
+            setOrReplaceLabel(Label.Type.Publisher, Label(Label.Type.Publisher,value))
         }
 
     var physicalLocation: String
         get() {
             check(decorated)
-            return labels!!.firstOrNull { it.type == Label.PhysicalLocation }?.name ?: ""
+            return labels!!.firstOrNull { it.type == Label.Type.Location }?.name ?: ""
         }
         set(value) {
-            setOrReplaceLabel(Label.PhysicalLocation, Label(Label.PhysicalLocation, value))
+            setOrReplaceLabel(Label.Type.Location, Label(Label.Type.Location, value))
         }
 
-    fun getLabels(type: Int): List<Label> {
-        check(decorated)
-        return labels!!.filter { it.type == type }
-    }
-
-    fun firstLabel(type: Int): Label? {
-        check(decorated)
-        return labels!!.firstOrNull { it.type == type }
-    }
-
     var genre: String = ""
-        get() = getLabels(Label.Genres).joinToString { it -> it.name }
+        get() = getLabels(Label.Type.Genres).joinToString { it -> it.name }
 
     var author: String = ""
-        get() = getLabels(Label.Authors).joinToString { it -> it.name }
+        get() = getLabels(Label.Type.Authors).joinToString { it -> it.name }
+
+    var authors: List<Label>
+        get() = getLabels(Label.Type.Authors)
+        set(value) {
+            setOrReplaceLabels(Label.Type.Authors, value)
+        }
 
 
 }

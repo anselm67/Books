@@ -1,5 +1,6 @@
 package com.anselm.books.ui.widgets
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.AsyncListDiffer
@@ -10,8 +11,9 @@ import com.anselm.books.database.Label
 import com.anselm.books.databinding.RecyclerviewLabelItemBinding
 
 class LabelArrayAdapter(
-    private val dataSource: List<Label>,
-    private val onClick: ((Label) -> Unit)?
+    var dataSource: MutableList<Label>,
+    private val onClick: ((Label) -> Unit)?,
+    private val onChange: ((List<Label>) -> Unit)? = null
 ): RecyclerView.Adapter<LabelArrayAdapter.ViewHolder>() {
 
     class ViewHolder(
@@ -58,22 +60,21 @@ class LabelArrayAdapter(
     )
 
     fun moveItem(from: Int, to: Int) {
-        val list = differ.currentList.toMutableList()
-        val fromLocation = list[from]
-        list.removeAt(from)
-        if (to < from) {
-            list.add(to + 1 , fromLocation)
-        } else {
-            list.add(to - 1, fromLocation)
-        }
-        differ.submitList(list)
+        val fromLocation = dataSource[from]
+        dataSource[from] = dataSource[to]
+        dataSource[to] = fromLocation
+        differ.submitList(dataSource)
+        onChange?.invoke(dataSource)
     }
+
 }
 
 class DnDList(
     val list: RecyclerView,
-    labels: List<Label>,
-    onClick: ((Label) -> Unit)? = null) {
+    labels: MutableList<Label>,
+    onClick: ((Label) -> Unit)? = null,
+    onChange: ((List<Label>) -> Unit)? = null,
+) {
 
     private val itemTouchHelper by lazy {
         val simpleItemTouchCallback = object : ItemTouchHelper.SimpleCallback(
@@ -113,10 +114,32 @@ class DnDList(
     }
 
     init {
-        val adapter = LabelArrayAdapter(labels, onClick)
+        val adapter = LabelArrayAdapter(labels, onClick, onChange)
         itemTouchHelper.attachToRecyclerView(list)
         adapter.differ.submitList(labels)
         list.adapter = adapter
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    fun setLabels(labels: MutableList<Label>) {
+        val adapter = (list.adapter as LabelArrayAdapter)
+        adapter.dataSource = labels
+        adapter.notifyDataSetChanged()
+    }
+
+    fun getLabels(): List<Label> {
+        return (list.adapter as LabelArrayAdapter).dataSource
+    }
+
+    fun addLabel(label: Label): Boolean {
+        val labels = (list.adapter as LabelArrayAdapter).dataSource
+        return if ( ! labels.contains(label) ) {
+            val adapter = (list.adapter as LabelArrayAdapter)
+            labels.add(label)
+            adapter.notifyItemInserted(labels.size - 1)
+            true
+        } else {
+            false
+        }
+    }
 }

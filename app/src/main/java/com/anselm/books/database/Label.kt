@@ -10,19 +10,19 @@ import androidx.room.*
 )
 data class Label(
     @PrimaryKey(autoGenerate=true) val id: Long = 0,
-    var type: Int,
+    var type: Type,
     var name: String
 ) {
-    constructor(type: Int, name: String) : this(0, type, name) {
+    constructor(type: Type, name: String) : this(0, type, name) {
         this.type = type
         this.name = name
     }
 
-    companion object {
-        const val Authors = 1
-        const val Genres = 2
-        const val PhysicalLocation = 3
-        const val Publisher = 4
+    enum class Type(val type: Int) {
+        Authors(1),
+        Genres(2),
+        Location(3),
+        Publisher(4)
     }
 }
 

@@ -69,7 +69,7 @@ class BookRepository(private val dao: BookDao) {
         dao.deleteAll()
     }
 
-    suspend fun getHisto(type: Int, labelQuery: String?): List<Histo> {
+    suspend fun getHisto(type: Label.Type, labelQuery: String?): List<Histo> {
         val histos = if ( query.query.isNullOrEmpty() ) {
             if (labelQuery.isNullOrEmpty()) {
                 dao.getFilteredHisto(
@@ -142,10 +142,10 @@ class BookRepository(private val dao: BookDao) {
      * Handling of cached labels.
      * All labels are to be gotten through these methods which caches them as needed.
      */
-    private val labelsByValue = HashMap<Pair<Int,String>, Label>()
+    private val labelsByValue = HashMap<Pair<Label.Type,String>, Label>()
     private val labelsById = HashMap<Long, Label>()
 
-    suspend fun label(type: Int, name: String): Label {
+    suspend fun label(type: Label.Type, name: String): Label {
         val key = Pair(type, name)
         var label = labelsByValue[key]
         if (label == null) {

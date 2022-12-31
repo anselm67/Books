@@ -177,12 +177,15 @@ class DetailsFragment : Fragment() {
         val binding = DetailsMultiLabelLayoutBinding.inflate(inflater, container, true)
         binding.labels.layoutManager = LinearLayoutManager(binding.labels.context)
         binding.labelView.text = label
-        DnDList(binding.labels, labels) {
-            // FIXME - SearchFragment should take a list of Pair<Int, Long>
-            val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                Query(filters = mutableListOf(Query.Filter(it))))
-            navController.navigate(action)
-        }
+        // FIXME DnDList should make the diff between editable or not.
+        DnDList(binding.labels,
+            labels.toMutableList(),
+            onClick = {
+                val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
+                    Query(filters = mutableListOf(Query.Filter(it))))
+                navController.navigate(action)
+            }
+        )
         detailsView?.addView(container)
     }
 
@@ -205,10 +208,10 @@ class DetailsFragment : Fragment() {
         }
         // Authors and Genres.
         bindMultiLabelField(inflater, detailsView, getString(R.string.authorLabel),
-            book.getLabels(Label.Authors)
+            book.getLabels(Label.Type.Authors)
         )
         bindMultiLabelField(inflater, detailsView, getString(R.string.genreLabel),
-            book.getLabels(Label.Genres)
+            book.getLabels(Label.Type.Genres)
         )
         // Details.
         bindDetails(inflater, detailsView, book)
@@ -216,14 +219,14 @@ class DetailsFragment : Fragment() {
         val fields = mutableListOf<Triple<Int, String, ((String?) -> Unit)?>>(
             Triple(R.string.publisherLabel, BookFields.PUBLISHER) {
                 val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                    Query(filters = Query.asFilter(book.firstLabel(Label.Publisher)))
+                    Query(filters = Query.asFilter(book.firstLabel(Label.Type.Publisher)))
                 )
                 navController.navigate(action)
             },
             Triple(R.string.yearPublishedLabel, BookFields.YEAR_PUBLISHED, null),
             Triple(R.string.physicalLocationLabel, BookFields.PHYSICAL_LOCATION) {
                 val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
-                    Query(filters = Query.asFilter(book.firstLabel(Label.PhysicalLocation)))
+                    Query(filters = Query.asFilter(book.firstLabel(Label.Type.Location)))
                 )
                 navController.navigate(action)
             },

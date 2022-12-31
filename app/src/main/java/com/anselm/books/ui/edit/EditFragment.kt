@@ -21,15 +21,18 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.anselm.books.*
 import com.anselm.books.database.Book
 import com.anselm.books.database.BookFields
 import com.anselm.books.database.Label
 import com.anselm.books.database.Query
 import com.anselm.books.databinding.EditFieldLayoutBinding
+import com.anselm.books.databinding.EditMultiLabelLayoutBinding
 import com.anselm.books.databinding.EditYearLayoutBinding
 import com.anselm.books.databinding.FragmentEditBinding
 import com.anselm.books.ui.home.QueryViewModel
+import com.anselm.books.ui.widgets.DnDList
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
@@ -143,16 +146,19 @@ class EditFragment: Fragment() {
                 book::subtitle.getter, book::subtitle.setter),
             TextEditor(this, inflater, R.string.authorLabel,
                 book::author.getter, book::author.setter),
-            SearchDialogEditor(this, inflater,
-                Label.Publisher,
+            MultiLabelEditor(this, inflater,
+                Label.Type.Authors, R.string.authorLabel,
+            book::authors.getter, book::authors.setter),
+            SingleLabelEditor(this, inflater,
+                Label.Type.Publisher,
                 R.string.publisherLabel,
                 book::publisher.getter, book::publisher.setter),
-            SearchDialogEditor(this, inflater,
-                Label.Genres,
+            SingleLabelEditor(this, inflater,
+                Label.Type.Genres,
                 R.string.genreLabel,
                 book::genre.getter, book::genre.setter),
-            SearchDialogEditor(this, inflater,
-                Label.PhysicalLocation,
+            SingleLabelEditor(this, inflater,
+                Label.Type.Location,
                 R.string.physicalLocationLabel,
                 book::physicalLocation.getter, book::physicalLocation.setter),
             TextEditor(this, inflater, R.string.isbnLabel,
@@ -193,7 +199,7 @@ class EditFragment: Fragment() {
             activity?.lifecycleScope?.launch {
                 app.repository.save(theBook)
             }
-            app.toast("${book?.title} saved.")
+            app.toast("${theBook.title} saved.")
         }
         findNavController().popBackStack()
     }
@@ -241,10 +247,10 @@ class EditFragment: Fragment() {
         } == null
     }
 
-    private fun getSearchDialogEditorByColumnName(type: Int): SearchDialogEditor {
+    private fun getLabelEditor(type: Label.Type): LabelEditor {
         return (editors?.firstOrNull {
-            (it is SearchDialogEditor) && it.type == type
-        } as SearchDialogEditor)
+            (it is LabelEditor) && it.type == type
+        } as LabelEditor)
     }
 
     /**
@@ -265,7 +271,7 @@ class EditFragment: Fragment() {
                 if (result != null) {
                     viewLifecycleOwner.lifecycleScope.launch {
                         val label = BooksApplication.app.repository.label(result.labelId)
-                        getSearchDialogEditorByColumnName(result.type).setEditorValue(label.name)
+                        getLabelEditor(result.type).handleLabel(label)
                     }
                 }
             }
@@ -289,8 +295,6 @@ private abstract class Editor(
     abstract fun setup(container: ViewGroup?): View
     abstract fun isChanged(): Boolean
     abstract fun saveChange()
-
-    abstract fun setEditorValue(value: String)
 }
 
 private class YearEditor(
@@ -314,10 +318,6 @@ private class YearEditor(
             editor.yearPublished10Picker.value = (value / 100) % 10
             editor.yearPublished1Picker.value = value % 10
         }
-    }
-
-    override fun setEditorValue(value: String) {
-        setEditorValue(value.toIntOrNull() ?: 0)
     }
 
     override fun setup(container: ViewGroup?): View {
@@ -376,7 +376,7 @@ private open class TextEditor(
     private var _binding: EditFieldLayoutBinding? = null
     protected val editor get() = _binding!!
 
-    override fun setEditorValue(value: String) {
+    fun setEditorValue(value: String) {
         editor.idEditText.setText(value)
     }
 
@@ -448,14 +448,19 @@ private open class TextEditor(
 
 }
 
-private class SearchDialogEditor(
+interface LabelEditor {
+    val type: Label.Type
+    fun handleLabel(value: Label)
+}
+
+private class SingleLabelEditor (
     override val fragment: EditFragment,
     override val inflater: LayoutInflater,
-    val type: Int,
+    override val type: Label.Type,
     override val labelId: Int,
     override val getter: () -> String,
-    override val setter: (String) -> Unit
-): TextEditor(fragment, inflater, labelId, getter, setter) {
+    override val setter: (String) -> Unit,
+): TextEditor(fragment, inflater, labelId, getter, setter), LabelEditor {
 
     override fun setup(container: ViewGroup?): View {
         val root = super.setup(container)
@@ -464,5 +469,70 @@ private class SearchDialogEditor(
             fragment.findNavController().navigate(action)
         }
         return root
+    }
+
+    override fun handleLabel(value: Label) {
+        setEditorValue(value.name)
+    }
+}
+
+private class MultiLabelEditor(
+    override val fragment: EditFragment,
+    override val inflater: LayoutInflater,
+    override val type: Label.Type,
+    val labelId: Int,
+    val getter: () -> List<Label>,
+    val setter: (List<Label>) -> Unit
+) : Editor (fragment, inflater), LabelEditor {
+    private var _binding: EditMultiLabelLayoutBinding? = null
+    private val editor get() = _binding!!
+    private lateinit var dndlist: DnDList
+
+    override fun setup(container: ViewGroup?): View {
+        _binding = EditMultiLabelLayoutBinding.inflate(inflater, container, false)
+        editor.idEditLabel.text = fragment.getText(labelId)
+        editor.labels.layoutManager = LinearLayoutManager(editor.labels.context)
+        dndlist = DnDList(
+            editor.labels,
+            getter().toMutableList(),
+            onClick = {
+                val action = EditFragmentDirections.actionEditFragmentToSearchDialogFragment(type)
+                fragment.findNavController().navigate(action)
+            },
+            onChange = { newLabels ->
+                if (newLabels != getter()) {
+                    fragment.setChangedBorder(editor.labels)
+                    editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
+                        fragment.requireContext(), R.color.editorValueChanged))
+                } else {
+                    fragment.setRegularBorder(editor.labels)
+                    editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
+                        fragment.requireContext(), R.color.editorValueUnchanged))
+                }
+            }
+        )
+        editor.idUndoEdit.setOnClickListener {
+            fragment.setRegularBorder(editor.labels)
+            editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
+                fragment.requireContext(), R.color.editorValueUnchanged))
+            dndlist.setLabels(getter().toMutableList())
+        }
+        return editor.root
+    }
+
+    override fun isChanged(): Boolean {
+        return dndlist.getLabels() != getter()
+    }
+
+    override fun saveChange() {
+        setter(dndlist.getLabels())
+    }
+
+    override fun handleLabel(value: Label) {
+        if ( dndlist.addLabel(value) ) {
+            fragment.setChangedBorder(editor.labels)
+            editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
+                fragment.requireContext(), R.color.editorValueChanged))
+        }
     }
 }

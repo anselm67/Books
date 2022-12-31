@@ -31,7 +31,7 @@ interface BookDao {
     suspend fun insert(vararg bookLabels: BookLabels)
 
     @Query("SELECT * FROM label_table WHERE type = :type AND name = :name")
-    suspend fun label(type: Int, name: String): Label?
+    suspend fun label(type: Label.Type, name: String): Label?
 
     @Query("SELECT * FROM label_table WHERE id = :id")
     suspend fun label(id: Long): Label
@@ -282,13 +282,13 @@ interface BookDao {
             ") " +
             " GROUP BY labelId ORDER BY count DESC")
     suspend fun getTitleHisto(
-        type: Int,
+        type: Label.Type,
         query: String,
         labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
     ): List<Histo>
 
     suspend fun getTitleHisto(
-        type: Int, query: String, labelIds: List<Long>,
+        type: Label.Type, query: String, labelIds: List<Long>,
     ): List<Histo> {
         when (labelIds.size) {
             0 -> return getTitleHisto(
@@ -336,13 +336,13 @@ interface BookDao {
             ") " +
             " GROUP BY labelId ORDER BY count DESC")
     suspend fun searchTitleHisto(
-        type: Int,
+        type: Label.Type,
         labelQuery: String, query: String,
         labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
     ): List<Histo>
 
     suspend fun searchTitleHisto(
-        type: Int,
+        type: Label.Type,
         labelQuery: String, query: String,
         labelIds: List<Long>,
     ): List<Histo> {
@@ -388,11 +388,11 @@ interface BookDao {
             ") " +
             " GROUP BY labelId ORDER BY count DESC")
     suspend fun getFilteredHisto(
-        type: Int, labelId1: Long, labelId2: Long,labelId3: Long,labelId4: Long
+        type: Label.Type, labelId1: Long, labelId2: Long,labelId3: Long,labelId4: Long
     ): List<Histo>
 
     suspend fun getFilteredHisto(
-        type: Int, labelIds: List<Long>,
+        type: Label.Type, labelIds: List<Long>,
     ): List<Histo> {
         when (labelIds.size) {
             0 -> return getFilteredHisto(
@@ -437,13 +437,13 @@ interface BookDao {
             ") " +
             " GROUP BY labelId ORDER BY count DESC")
     suspend fun searchFilteredHisto(
-        type: Int,
+        type: Label.Type,
         labelQuery: String,
         labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
     ): List<Histo>
 
     suspend fun searchFilteredHisto(
-        type: Int,
+        type: Label.Type,
         labelQuery: String,
         labelIds: List<Long>,
     ): List<Histo> {

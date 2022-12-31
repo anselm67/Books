@@ -18,7 +18,7 @@ private const val NUMBER_OF_FAKE_ITEMS = 3000
         Label::class, LabelFTS::class,
         BookLabels::class
     ],
-    version = 15,
+    version = 16,
     exportSchema = false)
 abstract class BookDatabase : RoomDatabase() {
 

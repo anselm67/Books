@@ -23,7 +23,9 @@
     <style name="BookDetailsFieldValue">
         <item name="android:textColor">@color/black</item>
         <item name="android:textSize">18sp</item>
-        <item name="android:textIsSelectable">true</item>
+        <!-- TODO
+            <item name="android:textIsSelectable">true</item>
+        -->
     </style>
 
     <style name="BookDetailsRuler">
