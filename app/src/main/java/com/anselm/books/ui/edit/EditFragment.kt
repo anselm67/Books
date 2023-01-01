@@ -8,7 +8,9 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.*
+import android.view.View.GONE
 import android.view.View.OnLayoutChangeListener
+import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Filter
@@ -97,6 +99,7 @@ class EditFragment: Fragment() {
 
     fun setChanged(editor: View, undoButton: ImageButton) {
         editor.background = changedBorder
+        undoButton.visibility = VISIBLE
         undoButton.setColorFilter(
             ContextCompat.getColor(requireContext(), R.color.editorValueChanged)
         )
@@ -104,6 +107,7 @@ class EditFragment: Fragment() {
 
     fun setInvalid(editor: View, undoButton: ImageButton) {
         editor.background = invalidBorder
+        undoButton.visibility = VISIBLE
         undoButton.setColorFilter(
             ContextCompat.getColor(requireContext(), R.color.editorValueInvalid)
         )
@@ -111,6 +115,7 @@ class EditFragment: Fragment() {
 
     fun setUnchanged(editor: View, undoButton: ImageButton) {
         editor.background = validBorder
+        undoButton.visibility = GONE
         undoButton.setColorFilter(
             ContextCompat.getColor(requireContext(), R.color.editorValueUnchanged)
         )

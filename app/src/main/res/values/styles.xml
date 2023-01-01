@@ -71,12 +71,15 @@
     </style>
 
     <style name="EditUndoButton">
-        <item name="android:layout_width">40dp</item>
-        <item name="android:padding">5dp</item>
-        <item name="android:layout_marginStart">10dp</item>
+        <item name="android:layout_width">30sp</item>
+        <item name="android:padding">5sp</item>
+        <item name="android:layout_marginStart">5dp</item>
         <item name="android:background">@color/white</item>
         <item name="android:scaleType">fitXY</item>
-        <item name="android:src">@drawable/ic_baseline_cancel_48</item>
+        <item name="android:src">@drawable/ic_arrow_undo_icon</item>
+        <item name="android:layout_marginTop">-15sp</item>
+        <item name="android:layout_marginEnd">8sp</item>
+        <item name="android:visibility">invisible</item>
     </style>
 
 </resources>
