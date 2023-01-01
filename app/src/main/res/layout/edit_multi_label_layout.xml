@@ -7,6 +7,15 @@
     android:layout_height="wrap_content"
     android:clipToPadding="false">
 
+    <AutoCompleteTextView
+        android:id="@+id/autoComplete"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/labels" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/labels"
         style="@style/EditTextFieldStyle"
@@ -15,10 +24,9 @@
 
         app:layout_constraintEnd_toStartOf="@id/idUndoEdit"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/autoComplete"
 
-        android:background="@drawable/textview_border"
-    />
+        android:background="@drawable/textview_border" />
 
     <ImageButton
         android:id="@+id/idUndoEdit"

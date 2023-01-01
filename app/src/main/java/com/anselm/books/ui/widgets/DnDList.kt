@@ -142,4 +142,14 @@ class DnDList(
             false
         }
     }
+
+    fun setLabel(label: Label): Boolean {
+        val labels = (list.adapter as LabelArrayAdapter).dataSource
+        return if (labels == listOf(label)) {
+            false
+        } else {
+            setLabels(mutableListOf(label))
+            true
+        }
+    }
 }

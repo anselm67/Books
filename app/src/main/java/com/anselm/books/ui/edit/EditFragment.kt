@@ -1,6 +1,7 @@
 package com.anselm.books.ui.edit
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.Editable
@@ -8,17 +9,18 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.*
 import android.view.View.OnLayoutChangeListener
+import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.Filter
 import android.widget.ImageButton
 import android.widget.NumberPicker.OnValueChangeListener
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -28,14 +30,16 @@ import com.anselm.books.database.Book
 import com.anselm.books.database.BookFields
 import com.anselm.books.database.Label
 import com.anselm.books.database.Query
+import com.anselm.books.databinding.AutocompleteLabelLayoutBinding
 import com.anselm.books.databinding.EditFieldLayoutBinding
 import com.anselm.books.databinding.EditMultiLabelLayoutBinding
 import com.anselm.books.databinding.EditYearLayoutBinding
 import com.anselm.books.databinding.FragmentEditBinding
-import com.anselm.books.ui.home.QueryViewModel
 import com.anselm.books.ui.widgets.DnDList
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+
 
 class EditFragment: Fragment() {
     private var _binding: FragmentEditBinding? = null
@@ -45,8 +49,6 @@ class EditFragment: Fragment() {
     private var validBorder: Drawable? = null
     private var invalidBorder: Drawable? = null
     private var changedBorder: Drawable? = null
-
-    private val viewModel: QueryViewModel by viewModels()
 
     private var editors: List<Editor>? = null
 
@@ -81,12 +83,6 @@ class EditFragment: Fragment() {
         } else {
             Log.d(TAG, "No books to edit.")
         }
-
-        // Clears the current search query so the search dialog gives the
-        // full list of values for location, genre and authors.
-        val query = Query()
-        viewModel.query.value = query
-        repository.query = query
 
         // Caches the borders corresponding to the various states of individual field editors.
         validBorder = getBorderDrawable(R.drawable.textview_border)
@@ -140,23 +136,18 @@ class EditFragment: Fragment() {
                 book::title.getter, book::title.setter),
             TextEditor(this, inflater, R.string.subtitleLabel,
                 book::subtitle.getter, book::subtitle.setter),
-            TextEditor(this, inflater, R.string.authorLabel,
-                book::author.getter, book::author.setter),
-            MultiLabelEditor(this, inflater,
-                Label.Type.Authors, R.string.authorLabel,
-            book::authors.getter, book::authors.setter),
-            SingleLabelEditor(this, inflater,
-                Label.Type.Publisher,
-                R.string.publisherLabel,
-                book::publisher.getter, book::publisher.setter),
-            SingleLabelEditor(this, inflater,
-                Label.Type.Genres,
-                R.string.genreLabel,
-                book::genre.getter, book::genre.setter),
-            SingleLabelEditor(this, inflater,
-                Label.Type.Location,
-                R.string.physicalLocationLabel,
-                book::physicalLocation.getter, book::physicalLocation.setter),
+            LabelEditor(this, inflater,
+                Label.Type.Authors, R.string.authorLabel, singleValue = false,
+                book::authors.getter, book::authors.setter),
+            LabelEditor(this, inflater,
+                Label.Type.Publisher, R.string.publisherLabel, singleValue = true,
+                book::publishers.getter, book::publishers.setter),
+            LabelEditor(this, inflater,
+                Label.Type.Genres, R.string.genreLabel, singleValue = false,
+                book::genres.getter, book::genres.setter),
+            LabelEditor(this, inflater,
+                Label.Type.Location, R.string.physicalLocationLabel, singleValue = true,
+                book::locations.getter, book::locations.setter),
             TextEditor(this, inflater, R.string.isbnLabel,
                 book::isbn.getter, book::isbn.setter) {
                 isValidEAN13(it)
@@ -242,47 +233,6 @@ class EditFragment: Fragment() {
             ! it.isDigit()
         } == null
     }
-
-    private fun getLabelEditor(type: Label.Type): LabelEditor {
-        return (editors?.firstOrNull {
-            (it is LabelEditor) && it.type == type
-        } as LabelEditor)
-    }
-
-    /**
-     * Collects and sets up the return value from our filter dialog.
-     * This is largely inspired by this link:
-     * https://developer.android.com/guide/navigation/navigation-programmatic
-     */
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val navController = findNavController()
-        val navBackStackEntry = navController.getBackStackEntry(R.id.nav_edit)
-
-        // Create our observer and add it to the NavBackStackEntry's lifecycle
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME
-                && navBackStackEntry.savedStateHandle.contains("filter")) {
-                val result = navBackStackEntry.savedStateHandle.get<Query.Filter>("filter")
-                if (result != null) {
-                    viewLifecycleOwner.lifecycleScope.launch {
-                        val label = BooksApplication.app.repository.label(result.labelId)
-                        getLabelEditor(result.type).handleLabel(label)
-                    }
-                }
-            }
-        }
-        navBackStackEntry.lifecycle.addObserver(observer)
-
-        // As addObserver() does not automatically remove the observer, we
-        // call removeObserver() manually when the view lifecycle is destroyed
-        viewLifecycleOwner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_DESTROY) {
-                navBackStackEntry.lifecycle.removeObserver(observer)
-            }
-        })
-    }
-
 }
 
 private abstract class Editor(
@@ -366,10 +316,6 @@ private open class TextEditor(
     private var _binding: EditFieldLayoutBinding? = null
     protected val editor get() = _binding!!
 
-    fun setEditorValue(value: String) {
-        editor.idEditText.setText(value)
-    }
-
     override fun setup(container: ViewGroup?): View {
         _binding = EditFieldLayoutBinding.inflate(inflater, container, false)
         editor.idEditLabel.text = fragment.getText(labelId)
@@ -434,42 +380,74 @@ private open class TextEditor(
 
 }
 
-interface LabelEditor {
-    val type: Label.Type
-    fun handleLabel(value: Label)
-}
+private class LabelArrayAdapter(
+    val context: Activity,
+    val type: Label.Type,
+    val labels: List<Label>,
+): ArrayAdapter<Label>(context, 0, labels) {
+    lateinit var binding: AutocompleteLabelLayoutBinding
 
-private class SingleLabelEditor (
-    override val fragment: EditFragment,
-    override val inflater: LayoutInflater,
-    override val type: Label.Type,
-    override val labelId: Int,
-    override val getter: () -> String,
-    override val setter: (String) -> Unit,
-): TextEditor(fragment, inflater, labelId, getter, setter), LabelEditor {
-
-    override fun setup(container: ViewGroup?): View {
-        val root = super.setup(container)
-        editor.idEditLabel.setOnClickListener {
-            val action = EditFragmentDirections.actionEditFragmentToSearchDialogFragment(type)
-            fragment.findNavController().navigate(action)
+    override fun getView(position: Int, converterView: View?, parent: ViewGroup): View {
+        var view = converterView
+        if (view == null) {
+            binding = AutocompleteLabelLayoutBinding.inflate(
+                LayoutInflater.from(context), parent, false
+            )
+            view = binding.root
         }
-        return root
+        val label = getItem(position)
+        if (label != null) {
+            view.findViewById<TextView>(R.id.autoCompleteText).text = label.name
+        }
+        return view
     }
 
-    override fun handleLabel(value: Label) {
-        setEditorValue(value.name)
+    inner class LabelFilter: Filter() {
+
+        override fun performFiltering(constraint: CharSequence?): FilterResults {
+            val repository = BooksApplication.app.repository
+            val labelQuery = if (constraint?.isNotEmpty() == true) "$constraint*" else ""
+            val results = FilterResults()
+            runBlocking {
+                val histos = BooksApplication.app.repository.getHisto(
+                    type,
+                    labelQuery,
+                    Query()
+                )
+                results.count = histos.size
+                results.values = histos.map { repository.label(it.labelId) }
+                Log.d(TAG, "Returning ${histos.size} results.")
+            }
+            return results
+        }
+
+        override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+            clear()
+            if (results != null ) {
+                addAll(results.values as List<Label>)
+            }
+            notifyDataSetChanged()
+        }
+
+        override fun convertResultToString(resultValue: Any?): CharSequence {
+            return (resultValue as Label).name
+        }
+    }
+
+    override fun getFilter(): Filter {
+        return LabelFilter()
     }
 }
 
-private class MultiLabelEditor(
+private class LabelEditor(
     override val fragment: EditFragment,
     override val inflater: LayoutInflater,
-    override val type: Label.Type,
+    val type: Label.Type,
     val labelId: Int,
+    val singleValue: Boolean,
     val getter: () -> List<Label>,
     val setter: (List<Label>) -> Unit
-) : Editor (fragment, inflater), LabelEditor {
+) : Editor (fragment, inflater) {
     private var _binding: EditMultiLabelLayoutBinding? = null
     private val editor get() = _binding!!
     private lateinit var dndlist: DnDList
@@ -478,13 +456,12 @@ private class MultiLabelEditor(
         _binding = EditMultiLabelLayoutBinding.inflate(inflater, container, false)
         editor.idEditLabel.text = fragment.getText(labelId)
         editor.labels.layoutManager = LinearLayoutManager(editor.labels.context)
+
+        val repository = BooksApplication.app.repository
+        // Sets up te drag and drop list view for displaying the existing labels.
         dndlist = DnDList(
             editor.labels,
             getter().toMutableList(),
-            onClick = {
-                val action = EditFragmentDirections.actionEditFragmentToSearchDialogFragment(type)
-                fragment.findNavController().navigate(action)
-            },
             onChange = { newLabels ->
                 if (newLabels != getter()) {
                     fragment.setChanged(editor.labels, editor.idUndoEdit)
@@ -493,6 +470,38 @@ private class MultiLabelEditor(
                 }
             }
         )
+
+        // Sets up the auto-complete for entering new labels.
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            val labels = repository.getHisto(type).map {
+                repository.label(it.labelId)
+            }
+            val adapter = LabelArrayAdapter(
+                fragment.requireActivity(),
+                type,
+                labels,
+            )
+            editor.autoComplete.threshold = 1
+            editor.autoComplete.setAdapter(adapter)
+            editor.autoComplete.setOnItemClickListener { parent, _, position, _ ->
+                addLabel(parent.getItemAtPosition(position) as Label)
+            }
+        }
+        editor.autoComplete.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                val input = s.toString()
+                if (input.lastOrNull() != '\n') return
+                // Process this by appending the corresponding label to the list.
+                runBlocking {
+                    addLabel(repository.label(type, input.trim()))
+                }
+            }
+        })
+
+        // Sets up the undo button.
         editor.idUndoEdit.setOnClickListener {
             fragment.setUnchanged(editor.labels, editor.idUndoEdit)
             dndlist.setLabels(getter().toMutableList())
@@ -508,9 +517,11 @@ private class MultiLabelEditor(
         setter(dndlist.getLabels())
     }
 
-    override fun handleLabel(value: Label) {
-        if ( dndlist.addLabel(value) ) {
+    fun addLabel(label: Label) {
+        val changed = if (singleValue) dndlist.setLabel(label) else dndlist.addLabel(label)
+        if ( changed ) {
             fragment.setChanged(editor.labels, editor.idUndoEdit)
         }
+        editor.autoComplete.setText("")
     }
 }

@@ -69,37 +69,44 @@ class BookRepository(private val dao: BookDao) {
         dao.deleteAll()
     }
 
-    suspend fun getHisto(type: Label.Type, labelQuery: String?): List<Histo> {
-        val histos = if ( query.query.isNullOrEmpty() ) {
+    suspend fun getHisto(
+        type: Label.Type,
+        labelQuery: String? = null,
+        theQuery: Query
+    ): List<Histo> {
+        val histos = if ( theQuery.query.isNullOrEmpty() ) {
             if (labelQuery.isNullOrEmpty()) {
                 dao.getFilteredHisto(
-                    type, query.filters.map { it -> it.labelId },
+                    type, theQuery.filters.map { it -> it.labelId },
 
                     )
             } else {
                 dao.searchFilteredHisto(
-                    type, labelQuery, query.filters.map { it -> it.labelId },
+                    type, labelQuery, theQuery.filters.map { it -> it.labelId },
                 )
             }
         } else /* Requests text match. */ {
             if (labelQuery.isNullOrEmpty()) {
                 dao.getTitleHisto(
                     type,
-                    if (query.partial) query.query!! + '*' else query.query!!,
-                    query.filters.map { it -> it.labelId },
+                    if (theQuery.partial) theQuery.query!! + '*' else theQuery.query!!,
+                    theQuery.filters.map { it -> it.labelId },
                 )
             } else {
                 dao.searchTitleHisto(
                     type,
                     labelQuery,
-                    if (query.partial) query.query!! + '*' else query.query!!,
-                    query.filters.map { it -> it.labelId },
+                    if (theQuery.partial) theQuery.query!! + '*' else theQuery.query!!,
+                    theQuery.filters.map { it -> it.labelId },
                 )
             }
         }
         histos.forEach { it.text = label(it.labelId).name }
         return histos
     }
+
+    suspend fun getHisto(type: Label.Type, labelQuery: String? = null) =
+        getHisto(type, labelQuery, query)
 
     /**
      * Loads a book by id.
