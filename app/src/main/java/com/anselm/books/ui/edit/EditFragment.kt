@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.*
 import android.view.View.OnLayoutChangeListener
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.NumberPicker.OnValueChangeListener
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -97,31 +98,26 @@ class EditFragment: Fragment() {
         return root
     }
 
-    fun setInvalidBorder(view: View) {
-        view.background = invalidBorder
+
+    fun setChanged(editor: View, undoButton: ImageButton) {
+        editor.background = changedBorder
+        undoButton.setColorFilter(
+            ContextCompat.getColor(requireContext(), R.color.editorValueChanged)
+        )
     }
 
-    fun setChangedBorder(view: View) {
-        view.background = changedBorder
+    fun setInvalid(editor: View, undoButton: ImageButton) {
+        editor.background = invalidBorder
+        undoButton.setColorFilter(
+            ContextCompat.getColor(requireContext(), R.color.editorValueInvalid)
+        )
     }
 
-    fun setRegularBorder(view: View) {
-        view.background = validBorder
-    }
-
-    /**
-     * Sets the given [editText] border to color code a pending changes.
-     * Returns true if the value has been edited, false otherwise.
-     */
-    fun setBorder(editText: EditText, currentValue: String?): Boolean  {
-        val newValue = editText.text.toString().trim()
-        return if (newValue == currentValue) {
-            setRegularBorder(editText)
-            false
-        } else {
-            setChangedBorder(editText)
-            true
-        }
+    fun setUnchanged(editor: View, undoButton: ImageButton) {
+        editor.background = validBorder
+        undoButton.setColorFilter(
+            ContextCompat.getColor(requireContext(), R.color.editorValueUnchanged)
+        )
     }
 
     private fun bind(inflater: LayoutInflater, book: Book): List<Editor> {
@@ -332,13 +328,9 @@ private class YearEditor(
         val onValueChanged = OnValueChangeListener { _, _, _ ->
             val newValue = getEditorValue()
             if (newValue != getter().toIntOrNull()) {
-                fragment.setChangedBorder(editor.yearPublishedView)
-                editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
-                    fragment.requireContext(), R.color.editorValueChanged))
+                fragment.setChanged(editor.yearPublishedView, editor.idUndoEdit)
             } else {
-                fragment.setRegularBorder(editor.yearPublishedView)
-                editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
-                    fragment.requireContext(), R.color.editorValueUnchanged))
+                fragment.setUnchanged(editor.yearPublishedView, editor.idUndoEdit)
             }
         }
         editor.yearPublished100Picker.setOnValueChangedListener(onValueChanged)
@@ -346,9 +338,7 @@ private class YearEditor(
         editor.yearPublished1Picker.setOnValueChangedListener(onValueChanged)
         editor.idUndoEdit.setOnClickListener {
             setEditorValue(getter().toIntOrNull() ?: 0)
-            fragment.setRegularBorder(editor.yearPublishedView)
-            editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
-                fragment.requireContext(), R.color.editorValueUnchanged))
+            fragment.setUnchanged(editor.yearPublishedView, editor.idUndoEdit)
         }
 
         return editor.root
@@ -392,15 +382,11 @@ private open class TextEditor(
                 override fun afterTextChanged(s: Editable?) {
                     val value = s.toString().trim()
                     if (checker != null && ! checker!!.invoke(value)) {
-                        fragment.setInvalidBorder(it)
-                        editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
-                            fragment.requireContext(), R.color.editorValueInvalid))
-                    } else if (fragment.setBorder(it, getter()) ) {
-                        editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
-                            fragment.requireContext(), R.color.editorValueChanged))
+                        fragment.setInvalid(it, editor.idUndoEdit)
+                    } else if (value != getter() ) {
+                        fragment.setChanged(it, editor.idUndoEdit)
                     } else {
-                        editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
-                            fragment.requireContext(), R.color.editorValueUnchanged))
+                        fragment.setUnchanged(it, editor.idUndoEdit)
                     }
                 }
             })
@@ -501,20 +487,14 @@ private class MultiLabelEditor(
             },
             onChange = { newLabels ->
                 if (newLabels != getter()) {
-                    fragment.setChangedBorder(editor.labels)
-                    editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
-                        fragment.requireContext(), R.color.editorValueChanged))
+                    fragment.setChanged(editor.labels, editor.idUndoEdit)
                 } else {
-                    fragment.setRegularBorder(editor.labels)
-                    editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
-                        fragment.requireContext(), R.color.editorValueUnchanged))
+                    fragment.setUnchanged(editor.labels, editor.idUndoEdit)
                 }
             }
         )
         editor.idUndoEdit.setOnClickListener {
-            fragment.setRegularBorder(editor.labels)
-            editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
-                fragment.requireContext(), R.color.editorValueUnchanged))
+            fragment.setUnchanged(editor.labels, editor.idUndoEdit)
             dndlist.setLabels(getter().toMutableList())
         }
         return editor.root
@@ -530,9 +510,7 @@ private class MultiLabelEditor(
 
     override fun handleLabel(value: Label) {
         if ( dndlist.addLabel(value) ) {
-            fragment.setChangedBorder(editor.labels)
-            editor.idUndoEdit.setColorFilter(ContextCompat.getColor(
-                fragment.requireContext(), R.color.editorValueChanged))
+            fragment.setChanged(editor.labels, editor.idUndoEdit)
         }
     }
 }
