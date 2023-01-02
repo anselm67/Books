@@ -12,6 +12,7 @@ import androidx.preference.PreferenceManager
 import com.anselm.books.database.Book
 import com.anselm.books.database.BookDatabase
 import com.anselm.books.database.BookRepository
+import com.anselm.books.openlibrary.GoogleBooksClient
 import com.anselm.books.openlibrary.OpenLibraryClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +22,6 @@ import java.io.File
 
 class BooksApplication : Application() {
     val applicationScope = CoroutineScope(SupervisorJob())
-    val olClient = OpenLibraryClient()
 
     private val basedir by lazy {
         File(applicationContext?.filesDir, "import")
@@ -98,6 +98,21 @@ class BooksApplication : Application() {
             }
             field = value
         }
+
+    private val olClient = OpenLibraryClient()
+    private val glClient = GoogleBooksClient()
+    fun lookup(
+        isbn: String,
+        onError: (msg: String, e: Exception?) -> Unit,
+        onBook: (Book) -> Unit,
+    ) {
+        when(prefs.getString("lookup_service", "Google")) {
+            "Google" -> glClient.lookup(isbn, onError, onBook)
+            "OpenLibrary" -> olClient.lookup(isbn, onError, onBook)
+        }
+
+
+    }
 
     companion object {
         @SuppressLint("StaticFieldLeak")

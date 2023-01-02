@@ -27,6 +27,14 @@
 
     <PreferenceCategory app:title="Display">
 
+        <DropDownPreference
+            app:key="lookup_service"
+            android:defaultValue="Google"
+            android:entries="@array/serviceNames"
+            android:entryValues="@array/serviceIdentifiers"
+            android:title="Lookup Service"
+            app:useSimpleSummaryProvider="true"/>
+
         <CheckBoxPreference
             app:key="display_book_id"
             app:title="Display last modified date?"

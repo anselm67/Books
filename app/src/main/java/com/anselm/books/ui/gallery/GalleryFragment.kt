@@ -74,7 +74,7 @@ class GalleryFragment : Fragment() {
 
     private fun handleISBN(isbn: String) {
         app.loading(true)
-        app.olClient.lookup(isbn, { msg: String, e: Exception? ->
+        app.lookup(isbn, { msg: String, e: Exception? ->
             app.loading(false)
             Log.e(TAG, "$isbn: ${msg}.", e)
             app.toast("No matches found for $isbn")

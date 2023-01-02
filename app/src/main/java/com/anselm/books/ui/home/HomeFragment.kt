@@ -87,7 +87,7 @@ class HomeFragment : ListFragment() {
 
     private fun handleISBN(isbn: String) {
         app.loading(true, "$TAG.handleISBM")
-        app.olClient.lookup(isbn, { msg: String, e: Exception? ->
+        app.lookup(isbn, { msg: String, e: Exception? ->
             Log.e(TAG, "$isbn: ${msg}.", e)
             app.toast("No matches found for $isbn")
             app.loading(false, "$TAG.handleISBM")

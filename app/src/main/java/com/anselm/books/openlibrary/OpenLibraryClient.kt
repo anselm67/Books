@@ -8,46 +8,13 @@ import com.anselm.books.database.Label
 import kotlinx.coroutines.runBlocking
 import okhttp3.*
 import org.json.JSONObject
-import org.json.JSONTokener
-import java.io.IOException
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoField
 import java.time.temporal.TemporalAccessor
 
-class OpenLibraryClient {
-    private val client = OkHttpClient()
+class OpenLibraryClient: SimpleClient() {
     private val basedir = "https://openlibrary.org"
-
-    private fun runRequest(
-        url: String,
-        onError: (message: String, e: Exception?) -> Unit,
-        onSuccess: (JSONObject) -> Unit
-    ): Call {
-        val req = Request.Builder().url(url).build()
-        val call = client.newCall(req)
-
-        call.enqueue(object: Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                onError("$url: get failed.", e)
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                if ( response.isSuccessful ) {
-                    val tok = JSONTokener(response.body!!.string())
-                    val obj = tok.nextValue()
-                    if (obj !is JSONObject) {
-                        onError("$url: parse failed got a ${obj.javaClass.name}.", null)
-                        return
-                    }
-                    onSuccess(obj)
-                } else {
-                    onError( "$url: HTTP Request failed, status $response", null)
-                }
-            }
-        })
-        return call
-    }
 
     private fun firstOrEmpty(obj: JSONObject, key: String): String {
         val value = obj.optJSONArray(key) ?: return ""
@@ -61,11 +28,11 @@ class OpenLibraryClient {
     )
 
     private fun firstKeyOrNull(obj: JSONObject, key: String): String? {
-        val vals = obj.optJSONArray(key) ?: return null
-        if (vals.length() > 0) {
-            val keyval = vals.get(0)
-            if (keyval is JSONObject) {
-                return keyval.optString("key")
+        val values = obj.optJSONArray(key) ?: return null
+        if (values.length() > 0) {
+            val keyValue = values.get(0)
+            if (keyValue is JSONObject) {
+                return keyValue.optString("key")
             }
         }
         return null
@@ -137,7 +104,7 @@ class OpenLibraryClient {
         book: Book,
         work:JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book?) -> Unit
+        onBook: (Book) -> Unit
     ) {
         val keys = extractAuthorsFromWork(work)
         if (keys != null && keys.isNotEmpty()) {
@@ -189,7 +156,7 @@ class OpenLibraryClient {
         book: Book,
         work:JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book?) -> Unit
+        onBook: (Book) -> Unit
     ) {
         book.summary = getDescription(work)
         book.genre = foldAll(work, "subjects")
@@ -206,7 +173,7 @@ class OpenLibraryClient {
         book: Book,
         obj:JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book?) -> Unit
+        onBook: (Book) -> Unit
     ) {
         val key = firstKeyOrNull(obj, "works")
         if (key == null) {
@@ -228,11 +195,11 @@ class OpenLibraryClient {
         DateTimeFormatter.ofPattern("yyyy"),
     )
 
-    private fun setup(
-        book: Book,
+    private fun convert(
         obj: JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book?) -> Unit) {
+        onBook: (Book) -> Unit) {
+        val book = Book()
         // Copies all the pass through fields.
         book.title = obj.optString("title","")
         book.subtitle = obj.optString("subtitle", "")
@@ -250,14 +217,14 @@ class OpenLibraryClient {
         doWorkAndAuthors(book, obj, onError, onBook)
     }
 
-    fun lookup(
+    override fun lookup(
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book?) -> Unit
+        onBook: (Book) -> Unit
     ) {
         val url = "$basedir/isbn/$isbn.json"
         runRequest(url, onError) {
-            setup(Book(),it, onError, onBook)
+            convert(it, onError, onBook)
         }
     }
 }

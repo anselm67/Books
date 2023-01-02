@@ -1,0 +1,51 @@
+package com.anselm.books.openlibrary
+
+import com.anselm.books.database.Book
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import org.json.JSONObject
+import org.json.JSONTokener
+import java.io.IOException
+
+abstract class SimpleClient {
+    private val client = OkHttpClient()
+
+    fun runRequest(
+        url: String,
+        onError: (message: String, e: Exception?) -> Unit,
+        onSuccess: (JSONObject) -> Unit
+    ): Call {
+        val req = Request.Builder().url(url).build()
+        val call = client.newCall(req)
+
+        call.enqueue(object: Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                onError("$url: get failed.", e)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if ( response.isSuccessful ) {
+                    val tok = JSONTokener(response.body!!.string())
+                    val obj = tok.nextValue()
+                    if (obj !is JSONObject) {
+                        onError("$url: parse failed got a ${obj.javaClass.name}.", null)
+                        return
+                    }
+                    onSuccess(obj)
+                } else {
+                    onError( "$url: HTTP Request failed, status $response", null)
+                }
+            }
+        })
+        return call
+    }
+
+    abstract fun lookup(
+        isbn: String,
+        onError: (msg: String, e: Exception?) -> Unit,
+        onBook: (matches: Book) -> Unit,
+    )
+}
