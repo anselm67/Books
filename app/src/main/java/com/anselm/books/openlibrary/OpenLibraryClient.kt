@@ -1,8 +1,11 @@
 package com.anselm.books.openlibrary
 
 import android.util.Log
+import com.anselm.books.BooksApplication
 import com.anselm.books.database.Book
 import com.anselm.books.TAG
+import com.anselm.books.database.Label
+import kotlinx.coroutines.runBlocking
 import okhttp3.*
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -152,10 +155,19 @@ class OpenLibraryClient {
                     {
                         values[i] = it.optString("name")
                         if (++ done == keys.size) {
-                            book.author = values.joinToString()
+                            book.authors = values.filter { ! it.isNullOrEmpty() }
+                                .map {
+                                    runBlocking {
+                                        BooksApplication.app.repository.label(
+                                            Label.Type.Authors,
+                                            it!!
+                                        )
+                                    }
+                                }
                             onBook(book)
                         }
-                    }))
+                    }
+                ))
             }
         } else {
             onBook(book)

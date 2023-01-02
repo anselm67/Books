@@ -10,15 +10,13 @@ import com.anselm.books.TAG
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-private const val NUMBER_OF_FAKE_ITEMS = 3000
-
 @Database(
     entities = [
         Book::class, BookFTS::class,
         Label::class, LabelFTS::class,
         BookLabels::class
     ],
-    version = 16,
+    version = 17,
     exportSchema = false)
 abstract class BookDatabase : RoomDatabase() {
 
@@ -34,12 +32,7 @@ abstract class BookDatabase : RoomDatabase() {
 
         suspend fun populateDatabase(bookDao: BookDao) {
             bookDao.deleteAll()
-
-            for (i in 1.. NUMBER_OF_FAKE_ITEMS) {
-                val book = Book("title $i", "author $i")
-                bookDao.insert(book)
-            }
-            Log.d(TAG, "Created $NUMBER_OF_FAKE_ITEMS fake books.")
+            Log.d(TAG, "Cleared database through deleteAll.")
         }
     }
     companion object {

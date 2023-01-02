@@ -88,12 +88,6 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         fromJson(obj)
     }
 
-    constructor(title: String, author: String, imgUrl: String = "") : this() {
-        this.title = title
-        this.author = author
-        this.imgUrl = imgUrl
-    }
-
     constructor(o: JSONObject) : this() {
         fromJson(o)
     }
@@ -137,14 +131,11 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         val obj = JSONObject()
         obj.put(BookFields.TITLE, title)
         obj.put(BookFields.SUBTITLE, subtitle)
-        obj.put(BookFields.AUTHOR, author)
-        obj.put(BookFields.PUBLISHER, publisher)
         obj.put(BookFields.UPLOADED_IMAGE_URL, imgUrl)
         obj.put(BookFields.ISBN, isbn)
         obj.put(BookFields.SUMMARY, summary)
         obj.put(BookFields.YEAR_PUBLISHED, yearPublished)
         obj.put(BookFields.NUMBER_OF_PAGES, numberOfPages)
-        obj.put(BookFields.GENRE, genre)
         obj.put(BookFields.LANGUAGE, language)
         obj.put(BookFields.DATE_ADDED, rawDateAdded)
         obj.put(BookFields.IMAGE_FILENAME, imageFilename)
@@ -152,12 +143,8 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         // Handles label fields.
         obj.put(BookFields.AUTHOR, authors.map { it.name })
         obj.put(BookFields.GENRE, genres.map { it.name })
-        if (locations != null) {
-            obj.put(BookFields.PHYSICAL_LOCATION, locations!!.name)
-        }
-        if (publishers != null) {
-            obj.put(BookFields.PUBLISHER, publishers!!.name)
-        }
+        obj.put(BookFields.PHYSICAL_LOCATION, locations?.name ?: "")
+        obj.put(BookFields.PUBLISHER, publishers?.name ?: "")
         return obj
     }
 
@@ -293,7 +280,9 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
             setOrReplaceLabels(Label.Type.Genres, value)
         }
 
-    var author: String = ""
+    // This ensures that the authors get text-indexed by BookFTS.
+    @ColumnInfo(name = "author_text")
+    var authorText: String = ""
         get() = getLabels(Label.Type.Authors).joinToString { it -> it.name }
 
     var authors: List<Label>
@@ -313,6 +302,6 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
 data class BookFTS(
     @ColumnInfo(name = "title")
     val title: String,
-    @ColumnInfo(name = "author")
+    @ColumnInfo(name = "author_text")
     val author: String
 )

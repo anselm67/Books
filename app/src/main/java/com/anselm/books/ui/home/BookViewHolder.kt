@@ -18,7 +18,7 @@ class BookViewHolder(
         val app = BooksApplication.app
         val uri = app.getCoverUri(book)
         binding.titleView.text = book.title
-        binding.authorView.text = book.author
+        binding.authorView.text = book.authors.joinToString { it.name }
         if (uri != null) {
             Glide.with(app.applicationContext)
                 .load(uri)
