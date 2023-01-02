@@ -22,6 +22,7 @@
         android:layout_marginEnd="5dp"
         android:layout_marginStart="5dp"
 
+
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -42,6 +43,8 @@
         android:layout_height="0dp"
         android:contentDescription="@string/cancel"
         app:layout_constraintDimensionRatio="1"
+
+        android:translationY="-10dp"
 
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"

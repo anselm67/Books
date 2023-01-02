@@ -62,5 +62,7 @@
     <string name="sort_by_title">Sort by title.</string>
     <string name="lastModifiedLabel">Last modified</string>
     <string name="bookIdLabel">SQL Identifier</string>
+    <string name="drag_to_re_order">Drag to re-order.</string>
+    <string name="enter_text">Enter text…</string>
 
 </resources>
