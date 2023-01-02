@@ -8,37 +8,32 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.database.Label
-import com.anselm.books.databinding.RecyclerviewLabelItemBinding
+import com.anselm.books.databinding.RecyclerviewEditLabelItemBinding
 
-class LabelArrayAdapter(
+private class LabelArrayAdapter(
     var dataSource: MutableList<Label>,
-    private val onClick: ((Label) -> Unit)?,
     private val onChange: ((List<Label>) -> Unit)? = null
 ): RecyclerView.Adapter<LabelArrayAdapter.ViewHolder>() {
 
-    class ViewHolder(
-        private val binding: RecyclerviewLabelItemBinding,
-        private val onClick: ((Label) -> Unit)?
+    inner class ViewHolder(
+        private val binding: RecyclerviewEditLabelItemBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(label: Label) {
             binding.labelView.text = label.name
-            if (onClick != null) {
-                binding.labelView.setOnClickListener { _ ->
-                    label.let { this.onClick.invoke(it) }
-                }
-
+            binding.idDelete.setOnClickListener { _ ->
+                this@LabelArrayAdapter.delete(this.bindingAdapterPosition)
             }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
         ViewHolder(
-            RecyclerviewLabelItemBinding.inflate(
+            RecyclerviewEditLabelItemBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false
-            ), onClick
+            )
         )
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -67,12 +62,17 @@ class LabelArrayAdapter(
         onChange?.invoke(dataSource)
     }
 
+    fun delete(position: Int) {
+        dataSource.removeAt(position)
+        differ.submitList(dataSource)
+        notifyItemRemoved(position)
+        onChange?.invoke(dataSource)
+    }
 }
 
 class DnDList(
     val list: RecyclerView,
     labels: MutableList<Label>,
-    onClick: ((Label) -> Unit)? = null,
     onChange: ((List<Label>) -> Unit)? = null,
 ) {
 
@@ -114,7 +114,7 @@ class DnDList(
     }
 
     init {
-        val adapter = LabelArrayAdapter(labels, onClick, onChange)
+        val adapter = LabelArrayAdapter(labels, onChange)
         itemTouchHelper.attachToRecyclerView(list)
         adapter.differ.submitList(labels)
         list.adapter = adapter

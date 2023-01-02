@@ -429,6 +429,7 @@ private class LabelArrayAdapter(
         override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
             clear()
             if (results != null ) {
+                @Suppress("UNCHECKED_CAST")
                 addAll(results.values as List<Label>)
             }
             notifyDataSetChanged()
@@ -469,9 +470,9 @@ private class LabelEditor(
             getter().toMutableList(),
             onChange = { newLabels ->
                 if (newLabels != getter()) {
-                    fragment.setChanged(editor.labels, editor.idUndoEdit)
+                    fragment.setChanged(editor.root, editor.idUndoEdit)
                 } else {
-                    fragment.setUnchanged(editor.labels, editor.idUndoEdit)
+                    fragment.setUnchanged(editor.root, editor.idUndoEdit)
                 }
             }
         )
@@ -508,7 +509,7 @@ private class LabelEditor(
 
         // Sets up the undo button.
         editor.idUndoEdit.setOnClickListener {
-            fragment.setUnchanged(editor.labels, editor.idUndoEdit)
+            fragment.setUnchanged(editor.root, editor.idUndoEdit)
             dndlist.setLabels(getter().toMutableList())
         }
         return editor.root
@@ -525,7 +526,7 @@ private class LabelEditor(
     fun addLabel(label: Label) {
         val changed = if (singleValue) dndlist.setLabel(label) else dndlist.addLabel(label)
         if ( changed ) {
-            fragment.setChanged(editor.labels, editor.idUndoEdit)
+            fragment.setChanged(editor.root, editor.idUndoEdit)
         }
         editor.autoComplete.setText("")
     }

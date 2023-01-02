@@ -14,6 +14,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.BooksApplication
 import com.anselm.books.R
 import com.anselm.books.database.Book
@@ -24,7 +25,7 @@ import com.anselm.books.databinding.DetailsDetailsLayoutBinding
 import com.anselm.books.databinding.DetailsFieldLayoutBinding
 import com.anselm.books.databinding.DetailsMultiLabelLayoutBinding
 import com.anselm.books.databinding.FragmentDetailsBinding
-import com.anselm.books.ui.widgets.DnDList
+import com.anselm.books.databinding.RecyclerviewDetailsLabelItemBinding
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
@@ -176,16 +177,15 @@ class DetailsFragment : Fragment() {
         )
         val binding = DetailsMultiLabelLayoutBinding.inflate(inflater, container, true)
         binding.labels.layoutManager = LinearLayoutManager(binding.labels.context)
-        binding.labelView.text = label
-        // FIXME DnDList should make the diff between editable or not.
-        DnDList(binding.labels,
-            labels.toMutableList(),
+        binding.labels.adapter = LabelArrayAdapter(
+            labels,
             onClick = {
                 val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
                     Query(filters = mutableListOf(Query.Filter(it))))
                 navController.navigate(action)
             }
         )
+        binding.labelView.text = label
         detailsView?.addView(container)
     }
 
@@ -251,3 +251,44 @@ class DetailsFragment : Fragment() {
         }
     }
 }
+
+private class LabelArrayAdapter(
+    var dataSource: List<Label>,
+    private val onClick: ((Label) -> Unit)?,
+): RecyclerView.Adapter<LabelArrayAdapter.ViewHolder>() {
+
+    class ViewHolder(
+        private val binding: RecyclerviewDetailsLabelItemBinding,
+        private val onClick: ((Label) -> Unit)?
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(label: Label) {
+            binding.labelView.text = label.name
+            if (onClick != null) {
+                binding.labelView.setOnClickListener { _ ->
+                    label.let { this.onClick.invoke(it) }
+                }
+
+            }
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
+        ViewHolder(
+            RecyclerviewDetailsLabelItemBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            ), onClick
+        )
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.bind(dataSource[position])
+    }
+
+    override fun getItemCount(): Int {
+        return dataSource.size
+    }
+
+}
+
