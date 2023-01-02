@@ -275,10 +275,10 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
             setOrReplaceLabel(Label.Type.Publisher, Label(Label.Type.Publisher,value))
         }
 
-    var publishers: List<Label>
-        get() = getLabels(Label.Type.Publisher)
+    var publishers: Label?
+        get() = firstLabel(Label.Type.Publisher)
         set(value) {
-            setOrReplaceLabels(Label.Type.Publisher, value)
+            setOrReplaceLabel(Label.Type.Publisher, value)
         }
 
     var physicalLocation: String
@@ -290,10 +290,10 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
             setOrReplaceLabel(Label.Type.Location, Label(Label.Type.Location, value))
         }
 
-    var locations: List<Label>
-        get() = getLabels(Label.Type.Location)
+    var locations: Label?
+        get() = firstLabel(Label.Type.Location)
         set(value) {
-            setOrReplaceLabels(Label.Type.Location, value)
+            setOrReplaceLabel(Label.Type.Location, value)
         }
 
     var genre: String = ""
