@@ -18,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.BooksApplication
 import com.anselm.books.R
 import com.anselm.books.database.Book
-import com.anselm.books.database.BookFields
 import com.anselm.books.database.Label
 import com.anselm.books.database.Query
 import com.anselm.books.databinding.DetailsDetailsLayoutBinding
@@ -129,24 +128,24 @@ class DetailsFragment : Fragment() {
             LayoutParams.WRAP_CONTENT
         )
         val binding = DetailsDetailsLayoutBinding.inflate(inflater, container, true)
-        arrayOf<Triple<String, View, TextView>>(
+        arrayOf<Triple<() -> String, View, TextView>>(
             Triple(
-                BookFields.ISBN,
+                book::isbn.getter,
                 binding.isbnContainerView,
                 binding.isbnView
             ),
             Triple(
-                BookFields.LANGUAGE,
+                book::language.getter,
                 binding.languageContainerView,
                 binding.languageView
             ),
             Triple(
-                BookFields.NUMBER_OF_PAGES,
+                book::numberOfPages.getter,
                 binding.numberOfPagesContainerView,
                 binding.numberOfPageView
             ),
-        ).forEach { (columnName, containerView, view) ->
-            val value = book.get(columnName)
+        ).forEach { (getter, containerView, view) ->
+            val value = getter()
             if (value == "") {
                 containerView.visibility = View.GONE
                 view.visibility = View.GONE
@@ -216,36 +215,36 @@ class DetailsFragment : Fragment() {
         // Details.
         bindDetails(inflater, detailsView, book)
         // Remaining fields.
-        val fields = mutableListOf<Triple<Int, String, ((String?) -> Unit)?>>(
-            Triple(R.string.publisherLabel, BookFields.PUBLISHER) {
+        val fields = mutableListOf<Triple<Int, () -> String, ((String?) -> Unit)?>>(
+            Triple(R.string.publisherLabel, book::publisher.getter) {
                 val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
                     Query(filters = Query.asFilter(book.firstLabel(Label.Type.Publisher)))
                 )
                 navController.navigate(action)
             },
-            Triple(R.string.yearPublishedLabel, BookFields.YEAR_PUBLISHED, null),
-            Triple(R.string.physicalLocationLabel, BookFields.PHYSICAL_LOCATION) {
+            Triple(R.string.yearPublishedLabel, book::yearPublished.getter, null),
+            Triple(R.string.physicalLocationLabel, book::location.getter) {
                 val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
                     Query(filters = Query.asFilter(book.firstLabel(Label.Type.Location)))
                 )
                 navController.navigate(action)
             },
-            Triple(R.string.summaryLabel, BookFields.SUMMARY, null),
-            Triple(R.string.dateAddedLabel, BookFields.DATE_ADDED, null),
+            Triple(R.string.summaryLabel, book::summary.getter, null),
+            Triple(R.string.dateAddedLabel, book::dateAdded.getter, null),
         )
         if (app.prefs.getBoolean("display_last_modified", false)) {
-            fields.add(Triple(R.string.lastModifiedLabel, BookFields.LAST_MODIFIED, null))
+            fields.add(Triple(R.string.lastModifiedLabel, book::lastModified.getter, null))
         }
         if (app.prefs.getBoolean("display_book_id", false)) {
-            fields.add(Triple(R.string.bookIdLabel, BookFields.BOOK_ID, null))
+            fields.add(Triple(R.string.bookIdLabel, book::sqlId.getter, null))
         }
 
-        fields.forEach { (labelId, columnName, onClick) ->
+        fields.forEach { (labelId, getter, onClick) ->
             bindField(
                 inflater,
                 detailsView,
                 app.applicationContext.getString(labelId),
-                book.get(columnName),
+                getter(),
                 onClick
             )
         }

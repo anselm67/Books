@@ -9,7 +9,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 object BookFields {
-    const val BOOK_ID = "book_id" // Virtual field, for DetailsFragment only.
     const val TITLE = "title"
     const val SUBTITLE = "subtitle"
     const val AUTHOR = "author"
@@ -70,14 +69,14 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
     @ColumnInfo(name = "date_added")
     var rawDateAdded = 0L
 
-    private val dateAdded: String
+    val dateAdded: String
         get() = if (rawDateAdded == 0L) ""
                 else DATE_FORMAT.format(Date(rawDateAdded * 1000))
 
     @ColumnInfo(name = "last_modified")
     var rawLastModified = 0L
 
-    private val lastModified: String
+    val lastModified: String
         get() = if (rawLastModified == 0L) ""
         else DATE_FORMAT.format(Date(rawLastModified * 1000))
 
@@ -108,12 +107,17 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         }
     }
 
+    private fun stringToLabel(type: Label.Type, obj: JSONObject, key: String) {
+        val text = obj.optString(key, "")
+        if (text != "") {
+            addLabel(type, text)
+        }
+    }
+
     private fun fromJson(obj: JSONObject) {
         this.title = obj.optString(BookFields.TITLE, "")
         this.subtitle = obj.optString(BookFields.SUBTITLE, "")
-        this.publisher = obj.optString(BookFields.PUBLISHER, "")
         this.imgUrl = obj.optString(BookFields.UPLOADED_IMAGE_URL, "")
-        this.physicalLocation = obj.optString(BookFields.PHYSICAL_LOCATION, "")
         this.isbn = obj.optString(BookFields.ISBN, "")
         this.summary = obj.optString(BookFields.SUMMARY, "")
         this.yearPublished = obj.optString(BookFields.YEAR_PUBLISHED, "")
@@ -122,9 +126,11 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         this.rawDateAdded = obj.optLong(BookFields.DATE_ADDED, 0)
         this.imageFilename = obj.optString(BookFields.IMAGE_FILENAME, "")
         this.rawLastModified = obj.optLong(BookFields.LAST_MODIFIED, 0)
-        // Handles multi-value fields:
+        // Handles label fields:
         arrayToLabels(Label.Type.Authors, obj, "author")
         arrayToLabels(Label.Type.Genres, obj, "genre")
+        stringToLabel(Label.Type.Location, obj, "location")
+        stringToLabel(Label.Type.Publisher, obj, "publisher")
     }
 
     private fun toJson(): JSONObject {
@@ -134,7 +140,6 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         obj.put(BookFields.AUTHOR, author)
         obj.put(BookFields.PUBLISHER, publisher)
         obj.put(BookFields.UPLOADED_IMAGE_URL, imgUrl)
-        obj.put(BookFields.PHYSICAL_LOCATION, physicalLocation)
         obj.put(BookFields.ISBN, isbn)
         obj.put(BookFields.SUMMARY, summary)
         obj.put(BookFields.YEAR_PUBLISHED, yearPublished)
@@ -144,29 +149,16 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         obj.put(BookFields.DATE_ADDED, rawDateAdded)
         obj.put(BookFields.IMAGE_FILENAME, imageFilename)
         obj.put(BookFields.LAST_MODIFIED, rawLastModified)
-        return obj
-    }
-
-    fun get(key: String): String {
-        return when(key) {
-            BookFields.BOOK_ID -> id.toString()
-            BookFields.TITLE -> title
-            BookFields.SUBTITLE -> subtitle
-            BookFields.AUTHOR -> author
-            BookFields.PUBLISHER -> publisher
-            BookFields.UPLOADED_IMAGE_URL -> imgUrl
-            BookFields.PHYSICAL_LOCATION -> physicalLocation
-            BookFields.ISBN -> isbn
-            BookFields.SUMMARY -> summary
-            BookFields.YEAR_PUBLISHED -> yearPublished
-            BookFields.NUMBER_OF_PAGES -> numberOfPages
-            BookFields.GENRE -> genre
-            BookFields.LANGUAGE -> language
-            BookFields.DATE_ADDED -> dateAdded
-            BookFields.IMAGE_FILENAME -> imageFilename
-            BookFields.LAST_MODIFIED -> lastModified
-            else -> "UNKNOWN KEY $key"
+        // Handles label fields.
+        obj.put(BookFields.AUTHOR, authors.map { it.name })
+        obj.put(BookFields.GENRE, genres.map { it.name })
+        if (locations != null) {
+            obj.put(BookFields.PHYSICAL_LOCATION, locations!!.name)
         }
+        if (publishers != null) {
+            obj.put(BookFields.PUBLISHER, publishers!!.name)
+        }
+        return obj
     }
 
     // Parcelable.
@@ -281,19 +273,15 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
             setOrReplaceLabel(Label.Type.Publisher, value)
         }
 
-    var physicalLocation: String
-        get() {
-            check(decorated)
-            return labels!!.firstOrNull { it.type == Label.Type.Location }?.name ?: ""
-        }
-        set(value) {
-            setOrReplaceLabel(Label.Type.Location, Label(Label.Type.Location, value))
-        }
-
     var locations: Label?
         get() = firstLabel(Label.Type.Location)
         set(value) {
             setOrReplaceLabel(Label.Type.Location, value)
+        }
+
+    val location: String
+        get() {
+            return if (locations == null) "" else locations!!.name
         }
 
     var genre: String = ""
@@ -314,7 +302,8 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
             setOrReplaceLabels(Label.Type.Authors, value)
         }
 
-
+    val sqlId: String
+        get() = id.toString()
 }
 
 @Entity(tableName = "book_fts")
