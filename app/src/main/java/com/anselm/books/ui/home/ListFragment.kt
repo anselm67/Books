@@ -59,7 +59,9 @@ open class ListFragment: Fragment() {
         bookViewModel.queryFlow.value = query
         adapter.submitData(lifecycle, PagingData.empty())
         refreshJob = viewLifecycleOwner.lifecycleScope.launch {
-            bookViewModel.bookList.collectLatest { adapter.submitData(it) }
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                bookViewModel.bookList.collectLatest { adapter.submitData(it) }
+            }
         }
     }
 
