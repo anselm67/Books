@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.BooksApplication
 import com.anselm.books.database.Histo
 import com.anselm.books.R
+import com.anselm.books.database.BookDao
 import com.anselm.books.database.Label
 import com.anselm.books.database.Query
 import com.anselm.books.databinding.SearchDialogFragmentBinding
@@ -66,6 +67,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
     private val dataSource: MutableList<Histo> = mutableListOf()
 
     private var type = Label.Type.Location
+    private var query = Query()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,6 +85,9 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
         // Selects the column on which to filter.
         val safeArgs: SearchDialogFragmentArgs by navArgs()
         type = safeArgs.type
+        if ( safeArgs.query != null ) {
+            query = safeArgs.query!!
+        }
 
         // Prepares the recycler view and kicks the values fetch.
         adapter = HistoAdapter(dataSource, onClick = { h: Histo -> selectHisto(h)  })
@@ -125,7 +130,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
     private fun loadValues(labelQuery: String? = null) {
         val repository = BooksApplication.app.repository
         viewLifecycleOwner.lifecycleScope.launch {
-            updateData(repository.getHisto(type, labelQuery))
+            updateData(repository.getHisto(type, labelQuery, BookDao.SortByCount, query))
         }
     }
 

@@ -5,6 +5,10 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import com.anselm.books.database.BookRepository
+import com.anselm.books.database.Query
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 
 private const val PAGE_SIZE = 100
 private const val MAX_SIZE = 500
@@ -12,15 +16,20 @@ private const val MAX_SIZE = 500
 class BookViewModel(
     private val repository: BookRepository
 ) : ViewModel() {
-    val data = Pager(
-        config = PagingConfig(
-        pageSize = PAGE_SIZE,
-        enablePlaceholders = true,
-        maxSize = MAX_SIZE,
-        jumpThreshold = 2 * PAGE_SIZE)
-    ) {
-        repository.bookPagingSource()
-    }.flow.cachedIn(viewModelScope)
+    var query = Query()
+    val queryFlow = MutableStateFlow(query)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val bookList = queryFlow.flatMapLatest { query ->
+        Pager(
+            config = PagingConfig(
+                pageSize = PAGE_SIZE,
+                enablePlaceholders = true,
+                maxSize = MAX_SIZE,
+                jumpThreshold = 2 * PAGE_SIZE)
+        ) {
+            BookPagingSource(query, repository)
+        }.flow.cachedIn(viewModelScope)
+    }
 
     companion object {
         val Factory = object: ViewModelProvider.Factory {

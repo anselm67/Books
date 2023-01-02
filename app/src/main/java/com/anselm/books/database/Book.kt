@@ -123,7 +123,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         // Handles label fields:
         arrayToLabels(Label.Type.Authors, obj, "author")
         arrayToLabels(Label.Type.Genres, obj, "genre")
-        stringToLabel(Label.Type.Location, obj, "location")
+        stringToLabel(Label.Type.Location, obj, "physical_location")
         stringToLabel(Label.Type.Publisher, obj, "publisher")
     }
 

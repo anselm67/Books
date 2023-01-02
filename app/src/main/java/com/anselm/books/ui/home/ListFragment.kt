@@ -11,12 +11,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anselm.books.*
 import com.anselm.books.database.Book
 import com.anselm.books.database.Query
 import com.anselm.books.databinding.FragmentListBinding
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -24,8 +24,8 @@ open class ListFragment: Fragment() {
     protected val app = BooksApplication.app
     private var _binding: FragmentListBinding? = null
     protected val binding get() = _binding!!
-    private val bookViewModel: BookViewModel by viewModels { BookViewModel.Factory }
-    protected val viewModel: QueryViewModel by viewModels()
+    protected val bookViewModel: BookViewModel by viewModels { BookViewModel.Factory }
+    private lateinit var adapter: BookAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,11 +37,9 @@ open class ListFragment: Fragment() {
 
         bindAdapter()
 
+        changeQuery(bookViewModel.query)
         return binding.root
     }
-
-    private var dataCollector: Job? = null
-    private var stateCollector: Job? = null
 
     /**
      * Updates the query and let the repository knows.
@@ -49,11 +47,13 @@ open class ListFragment: Fragment() {
      * the adapter - e.g. if you're changing the sort order.
      * This is overwritten by SearchFragment.
      */
-    protected open fun changeQuery(query: Query?, rebind: Boolean = false) {
-        viewModel.query.value = query
-        BooksApplication.app.repository.query = query!!
-        if ( rebind ) {
-            bindAdapter()
+    protected open fun changeQuery(query: Query) {
+        Log.d(TAG, "Change query to $query")
+        bookViewModel.query = query
+        bookViewModel.queryFlow.value = query
+        adapter.submitData(lifecycle, PagingData.empty())
+        viewLifecycleOwner.lifecycleScope.launch {
+            bookViewModel.bookList.collectLatest { adapter.submitData(it) }
         }
     }
 
@@ -61,7 +61,7 @@ open class ListFragment: Fragment() {
      * Changes the sort order of the list and takes action to have the UI reflect the change.
      */
     protected fun changeSortOrder(sortOrder: Int) {
-        changeQuery(viewModel.query.value?.copy(sortBy = sortOrder), true)
+        changeQuery(bookViewModel.queryFlow.value.copy(sortBy = sortOrder))
     }
 
     /**
@@ -69,27 +69,11 @@ open class ListFragment: Fragment() {
      * Quite frankly this is meant to work around the weakness of recyclerview to handle
      * changing sort order. It tries to resync the pre/post lists and ends up in hell.
      */
-    private fun bindAdapter(): BookAdapter {
-        // Cancels any jobs we have running with the previous adapter.
-        dataCollector?.cancel()
-        stateCollector?.cancel()
-
+    private fun bindAdapter() {
         // Creates the new adapter and restarts the jobs.
-        val adapter = BookAdapter { book -> adapterOnClick(book) }
-
-        // Collects from the Article Flow in the ViewModel, and submits to the adapter.
-        dataCollector = viewLifecycleOwner.lifecycleScope.launch {
-            // We repeat on the STARTED lifecycle because an Activity may be PAUSED
-            // but still visible on the screen, for example in a multi window app
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                bookViewModel.data.collectLatest {
-                    Log.d(TAG, "Submitting data to adapter $adapter.")
-                    adapter.submitData(it)
-                }
-            }
-        }
+        adapter = BookAdapter { book -> adapterOnClick(book) }
         // Collects from the state and updates the progress bar accordingly.
-        stateCollector = viewLifecycleOwner.lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 adapter.loadStateFlow.collect {
                     app.loading(it.source.prepend is LoadState.Loading
@@ -99,7 +83,6 @@ open class ListFragment: Fragment() {
         }
         binding.list.adapter = adapter
         binding.list.layoutManager = LinearLayoutManager(binding.list.context)
-        return adapter
     }
 
     // FIXME This should somehow move to BooksApplication.
@@ -149,21 +132,5 @@ open class ListFragment: Fragment() {
         findNavController().navigate(action)
     }
 
-    /**
-     * Save/restore the dataSource associated with the fragment.
-     * You can't just change the dataSource of a recycler view when switching fragments, so we
-     * make it sound like we didn't by saving and restoring it.
-     */
-    override fun onPause() {
-        super.onPause()
-        viewModel.pagingSource = BooksApplication.app.repository.pagingSource
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (viewModel.pagingSource != null && viewModel.pagingSource?.invalid != true) {
-            BooksApplication.app.repository.pagingSource = viewModel.pagingSource
-        }
-    }
 }
 

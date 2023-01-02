@@ -39,8 +39,10 @@
         android:label="@string/menu_home"
         tools:layout="@layout/fragment_list">
 
-        <argument android:name="query" app:argType="com.anselm.books.database.Query"
+        <argument android:name="query"
+            app:argType="com.anselm.books.database.Query"
             app:nullable="true" android:defaultValue="@null" />
+
         <action
             android:id="@+id/action_HomeFragment_to_DetailsFragment"
             app:destination="@id/nav_details"
@@ -53,6 +55,7 @@
             android:id="@+id/action_SearchFragment_to_SearchDialogFragment"
             app:destination="@id/search_dialog_fragment" />
 
+
     </fragment>
 
     <dialog
@@ -62,6 +65,8 @@
         <!-- Label.PhysicalLocation == 3 -->
         <argument android:name="type"
             app:argType="com.anselm.books.database.Label$Type" />
+        <argument android:name="query" app:argType="com.anselm.books.database.Query"
+            app:nullable="true" android:defaultValue="@null" />
 
     </dialog>
 

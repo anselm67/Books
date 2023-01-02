@@ -2,31 +2,15 @@ package com.anselm.books.database
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import com.anselm.books.BookPagingSource
 import com.anselm.books.TAG
 
 class BookRepository(private val dao: BookDao) {
-    var pagingSource: BookPagingSource? = null
-    var query = Query()
-        set(value) {
-            field = value
-            pagingSource?.invalidate()
-        }
-
-    fun bookPagingSource() : BookPagingSource {
-        pagingSource = BookPagingSource(this)
-        return pagingSource!!
-    }
-
-    fun invalidate() {
-        pagingSource?.invalidate()
-    }
 
     suspend fun getTotalCount(): Int {
         return dao.getTotalCount()
     }
 
-    suspend fun getPagedList(limit: Int, offset: Int): List<Book> {
+    suspend fun getPagedList(query: Query, limit: Int, offset: Int): List<Book> {
         Log.d(TAG, "getPagedList [$offset, $limit] ${query.query}/${query.partial}," +
                 " filters: '${query.filters}'," +
                 " sort: ${query.sortBy}"
@@ -47,7 +31,7 @@ class BookRepository(private val dao: BookDao) {
 
     val itemCount = MutableLiveData(0)
 
-    suspend fun getPagedListCount(): Int {
+    suspend fun getPagedListCount(query: Query): Int {
         Log.d(TAG, "getPagedListCount ${query.query}/${query.partial}," +
                 " filters: '${query.filters}',"
         )
@@ -73,32 +57,32 @@ class BookRepository(private val dao: BookDao) {
         type: Label.Type,
         labelQuery: String? = null,
         sortBy: Int = BookDao.SortByCount,
-        theQuery: Query = Query.emptyQuery,
+        query: Query = Query.emptyQuery,
     ): List<Histo> {
-        val histos = if ( theQuery.query.isNullOrEmpty() ) {
+        val histos = if ( query.query.isNullOrEmpty() ) {
             if (labelQuery.isNullOrEmpty()) {
                 dao.getFilteredHisto(
-                    type, theQuery.filters.map { it -> it.labelId }, sortBy,
+                    type, query.filters.map { it.labelId }, sortBy,
                 )
             } else {
                 dao.searchFilteredHisto(
-                    type, labelQuery, theQuery.filters.map { it -> it.labelId }, sortBy,
+                    type, labelQuery, query.filters.map { it.labelId }, sortBy,
                 )
             }
         } else /* Requests text match. */ {
             if (labelQuery.isNullOrEmpty()) {
                 dao.getTitleHisto(
                     type,
-                    if (theQuery.partial) theQuery.query!! + '*' else theQuery.query!!,
-                    theQuery.filters.map { it -> it.labelId },
+                    if (query.partial) query.query!! + '*' else query.query!!,
+                    query.filters.map { it.labelId },
                     sortBy,
                 )
             } else {
                 dao.searchTitleHisto(
                     type,
                     labelQuery,
-                    if (theQuery.partial) theQuery.query!! + '*' else theQuery.query!!,
-                    theQuery.filters.map { it -> it.labelId },
+                    if (query.partial) query.query!! + '*' else query.query!!,
+                    query.filters.map { it.labelId },
                     sortBy,
                 )
             }

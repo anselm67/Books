@@ -36,7 +36,7 @@ class HomeFragment : ListFragment() {
         handleMenu(listOf(
             Pair(R.id.idGotoSearchView) {
                 val action = HomeFragmentDirections.actionHomeFragmentToSearchFragment(
-                    Query(sortBy = viewModel.query.value?.sortBy ?: BookDao.SortByTitle)
+                    Query(sortBy = bookViewModel.query.sortBy)
                 )
                 findNavController().navigate(action)
             },
@@ -48,12 +48,6 @@ class HomeFragment : ListFragment() {
             }
         ))
 
-        // Initializes the query for this fragment and updates the repository.
-        if (viewModel.query.value == null) {
-            viewModel.query.value = Query()
-        }
-        app.repository.query = viewModel.query.value!!
-
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 app.title = getString(R.string.book_count, app.repository.getTotalCount())
@@ -63,6 +57,7 @@ class HomeFragment : ListFragment() {
         binding.fab.setOnClickListener {
             scanISBN()
         }
+
         return root
     }
 

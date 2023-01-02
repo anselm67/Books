@@ -47,7 +47,7 @@ class ImportExport(private val repository: BookRepository,
                 Log.e(TAG, "Failed to parse $obj, skipping.", e)
             }
         }
-        repository.invalidate()
+        // FIXME repository.invalidate()
         return count
     }
 

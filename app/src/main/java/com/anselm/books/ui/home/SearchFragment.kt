@@ -11,9 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.MutableLiveData
 
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -23,16 +21,21 @@ import com.anselm.books.database.Label
 import com.anselm.books.database.Query
 import kotlinx.coroutines.launch
 
-class QueryViewModel : ViewModel() {
-    var query: MutableLiveData<Query> = MutableLiveData<Query>()
-    var pagingSource: BookPagingSource? = null
-}
-
 class SearchFragment : ListFragment() {
     // Button's Drawable to use to open a filter dialog.
     private lateinit var filterDrawable: Drawable
     // Button's Drawable to use when a filter value is selected, to clear it out.
     private lateinit var clearFilterDrawable: Drawable
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Caches the drawable for the filter buttons.
+        // FIXME onCreateView calls changeQuery which wants to update the UI filters
+        filterDrawable = ContextCompat.getDrawable(
+            requireContext(), R.drawable.ic_baseline_arrow_drop_down_24)!!
+        clearFilterDrawable = ContextCompat.getDrawable(
+            requireContext(), R.drawable.ic_baseline_clear_24)!!
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,34 +61,23 @@ class SearchFragment : ListFragment() {
             }
         ))
 
-        // Caches the drawable for the filter buttons.
-        filterDrawable = ContextCompat.getDrawable(
-            requireContext(), R.drawable.ic_baseline_arrow_drop_down_24)!!
-        clearFilterDrawable = ContextCompat.getDrawable(
-            requireContext(), R.drawable.ic_baseline_clear_24)!!
-
         // We start with a fresh query, initialized with our arguments.
         if (safeArgs.query != null) {
-            viewModel.query.value = safeArgs.query
-        } else if (viewModel.query.value == null) {
-            viewModel.query.value = Query()
+            bookViewModel.queryFlow.value = safeArgs.query!!
         }
 
         // Let's go.
-        app.repository.query = viewModel.query.value!!
         updateFiltersUi()
 
         app.repository.itemCount.observe(viewLifecycleOwner) {
             binding.idCountView.text = getString(R.string.item_count_format, it)
-            // The count is updated once query processing is finished.
-            // It's a good time to scroll back up.
-            binding.list.scrollToPosition(0)
         }
+
         return root
     }
 
-    override fun changeQuery(query: Query?, rebind: Boolean) {
-        super.changeQuery(query, rebind)
+    override fun changeQuery(query: Query) {
+        super.changeQuery(query)
         updateFiltersUi()
     }
 
@@ -94,14 +86,15 @@ class SearchFragment : ListFragment() {
     }
 
     private fun clearFilter(type: Label.Type) {
-        val query = viewModel.query.value?.copy()
-        query?.clearFilter(type)
-        query?.let { changeQuery(it) }
+        val query = bookViewModel.query.copy()
+        query.clearFilter(type)
+        changeQuery(query)
     }
     
     private fun dialogFilter(type: Label.Type) {
         view?.let { activity?.hideKeyboard(it) }
-        val action = SearchFragmentDirections.actionSearchFragmentToSearchDialogFragment(type)
+        val action = SearchFragmentDirections.actionSearchFragmentToSearchDialogFragment(
+            type, bookViewModel.query)
         findNavController().navigate(action)
     }
 
@@ -116,19 +109,19 @@ class SearchFragment : ListFragment() {
         val filters = arrayOf(
             Filter(Label.Type.Location,
                 binding.idLocationFilter,
-                viewModel.query.value?.firstFilter(Label.Type.Location),
+                bookViewModel.query.firstFilter(Label.Type.Location),
                 R.string.physicalLocationLabel),
             Filter(Label.Type.Genres,
                 binding.idGenreFilter,
-                viewModel.query.value?.firstFilter(Label.Type.Genres),
+                bookViewModel.query.firstFilter(Label.Type.Genres),
                 R.string.genreLabel),
             Filter(Label.Type.Publisher,
                 binding.idPublisherFilter,
-                viewModel.query.value?.firstFilter(Label.Type.Publisher),
+                bookViewModel.query.firstFilter(Label.Type.Publisher),
                 R.string.publisherLabel),
             Filter(Label.Type.Authors,
                 binding.idAuthorFilter,
-                viewModel.query.value?.firstFilter(Label.Type.Authors),
+                bookViewModel.query.firstFilter(Label.Type.Authors),
                 R.string.authorLabel))
         val repository = BooksApplication.app.repository
         viewLifecycleOwner.lifecycleScope.launch {
@@ -174,18 +167,18 @@ class SearchFragment : ListFragment() {
 
         // Customizes the search view's action view.
         (item.actionView as SearchView).let {
-            it.setQuery(viewModel.query.value?.query, false)
+            it.setQuery(bookViewModel.query.query, false)
             it.isIconified = false
             it.clearFocus()
             it.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(text: String?): Boolean {
-                    changeQuery(viewModel.query.value?.copy(
+                    changeQuery(bookViewModel.query.copy(
                         query = text, partial = false))
                     return false
                 }
                 override fun onQueryTextChange(text: String?): Boolean {
                     val emptyText = (text == null || text == "")
-                    changeQuery(viewModel.query.value?.copy(
+                    changeQuery(bookViewModel.query.copy(
                         query = if  (emptyText) null else text,
                         partial = ! emptyText))
                     return true
@@ -216,8 +209,8 @@ class SearchFragment : ListFragment() {
                     navBackStackEntry.savedStateHandle.get<Query.Filter>("filter")
                 if (result != null) {
                     Log.d(TAG, "Setting filter $result")
-                    val query = viewModel.query.value?.copy()
-                    query?.setOrReplace(result)
+                    val query = bookViewModel.query.copy()
+                    query.setOrReplace(result)
                     changeQuery(query)
                }
             }
