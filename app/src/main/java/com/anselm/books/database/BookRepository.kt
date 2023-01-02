@@ -72,17 +72,17 @@ class BookRepository(private val dao: BookDao) {
     suspend fun getHisto(
         type: Label.Type,
         labelQuery: String? = null,
-        theQuery: Query
+        sortBy: Int = BookDao.SortByCount,
+        theQuery: Query = Query.emptyQuery,
     ): List<Histo> {
         val histos = if ( theQuery.query.isNullOrEmpty() ) {
             if (labelQuery.isNullOrEmpty()) {
                 dao.getFilteredHisto(
-                    type, theQuery.filters.map { it -> it.labelId },
-
-                    )
+                    type, theQuery.filters.map { it -> it.labelId }, sortBy,
+                )
             } else {
                 dao.searchFilteredHisto(
-                    type, labelQuery, theQuery.filters.map { it -> it.labelId },
+                    type, labelQuery, theQuery.filters.map { it -> it.labelId }, sortBy,
                 )
             }
         } else /* Requests text match. */ {
@@ -91,6 +91,7 @@ class BookRepository(private val dao: BookDao) {
                     type,
                     if (theQuery.partial) theQuery.query!! + '*' else theQuery.query!!,
                     theQuery.filters.map { it -> it.labelId },
+                    sortBy,
                 )
             } else {
                 dao.searchTitleHisto(
@@ -98,15 +99,13 @@ class BookRepository(private val dao: BookDao) {
                     labelQuery,
                     if (theQuery.partial) theQuery.query!! + '*' else theQuery.query!!,
                     theQuery.filters.map { it -> it.labelId },
+                    sortBy,
                 )
             }
         }
         histos.forEach { it.text = label(it.labelId).name }
         return histos
     }
-
-    suspend fun getHisto(type: Label.Type, labelQuery: String? = null) =
-        getHisto(type, labelQuery, query)
 
     /**
      * Loads a book by id.

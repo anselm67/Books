@@ -258,7 +258,7 @@ interface BookDao {
     }
 
     /**
-     * Two queries for histograms.
+     * Histogram queries: get{Title,Filtered} Histo and search{Title,Filtered}Histo.
      */
     @Query("SELECT book_labels.labelId, COUNT(*) as count FROM book_table " +
             "  JOIN book_fts ON book_table.id = book_fts.rowid," +
@@ -280,31 +280,35 @@ interface BookDao {
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
             ") " +
-            " GROUP BY labelId ORDER BY count DESC")
+            " GROUP BY labelId " +
+            " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
+            "          CASE WHEN :param = 1 THEN label_table.name END ASC")
     suspend fun getTitleHisto(
         type: Label.Type,
         query: String,
-        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
+        param: Int,
     ): List<Histo>
 
     suspend fun getTitleHisto(
         type: Label.Type, query: String, labelIds: List<Long>,
+        param: Int = SortByCount,
     ): List<Histo> {
         when (labelIds.size) {
             0 -> return getTitleHisto(
-                type, query, 0L, 0L, 0L, 0L,
+                type, query, 0L, 0L, 0L, 0L, param,
             )
             1 -> return getTitleHisto(
-                type, query, labelIds[0], 0L, 0L, 0L,
+                type, query, labelIds[0], 0L, 0L, 0L, param,
             )
             2 -> return getTitleHisto(
-                type, query, labelIds[0], labelIds[1], 0L, 0L,
+                type, query, labelIds[0], labelIds[1], 0L, 0L, param,
             )
             3 -> return getTitleHisto(
-                type, query, labelIds[0], labelIds[1], labelIds[2], 0L,
+                type, query, labelIds[0], labelIds[1], labelIds[2], 0L, param,
             )
             4 -> return getTitleHisto(
-                type, query, labelIds[0], labelIds[1], labelIds[2], labelIds[3],
+                type, query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], param,
             )
             else -> assert(value = false)
         }
@@ -334,33 +338,37 @@ interface BookDao {
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
             ") " +
-            " GROUP BY labelId ORDER BY count DESC")
+            " GROUP BY labelId "+
+            " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
+            "          CASE WHEN :param = 1 THEN label_table.name END ASC")
     suspend fun searchTitleHisto(
         type: Label.Type,
         labelQuery: String, query: String,
-        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
+        param: Int,
     ): List<Histo>
 
     suspend fun searchTitleHisto(
         type: Label.Type,
         labelQuery: String, query: String,
         labelIds: List<Long>,
+        param: Int = SortByCount
     ): List<Histo> {
         when (labelIds.size) {
             0 -> return searchTitleHisto(
-                type, labelQuery, query, 0L, 0L, 0L, 0L,
+                type, labelQuery, query, 0L, 0L, 0L, 0L, param,
             )
             1 -> return searchTitleHisto(
-                type, labelQuery, query, labelIds[0], 0L, 0L, 0L,
+                type, labelQuery, query, labelIds[0], 0L, 0L, 0L, param,
             )
             2 -> return searchTitleHisto(
-                type, labelQuery, query, labelIds[0], labelIds[1], 0L, 0L,
+                type, labelQuery, query, labelIds[0], labelIds[1], 0L, 0L, param,
             )
             3 -> return searchTitleHisto(
-                type, labelQuery, query, labelIds[0], labelIds[1], labelIds[2], 0L,
+                type, labelQuery, query, labelIds[0], labelIds[1], labelIds[2], 0L, param,
             )
             4 -> return searchTitleHisto(
-                type, labelQuery, query, labelIds[0], labelIds[1], labelIds[2], labelIds[3],
+                type, labelQuery, query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], param,
             )
             else -> assert(value = false)
         }
@@ -386,29 +394,34 @@ interface BookDao {
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
             ") " +
-            " GROUP BY labelId ORDER BY count DESC")
+            " GROUP BY labelId " +
+            " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
+            "          CASE WHEN :param = 1 THEN label_table.name END ASC")
+
     suspend fun getFilteredHisto(
-        type: Label.Type, labelId1: Long, labelId2: Long,labelId3: Long,labelId4: Long
+        type: Label.Type,
+        labelId1: Long, labelId2: Long,labelId3: Long,labelId4: Long,
+        param: Int,
     ): List<Histo>
 
     suspend fun getFilteredHisto(
-        type: Label.Type, labelIds: List<Long>,
+        type: Label.Type, labelIds: List<Long>, param: Int = SortByCount
     ): List<Histo> {
         when (labelIds.size) {
             0 -> return getFilteredHisto(
-                type, 0L, 0L, 0L, 0L,
+                type, 0L, 0L, 0L, 0L, param,
             )
             1 -> return getFilteredHisto(
-                type, labelIds[0], 0L, 0L, 0L,
+                type, labelIds[0], 0L, 0L, 0L, param,
             )
             2 -> return getFilteredHisto(
-                type, labelIds[0], labelIds[1], 0L, 0L,
+                type, labelIds[0], labelIds[1], 0L, 0L, param,
             )
             3 -> return getFilteredHisto(
-                type, labelIds[0], labelIds[1], labelIds[2], 0L,
+                type, labelIds[0], labelIds[1], labelIds[2], 0L, param,
             )
             4 -> return getFilteredHisto(
-                type, labelIds[0], labelIds[1], labelIds[2], labelIds[3],
+                type, labelIds[0], labelIds[1], labelIds[2], labelIds[3], param,
             )
             else -> assert(value = false)
         }
@@ -435,33 +448,37 @@ interface BookDao {
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
             ") " +
-            " GROUP BY labelId ORDER BY count DESC")
+            " GROUP BY labelId " +
+            " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
+            "          CASE WHEN :param = 1 THEN label_table.name END ASC")
     suspend fun searchFilteredHisto(
         type: Label.Type,
         labelQuery: String,
-        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
+        param: Int,
     ): List<Histo>
 
     suspend fun searchFilteredHisto(
         type: Label.Type,
         labelQuery: String,
         labelIds: List<Long>,
+        param: Int = SortByCount,
     ): List<Histo> {
         when (labelIds.size) {
             0 -> return searchFilteredHisto(
-                type, labelQuery, 0L, 0L, 0L, 0L,
+                type, labelQuery, 0L, 0L, 0L, 0L, param,
             )
             1 -> return searchFilteredHisto(
-                type, labelQuery, labelIds[0], 0L, 0L, 0L,
+                type, labelQuery, labelIds[0], 0L, 0L, 0L, param,
             )
             2 -> return searchFilteredHisto(
-                type, labelQuery, labelIds[0], labelIds[1], 0L, 0L,
+                type, labelQuery, labelIds[0], labelIds[1], 0L, 0L, param,
             )
             3 -> return searchFilteredHisto(
-                type, labelQuery, labelIds[0], labelIds[1], labelIds[2], 0L,
+                type, labelQuery, labelIds[0], labelIds[1], labelIds[2], 0L, param,
             )
             4 -> return searchFilteredHisto(
-                type, labelQuery, labelIds[0], labelIds[1], labelIds[2], labelIds[3],
+                type, labelQuery, labelIds[0], labelIds[1], labelIds[2], labelIds[3], param,
             )
             else -> assert(value = false)
         }
@@ -472,6 +489,7 @@ interface BookDao {
     companion object {
         const val SortByTitle = 1
         const val SortByDateAdded = 2
+        const val SortByCount = 3
     }
 }
 

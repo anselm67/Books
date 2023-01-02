@@ -29,9 +29,9 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anselm.books.*
 import com.anselm.books.database.Book
+import com.anselm.books.database.BookDao
 import com.anselm.books.database.BookFields
 import com.anselm.books.database.Label
-import com.anselm.books.database.Query
 import com.anselm.books.databinding.AutocompleteLabelLayoutBinding
 import com.anselm.books.databinding.EditFieldLayoutBinding
 import com.anselm.books.databinding.EditMultiLabelLayoutBinding
@@ -417,7 +417,7 @@ private class LabelArrayAdapter(
                 val histos = BooksApplication.app.repository.getHisto(
                     type,
                     labelQuery,
-                    Query()
+                    sortBy = BookDao.SortByTitle,
                 )
                 results.count = histos.size
                 results.values = histos.map { repository.label(it.labelId) }
@@ -479,7 +479,7 @@ private class LabelEditor(
 
         // Sets up the auto-complete for entering new labels.
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            val labels = repository.getHisto(type).map {
+            val labels = repository.getHisto(type, sortBy = BookDao.SortByTitle).map {
                 repository.label(it.labelId)
             }
             val adapter = LabelArrayAdapter(

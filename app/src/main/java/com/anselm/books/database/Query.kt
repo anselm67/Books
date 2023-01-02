@@ -39,5 +39,6 @@ data class Query(
         fun asFilter(label: Label?): MutableList<Filter> {
             return if (label == null) arrayListOf() else arrayListOf(Filter(label))
         }
+        val emptyQuery = Query()
     }
 }
