@@ -192,12 +192,15 @@ class EditFragment: Fragment() {
         check(book != null)
         val theBook = book!!
         if (theBook.id <= 0 || saveEditorChanges()) {
+            app.loading(true)
             activity?.lifecycleScope?.launch {
                 app.repository.save(theBook)
+            }?.invokeOnCompletion {
+                app.toast("${theBook.title} saved.")
+                app.loading(false)
+                findNavController().popBackStack()
             }
-            app.toast("${theBook.title} saved.")
         }
-        findNavController().popBackStack()
     }
 
     private fun handleMenu(menuHost: MenuHost) {
