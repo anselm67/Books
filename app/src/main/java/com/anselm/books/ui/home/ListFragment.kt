@@ -17,6 +17,7 @@ import com.anselm.books.*
 import com.anselm.books.database.Book
 import com.anselm.books.database.Query
 import com.anselm.books.databinding.FragmentListBinding
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -47,12 +48,17 @@ open class ListFragment: Fragment() {
      * the adapter - e.g. if you're changing the sort order.
      * This is overwritten by SearchFragment.
      */
+    private var refreshJob: Job? = null
     protected open fun changeQuery(query: Query) {
         Log.d(TAG, "Change query to $query")
+        if (refreshJob != null) {
+            refreshJob?.cancel()
+            refreshJob = null
+        }
         bookViewModel.query = query
         bookViewModel.queryFlow.value = query
         adapter.submitData(lifecycle, PagingData.empty())
-        viewLifecycleOwner.lifecycleScope.launch {
+        refreshJob = viewLifecycleOwner.lifecycleScope.launch {
             bookViewModel.bookList.collectLatest { adapter.submitData(it) }
         }
     }

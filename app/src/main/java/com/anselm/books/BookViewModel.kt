@@ -10,8 +10,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 
-private const val PAGE_SIZE = 100
-private const val MAX_SIZE = 500
+private const val PAGE_SIZE = 50
+private const val MAX_SIZE = 250
 
 class BookViewModel(
     private val repository: BookRepository
