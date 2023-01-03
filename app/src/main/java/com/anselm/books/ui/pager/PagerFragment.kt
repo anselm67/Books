@@ -22,7 +22,7 @@ class PagerFragment: Fragment() {
 
         val adapter = BookPagerAdapter(this, safeArgs.bookIds)
         binding.idPager.adapter = adapter
-        binding.idPager.currentItem = safeArgs.position
+        binding.idPager.setCurrentItem(safeArgs.position, false)
         return binding.root
 
     }
