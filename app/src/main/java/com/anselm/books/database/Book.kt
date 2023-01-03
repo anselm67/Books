@@ -127,7 +127,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         stringToLabel(Label.Type.Publisher, obj, "publisher")
     }
 
-    private fun toJson(): JSONObject {
+    fun toJson(): JSONObject {
         val obj = JSONObject()
         obj.put(BookFields.TITLE, title)
         obj.put(BookFields.SUBTITLE, subtitle)

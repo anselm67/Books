@@ -23,6 +23,10 @@
             app:key="import_preference"
             app:title="@string/import_preference_title" />
 
+        <Preference
+            app:key="export_preference"
+            app:title="@string/export_preference_title" />
+
     </PreferenceCategory>
 
     <PreferenceCategory app:title="Display">

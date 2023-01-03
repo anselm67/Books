@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import com.anselm.books.database.Book
 import com.anselm.books.database.BookRepository
+import com.anselm.books.database.Query
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -13,6 +14,7 @@ import org.json.JSONTokener
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+import java.io.OutputStreamWriter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
@@ -117,5 +119,32 @@ class ImportExport(private val repository: BookRepository,
         }
         Log.d(TAG,"Imported ${ret.first} books and ${ret.second} images from zip file $uri")
         return ret
+    }
+
+    suspend fun exportJson(uri: Uri): Int {
+        // Convert all books to JSON, hold them tight(!)
+        val jsonBooks = JSONArray()
+        var offset = 0
+        val limit = 250
+        do {
+            val books = repository.getPagedList(Query.emptyQuery, limit, offset)
+            books.map {
+                repository.decorate(it)
+                jsonBooks.put(it.toJson())
+            }
+            offset += books.size
+        } while (books.isNotEmpty())
+        val jsonRoot = JSONObject()
+        jsonRoot.put("books", jsonBooks)
+        // Write it all to the given URI.
+        val text = jsonRoot.toString(2)
+        contentResolver.openFileDescriptor(uri, "w").use { fd ->
+            FileOutputStream(fd?.fileDescriptor).use { outputStream ->
+                OutputStreamWriter(outputStream, Charsets.UTF_8).use {
+                    it.write(text)
+                }
+            }
+        }
+        return offset
     }
 }

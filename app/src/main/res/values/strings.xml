@@ -23,7 +23,7 @@
     <string name="glide_clear_cache_title">Clear cache</string>
 
     <string name="import_preferences_header">Import</string>
-    <string name="import_preference_title">Import books</string>
+    <string name="import_preference_title">Import books&#8230;</string>
     <string name="glide_cache_cleared">Glide cache cleared.</string>
 
     <!-- Details fragment strings -->
@@ -50,12 +50,15 @@
     <string name="book_edit">Edit</string>
     <string name="titleLabel">Title</string>
     <string name="subtitleLabel">Sub-title</string>
-    <string name="searchPrompt">Search &#8230;</string>
+    <string name="searchPrompt">Search&#8230;</string>
     <string name="search_enabled_field">Search this attribute.</string>
     <string name="item_count_format">%1$d matches.</string>
     <string name="book_count">%1$d Books</string>
     <string name="select_import_file_prompt">Select a file to import.</string>
     <string name="import_status">Imported %1$d books and %2$d images.</string>
+    <string name="import_failed">Failed to import books (%1s$).</string>
+    <string name="export_status">Exported %1$d books.</string>
+    <string name="export_failed">Failed to export books (%1$s).</string>
     <string name="scan_failed">Scanner failed: %1$s.</string>
     <string name="scanned_invalid_isbn">%1$s is not a valid ISBN.</string>
     <string name="sort_by_date_added">Sort by date added.</string>
@@ -64,5 +67,6 @@
     <string name="bookIdLabel">SQL Identifier</string>
     <string name="drag_to_re_order">Drag to re-order.</string>
     <string name="enter_text">Enter text…</string>
+    <string name="export_preference_title">Export books&#8230;</string>
 
 </resources>

@@ -1,10 +1,8 @@
 package com.anselm.books.ui.gallery
 
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -32,33 +30,6 @@ class GalleryFragment : Fragment() {
         super.onCreateView(inflater, container, savedInstanceState)
         _binding = FragmentGalleryBinding.inflate(inflater, container, false)
         val root: View = binding.root
-
-        val app = BooksApplication.app
-        val importExport = app.importExport
-        val getContent =
-            registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-                val context = app.applicationContext
-                Log.d(TAG, "Opening file $uri")
-                if (uri == null) {
-                    Log.d(TAG, "No file selected, nothing to import")
-                    app.toast(R.string.select_import_file_prompt)
-                } else {
-                    var counts: Pair<Int, Int> = Pair(-1, -1)
-                    app.loading(true)
-                    app.applicationScope.launch {
-                        counts = importExport.importZipFile(uri)
-                    }.invokeOnCompletion {
-                        // We're running on the application lifecycle scope, so this view that we're
-                        // launching from might be done by the time we get here, protect against that.
-                        app.toast(context.getString(R.string.import_status, counts.first, counts.second))
-                        app.loading(false)
-                    }
-                }
-            }
-
-        binding.importButton.setOnClickListener {
-            getContent.launch("*/*")
-        }
 
         binding.lookupISBNButton.setOnClickListener {
             val isbn = binding.idISBNText.text.toString().trim()
