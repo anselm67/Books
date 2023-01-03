@@ -41,7 +41,10 @@ class GalleryFragment : Fragment() {
         return root
     }
 
-
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
 
     private fun handleISBN(isbn: String) {
         app.loading(true)

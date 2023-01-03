@@ -9,7 +9,9 @@ import androidx.navigation.fragment.navArgs
 import com.anselm.books.databinding.FragmentPagerBinding
 
 class PagerFragment: Fragment() {
-    private lateinit var binding: FragmentPagerBinding
+    private var _binding: FragmentPagerBinding? = null
+    private val binding get() = _binding!!
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -17,7 +19,7 @@ class PagerFragment: Fragment() {
         savedInstanceState: Bundle?
     ): View {
         super.onCreateView(inflater, container, savedInstanceState)
-        binding = FragmentPagerBinding.inflate(inflater, container, false)
+        _binding = FragmentPagerBinding.inflate(inflater, container, false)
         val safeArgs: PagerFragmentArgs by navArgs()
 
         val adapter = BookPagerAdapter(this, safeArgs.bookIds)
@@ -25,5 +27,10 @@ class PagerFragment: Fragment() {
         binding.idPager.setCurrentItem(safeArgs.position, false)
         return binding.root
 
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 }

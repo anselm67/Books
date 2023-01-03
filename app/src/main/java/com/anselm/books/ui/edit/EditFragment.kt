@@ -102,6 +102,10 @@ class EditFragment: Fragment() {
         return root
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
 
     fun setChanged(editor: View, undoButton: ImageButton) {
         editor.background = changedBorder
@@ -629,5 +633,4 @@ private class SingleLabelEditor(
             fragment.setChanged(editor.root, editor.idUndoEdit)
         }
     }
-
 }
