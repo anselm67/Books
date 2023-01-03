@@ -9,6 +9,7 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.*
 import android.view.View.GONE
+import android.view.View.OnFocusChangeListener
 import android.view.View.OnLayoutChangeListener
 import android.view.View.VISIBLE
 import android.view.inputmethod.EditorInfo
@@ -45,6 +46,7 @@ import com.anselm.books.ui.widgets.DnDList
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.lang.Integer.max
 
 
 class EditFragment: Fragment() {
@@ -97,6 +99,9 @@ class EditFragment: Fragment() {
 
         handleMenu(requireActivity())
 
+        binding.idScrollView.setOnScrollChangeListener { _, x, y, _, _ ->
+            Log.d(TAG, "scrollY: $y")
+        }
         return root
     }
 
@@ -123,6 +128,11 @@ class EditFragment: Fragment() {
         undoButton.setColorFilter(
             ContextCompat.getColor(requireContext(), R.color.editorValueUnchanged)
         )
+    }
+
+    fun scrollTo(view: View) {
+        // Adds a tad so that the editor's label comes to view.
+        binding.idScrollView.smoothScrollTo(0, max(0, view.top - 25))
     }
 
     private fun bind(inflater: LayoutInflater, book: Book): List<Editor> {
@@ -453,7 +463,7 @@ private class LabelArrayAdapter(
 }
 
 private class LabelAutoComplete(
-    val fragment: Fragment,
+    val fragment: EditFragment,
     val autoComplete: AutoCompleteTextView,
     val type: Label.Type,
     val initialValue: Label? = null,
@@ -492,6 +502,11 @@ private class LabelAutoComplete(
             autoComplete.setOnItemClickListener { parent, _, position, _ ->
                 handleLabel(parent.getItemAtPosition(position) as Label)
             }
+            autoComplete.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
+                    if ( hasFocus ) {
+                        fragment.scrollTo(autoComplete.parent as View)
+                    }
+                }
         }
         autoComplete.setOnEditorActionListener(object: OnEditorActionListener {
             override fun onEditorAction(v: TextView?, actionId: Int, event: KeyEvent?): Boolean {

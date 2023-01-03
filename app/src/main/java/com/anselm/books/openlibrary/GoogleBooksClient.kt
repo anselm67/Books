@@ -81,6 +81,8 @@ class GoogleBooksClient: SimpleClient() {
         for (i in 0 until itemCount) {
             try {
                 onBook(convert(items.getJSONObject(i)))
+                // FIXME For now first match only.
+                break
             } catch (e: Exception) {
                 val msg =  "Error while parsing item $i."
                 Log.e(TAG, msg, e)
