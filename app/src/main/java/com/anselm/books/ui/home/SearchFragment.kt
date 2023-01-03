@@ -27,16 +27,6 @@ class SearchFragment : ListFragment() {
     // Button's Drawable to use when a filter value is selected, to clear it out.
     private lateinit var clearFilterDrawable: Drawable
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        // Caches the drawable for the filter buttons.
-        // FIXME onCreateView calls changeQuery which wants to update the UI filters
-        filterDrawable = ContextCompat.getDrawable(
-            requireContext(), R.drawable.ic_baseline_arrow_drop_down_24)!!
-        clearFilterDrawable = ContextCompat.getDrawable(
-            requireContext(), R.drawable.ic_baseline_clear_24)!!
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -50,6 +40,12 @@ class SearchFragment : ListFragment() {
         binding.idSearchFilters.isVisible = true
         binding.idCountView.isVisible = true
         binding.fab.isVisible = false
+
+        // Caches the drawable for the filter buttons.
+        filterDrawable = ContextCompat.getDrawable(
+            requireContext(), R.drawable.ic_baseline_arrow_drop_down_24)!!
+        clearFilterDrawable = ContextCompat.getDrawable(
+            requireContext(), R.drawable.ic_baseline_clear_24)!!
 
         // Customizes the toolbar menu.
         handleMenu(listOf(
@@ -76,7 +72,7 @@ class SearchFragment : ListFragment() {
         return root
     }
 
-    override fun changeQuery(query: Query) {
+    fun changeQueryAndUpdateUI(query: Query) {
         super.changeQuery(query)
         updateFiltersUi()
     }
@@ -88,7 +84,7 @@ class SearchFragment : ListFragment() {
     private fun clearFilter(type: Label.Type) {
         val query = bookViewModel.query.copy()
         query.clearFilter(type)
-        changeQuery(query)
+        changeQueryAndUpdateUI(query)
     }
     
     private fun dialogFilter(type: Label.Type) {
@@ -172,13 +168,13 @@ class SearchFragment : ListFragment() {
             it.clearFocus()
             it.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(text: String?): Boolean {
-                    changeQuery(bookViewModel.query.copy(
+                    changeQueryAndUpdateUI(bookViewModel.query.copy(
                         query = text, partial = false))
                     return false
                 }
                 override fun onQueryTextChange(text: String?): Boolean {
                     val emptyText = (text == null || text == "")
-                    changeQuery(bookViewModel.query.copy(
+                    changeQueryAndUpdateUI(bookViewModel.query.copy(
                         query = if  (emptyText) null else text,
                         partial = ! emptyText))
                     return true
@@ -211,7 +207,7 @@ class SearchFragment : ListFragment() {
                     Log.d(TAG, "Setting filter $result")
                     val query = bookViewModel.query.copy()
                     query.setOrReplace(result)
-                    changeQuery(query)
+                    changeQueryAndUpdateUI(query)
                }
             }
         }
