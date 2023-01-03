@@ -99,9 +99,6 @@ class EditFragment: Fragment() {
 
         handleMenu(requireActivity())
 
-        binding.idScrollView.setOnScrollChangeListener { _, x, y, _, _ ->
-            Log.d(TAG, "scrollY: $y")
-        }
         return root
     }
 
