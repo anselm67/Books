@@ -38,7 +38,6 @@ open class ListFragment: Fragment() {
 
         bindAdapter()
 
-        changeQuery(bookViewModel.query)
         return binding.root
     }
 

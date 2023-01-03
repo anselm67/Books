@@ -7,7 +7,7 @@ import com.anselm.books.ui.details.DetailsFragmentArgs
 
 class BookPagerAdapter(
     val fragment: Fragment,
-    private val bookIds: LongArray,
+    private val bookIds: List<Long>,
 ): FragmentStateAdapter(fragment) {
 
     override fun createFragment(position: Int): Fragment {

@@ -91,7 +91,6 @@
     <fragment
         android:id="@+id/nav_details"
         android:name="com.anselm.books.ui.details.DetailsFragment"
-        android:label="@string/book_details"
         tools:layout="@layout/fragment_details" >
 
         <argument android:name="bookId" app:argType="long" />
@@ -125,7 +124,6 @@
     <fragment
         android:id="@+id/nav_pager"
         android:name="com.anselm.books.ui.pager.PagerFragment"
-        android:label="@string/book_pager_label"
         tools:layout="@layout/fragment_pager" >
 
         <argument android:name="bookIds" app:argType="long[]" />
@@ -133,6 +131,9 @@
 
         <action android:id="@+id/action_DetailsFragment_to_EditFragment"
             app:destination="@id/nav_edit" />
+
+        <action android:id="@+id/action_DetailsFragment_to_SearchFragment"
+            app:destination="@id/nav_search" />
 
     </fragment>
 

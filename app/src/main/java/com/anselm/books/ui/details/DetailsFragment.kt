@@ -43,8 +43,6 @@ class DetailsFragment : Fragment() {
         _binding = FragmentDetailsBinding.inflate(inflater, container, false)
         navController = findNavController()
 
-        val root: View = binding.root
-
         val repository = BooksApplication.app.repository
         val safeArgs: DetailsFragmentArgs by navArgs()
 
@@ -55,7 +53,8 @@ class DetailsFragment : Fragment() {
         }
 
         handleMenu(requireActivity())
-        return root
+
+        return binding.root
     }
 
     override fun onDestroyView() {
@@ -76,8 +75,7 @@ class DetailsFragment : Fragment() {
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 if (menuItem.itemId == R.id.idEditBook && bookId >= 0) {
-                    val action =
-                        DetailsFragmentDirections.actionDetailsFragmentToEditFragment(bookId)
+                    val action = DetailsFragmentDirections.actionDetailsFragmentToEditFragment(bookId)
                     navController.navigate(action)
                 }
                 return false

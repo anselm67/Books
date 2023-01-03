@@ -59,7 +59,9 @@ class SearchFragment : ListFragment() {
 
         // We start with a fresh query, initialized with our arguments.
         if (safeArgs.query != null) {
-            bookViewModel.queryFlow.value = safeArgs.query!!
+            changeQuery(safeArgs.query!!)
+        } else {
+            changeQuery(bookViewModel.query)
         }
 
         // Let's go.

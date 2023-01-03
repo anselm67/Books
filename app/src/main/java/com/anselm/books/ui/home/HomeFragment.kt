@@ -58,6 +58,8 @@ class HomeFragment : ListFragment() {
             scanISBN()
         }
 
+        changeQuery(bookViewModel.query)
+
         return root
     }
 
