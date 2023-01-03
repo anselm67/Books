@@ -136,8 +136,15 @@ open class ListFragment: Fragment() {
     }
 
     private fun adapterOnClick(book: Book) {
-        val action = HomeFragmentDirections.actionHomeFragmentToDetailsFragment(book.id)
-        findNavController().navigate(action)
+        val repository = BooksApplication.app.repository
+        viewLifecycleOwner.lifecycleScope.launch {
+            val bookIds = repository.getIdsList(bookViewModel.query)
+            val position = bookIds.indexOf(book.id)
+            val action = HomeFragmentDirections.actionHomeFragmentToPagerFragment(
+                bookIds.toLongArray(), position
+            )
+            findNavController().navigate(action)
+        }
     }
 
 }

@@ -31,6 +31,10 @@
             android:id="@+id/action_EditNewBook"
             app:destination="@id/nav_edit" />
 
+        <action
+            android:id="@+id/action_HomeFragment_to_PagerFragment"
+            app:destination="@id/nav_pager" />
+
     </fragment>
 
     <fragment
@@ -44,12 +48,8 @@
             app:nullable="true" android:defaultValue="@null" />
 
         <action
-            android:id="@+id/action_HomeFragment_to_DetailsFragment"
-            app:destination="@id/nav_details"
-            app:enterAnim="@animator/slide_in_right"
-            app:exitAnim="@animator/slide_out_left"
-            app:popEnterAnim="@android:anim/slide_in_left"
-            app:popExitAnim="@android:anim/slide_out_right" />
+            android:id="@+id/action_HomeFragment_to_PagerFragment"
+            app:destination="@id/nav_pager" />
 
         <action
             android:id="@+id/action_SearchFragment_to_SearchDialogFragment"
@@ -119,6 +119,20 @@
 
         <action android:id="@+id/action_EditFragment_to_SearchDialogFragment"
             app:destination="@id/search_dialog_fragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_pager"
+        android:name="com.anselm.books.ui.pager.PagerFragment"
+        android:label="@string/book_pager_label"
+        tools:layout="@layout/fragment_pager" >
+
+        <argument android:name="bookIds" app:argType="long[]" />
+        <argument android:name="position" app:argType="integer" />
+
+        <action android:id="@+id/action_DetailsFragment_to_EditFragment"
+            app:destination="@id/nav_edit" />
 
     </fragment>
 

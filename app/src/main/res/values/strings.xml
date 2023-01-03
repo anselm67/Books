@@ -68,5 +68,6 @@
     <string name="drag_to_re_order">Drag to re-order.</string>
     <string name="enter_text">Enter text…</string>
     <string name="export_preference_title">Export books&#8230;</string>
+    <string name="book_pager_label">Export books&#8230;</string>
 
 </resources>

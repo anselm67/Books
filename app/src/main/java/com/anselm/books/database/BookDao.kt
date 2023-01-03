@@ -258,6 +258,106 @@ interface BookDao {
     }
 
     /**
+     * Queries for retrieving IDs of books in view.
+     */
+    @Query("SELECT book_table.id FROM book_table " +
+            " JOIN book_fts ON book_table.id = book_fts.rowid " +
+            " WHERE book_fts MATCH :query " +
+            "   AND id IN (" +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId1 = 0 OR labelId = :labelId1" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId2 = 0 OR labelId = :labelId2" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId3 = 0 OR labelId = :labelId3" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            ") " +
+            " ORDER BY " +
+            "   CASE WHEN :param = 1 THEN book_table.title END ASC, " +
+            "   CASE WHEN :param = 2 THEN date_added END DESC ")
+    suspend fun getTitleIdsList(
+        query: String,
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
+        param: Int,
+    ): List<Long>
+
+    suspend fun getTitleIdsList(
+        query: String, labelIds: List<Long>, param: Int,
+    ): List<Long> {
+        when (labelIds.size) {
+            0 -> return getTitleIdsList(
+                query, 0L, 0L, 0L, 0L, param,
+            )
+            1 -> return getTitleIdsList(
+                query, labelIds[0], 0L, 0L, 0L, param,
+            )
+            2 -> return getTitleIdsList(
+                query, labelIds[0], labelIds[1], 0L, 0L, param,
+            )
+            3 -> return getTitleIdsList(
+                query, labelIds[0], labelIds[1], labelIds[2], 0L, param,
+            )
+            4 -> return getTitleIdsList(
+                query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], param,
+            )
+            else -> assert(value = false)
+        }
+        // NOT REACHED, not sure why the compiler doesn't see this.
+        return emptyList()
+    }
+
+    @Query("SELECT book_table.id FROM book_table " +
+            " WHERE id IN (" +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId1 = 0 OR labelId = :labelId1" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId2 = 0 OR labelId = :labelId2" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId3 = 0 OR labelId = :labelId3" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            ") " +
+            " ORDER BY " +
+            "   CASE WHEN :param = 1 THEN book_table.title END ASC, " +
+            "   CASE WHEN :param = 2 THEN date_added END DESC ")
+    suspend fun getFilteredIdsList(
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
+        param: Int,
+    ): List<Long>
+
+    suspend fun getFilteredIdsList(
+        labelIds: List<Long>, param: Int,
+    ): List<Long> {
+        when (labelIds.size) {
+            0 -> return getFilteredIdsList(
+                0L, 0L, 0L, 0L, param,
+            )
+            1 -> return getFilteredIdsList(
+                labelIds[0], 0L, 0L, 0L, param,
+            )
+            2 -> return getFilteredIdsList(
+                labelIds[0], labelIds[1], 0L, 0L, param,
+            )
+            3 -> return getFilteredIdsList(
+                labelIds[0], labelIds[1], labelIds[2], 0L, param,
+            )
+            4 -> return getFilteredIdsList(
+                labelIds[0], labelIds[1], labelIds[2], labelIds[3], param,
+            )
+            else -> assert(value = false)
+        }
+        // NOT REACHED, not sure why the compiler doesn't see this.
+        return emptyList()
+    }
+
+    /**
      * Histogram queries: get{Title,Filtered} Histo and search{Title,Filtered}Histo.
      */
     @Query("SELECT book_labels.labelId, COUNT(*) as count FROM book_table " +

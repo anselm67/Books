@@ -29,6 +29,21 @@ class BookRepository(private val dao: BookDao) {
         }
     }
 
+    suspend fun getIdsList(query: Query): List<Long> {
+        return if ( query.query.isNullOrEmpty() ) {
+            dao.getFilteredIdsList(
+                query.filters.map { it -> it.labelId },
+                query.sortBy,
+            )
+        } else /* Requests text matching. */ {
+            dao.getTitleIdsList(
+                if (query.partial) query.query!! + '*' else query.query!!,
+                query.filters.map { it -> it.labelId },
+                query.sortBy,
+            )
+        }
+    }
+
     val itemCount = MutableLiveData(0)
 
     suspend fun getPagedListCount(query: Query): Int {
