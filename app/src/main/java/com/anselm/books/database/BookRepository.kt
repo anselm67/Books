@@ -1,7 +1,6 @@
 package com.anselm.books.database
 
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
 import com.anselm.books.TAG
 
 class BookRepository(private val dao: BookDao) {
@@ -29,23 +28,6 @@ class BookRepository(private val dao: BookDao) {
         }
     }
 
-    suspend fun getIdsList(query: Query): List<Long> {
-        return if ( query.query.isNullOrEmpty() ) {
-            dao.getFilteredIdsList(
-                query.filters.map { it -> it.labelId },
-                query.sortBy,
-            )
-        } else /* Requests text matching. */ {
-            dao.getTitleIdsList(
-                if (query.partial) query.query!! + '*' else query.query!!,
-                query.filters.map { it -> it.labelId },
-                query.sortBy,
-            )
-        }
-    }
-
-    val itemCount = MutableLiveData(0)
-
     suspend fun getPagedListCount(query: Query): Int {
         Log.d(TAG, "getPagedListCount ${query.query}/${query.partial}," +
                 " filters: '${query.filters}',"
@@ -60,8 +42,22 @@ class BookRepository(private val dao: BookDao) {
                 query.filters.map { it -> it.labelId },
             )
         }
-        itemCount.postValue(count)
         return count
+    }
+
+    suspend fun getIdsList(query: Query): List<Long> {
+        return if ( query.query.isNullOrEmpty() ) {
+            dao.getFilteredIdsList(
+                query.filters.map { it -> it.labelId },
+                query.sortBy,
+            )
+        } else /* Requests text matching. */ {
+            dao.getTitleIdsList(
+                if (query.partial) query.query!! + '*' else query.query!!,
+                query.filters.map { it -> it.labelId },
+                query.sortBy,
+            )
+        }
     }
 
     suspend fun deleteAll() {

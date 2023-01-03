@@ -25,9 +25,6 @@ class BookPagingSource(
         return try {
             val books = repository.getPagedList(query, params.loadSize, page * params.loadSize)
             books.forEach { repository.decorate(it) }
-            if (itemCount < 0) {
-                itemCount = repository.getPagedListCount(query)
-            }
             Log.d(TAG, "-> Got ${books.size}/$itemCount results," +
                     " page: $page" +
                     " before: ${page * params.loadSize}" +

@@ -65,18 +65,14 @@ class SearchFragment : ListFragment() {
         }
 
         // Let's go.
-        updateFiltersUi()
-
-        app.repository.itemCount.observe(viewLifecycleOwner) {
-            binding.idCountView.text = getString(R.string.item_count_format, it)
-        }
+        refreshUi()
 
         return root
     }
 
     fun changeQueryAndUpdateUI(query: Query) {
         super.changeQuery(query)
-        updateFiltersUi()
+        refreshUi()
     }
 
     override fun onCreateMenu(menu: Menu) {
@@ -103,7 +99,8 @@ class SearchFragment : ListFragment() {
         val label: Int,
     )
 
-    private fun updateFiltersUi() {
+    private fun refreshUi() {
+        // Refreshes the filters state.
         val filters = arrayOf(
             Filter(Label.Type.Location,
                 binding.idLocationFilter,
@@ -141,6 +138,9 @@ class SearchFragment : ListFragment() {
                     )
                 }
             }
+            // Refreshes the book count.
+            val count = repository.getPagedListCount(bookViewModel.query)
+            binding.idCountView.text = getString(R.string.item_count_format, count)
         }
     }
 
