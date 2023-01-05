@@ -87,7 +87,7 @@ class SearchFragment : ListFragment() {
     
     private fun dialogFilter(type: Label.Type) {
         view?.let { activity?.hideKeyboard(it) }
-        val action = SearchFragmentDirections.actionSearchFragmentToSearchDialogFragment(
+        val action = SearchFragmentDirections.toSearchDialogFragment(
             type, bookViewModel.query)
         findNavController().navigate(action)
     }

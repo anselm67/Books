@@ -12,27 +12,17 @@
         tools:layout="@layout/fragment_list">
 
         <action
-            android:id="@+id/action_HomeFragment_to_DetailsFragment"
-            app:destination="@id/nav_details"
-            app:enterAnim="@animator/slide_in_right"
-            app:exitAnim="@animator/slide_out_left"
-            app:popEnterAnim="@android:anim/slide_in_left"
-            app:popExitAnim="@android:anim/slide_out_right" />
-
-        <action
-            android:id="@+id/action_HomeFragment_to_SearchFragment"
+            android:id="@+id/toSearchFragment"
             app:destination="@id/nav_search"
             app:enterAnim="@animator/slide_in_right"
             app:exitAnim="@animator/slide_out_left"
             app:popEnterAnim="@android:anim/slide_in_left"
             app:popExitAnim="@android:anim/slide_out_right" />
-
         <action
-            android:id="@+id/action_EditNewBook"
+            android:id="@+id/toEditFragment"
             app:destination="@id/nav_edit" />
-
         <action
-            android:id="@+id/action_HomeFragment_to_PagerFragment"
+            android:id="@+id/toPagerFragment"
             app:destination="@id/nav_pager" />
 
     </fragment>
@@ -48,13 +38,11 @@
             app:nullable="true" android:defaultValue="@null" />
 
         <action
-            android:id="@+id/action_HomeFragment_to_PagerFragment"
+            android:id="@+id/toPagerFragment"
             app:destination="@id/nav_pager" />
-
         <action
-            android:id="@+id/action_SearchFragment_to_SearchDialogFragment"
+            android:id="@+id/toSearchDialogFragment"
             app:destination="@id/search_dialog_fragment" />
-
 
     </fragment>
 
@@ -67,7 +55,6 @@
             app:argType="com.anselm.books.database.Label$Type" />
         <argument android:name="query" app:argType="com.anselm.books.database.Query"
             app:nullable="true" android:defaultValue="@null" />
-
     </dialog>
 
 
@@ -77,7 +64,7 @@
         android:label="@string/menu_gallery"
         tools:layout="@layout/fragment_gallery">
 
-        <action android:id="@+id/addBook" app:destination="@id/nav_edit"/>
+        <action android:id="@+id/toEditFragment" app:destination="@id/nav_edit"/>
 
     </fragment>
 
@@ -95,9 +82,9 @@
 
         <argument android:name="bookId" app:argType="long" />
 
-        <action android:id="@+id/action_DetailsFragment_to_EditFragment"
+        <action android:id="@+id/toEditFragment"
             app:destination="@id/nav_edit" />
-        <action android:id="@+id/action_DetailsFragment_to_SearchFragment"
+        <action android:id="@+id/toSearchFragment"
             app:destination="@id/nav_search" />
 
     </fragment>
@@ -111,14 +98,9 @@
         <argument android:name="bookId"
             app:argType="long"
             android:defaultValue="-1L"/>
-
         <argument android:name="book"
             app:argType="com.anselm.books.database.Book" app:nullable="true"
             android:defaultValue="@null"/>
-
-        <action android:id="@+id/action_EditFragment_to_SearchDialogFragment"
-            app:destination="@id/search_dialog_fragment" />
-
     </fragment>
 
     <fragment
@@ -129,10 +111,10 @@
         <argument android:name="bookIds" app:argType="long[]" />
         <argument android:name="position" app:argType="integer" />
 
-        <action android:id="@+id/action_DetailsFragment_to_EditFragment"
+        <action android:id="@+id/toEditFragment"
             app:destination="@id/nav_edit" />
 
-        <action android:id="@+id/action_DetailsFragment_to_SearchFragment"
+        <action android:id="@+id/toSearchFragment"
             app:destination="@id/nav_search" />
 
     </fragment>

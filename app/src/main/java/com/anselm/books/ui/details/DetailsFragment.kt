@@ -75,7 +75,7 @@ class DetailsFragment : Fragment() {
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 if (menuItem.itemId == R.id.idEditBook && bookId >= 0) {
-                    val action = DetailsFragmentDirections.actionDetailsFragmentToEditFragment(bookId)
+                    val action = DetailsFragmentDirections.toEditFragment(bookId)
                     navController.navigate(action)
                 }
                 return false
@@ -177,7 +177,7 @@ class DetailsFragment : Fragment() {
         binding.labels.adapter = LabelArrayAdapter(
             labels,
             onClick = {
-                val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
+                val action = DetailsFragmentDirections.toSearchFragment(
                     Query(filters = mutableListOf(Query.Filter(it))))
                 navController.navigate(action)
             }
@@ -215,14 +215,14 @@ class DetailsFragment : Fragment() {
         // Remaining fields.
         val fields = mutableListOf<Triple<Int, () -> String, ((String?) -> Unit)?>>(
             Triple(R.string.publisherLabel, book::publisher.getter) {
-                val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
+                val action = DetailsFragmentDirections.toSearchFragment(
                     Query(filters = Query.asFilter(book.firstLabel(Label.Type.Publisher)))
                 )
                 navController.navigate(action)
             },
             Triple(R.string.yearPublishedLabel, book::yearPublished.getter, null),
             Triple(R.string.physicalLocationLabel, book::location.getter) {
-                val action = DetailsFragmentDirections.actionDetailsFragmentToSearchFragment(
+                val action = DetailsFragmentDirections.toSearchFragment(
                     Query(filters = Query.asFilter(book.firstLabel(Label.Type.Location)))
                 )
                 navController.navigate(action)

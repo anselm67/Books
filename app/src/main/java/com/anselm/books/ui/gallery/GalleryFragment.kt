@@ -56,7 +56,7 @@ class GalleryFragment : Fragment() {
         }, {
             app.loading(false)
             requireActivity().lifecycleScope.launch(Dispatchers.Main) {
-                val action = GalleryFragmentDirections.addBook(-1, it)
+                val action = GalleryFragmentDirections.toEditFragment(-1, it)
                 findNavController().navigate(action)
             }
         })

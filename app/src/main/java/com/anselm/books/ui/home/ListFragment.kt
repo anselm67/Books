@@ -139,7 +139,7 @@ open class ListFragment: Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             val bookIds = repository.getIdsList(bookViewModel.query)
             val position = bookIds.indexOf(book.id)
-            val action = HomeFragmentDirections.actionHomeFragmentToPagerFragment(
+            val action = HomeFragmentDirections.toPagerFragment(
                 bookIds.toLongArray(), position
             )
             findNavController().navigate(action)

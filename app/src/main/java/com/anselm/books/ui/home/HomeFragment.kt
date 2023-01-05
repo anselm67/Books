@@ -35,7 +35,7 @@ class HomeFragment : ListFragment() {
         // Handles the menu items we care about.
         handleMenu(listOf(
             Pair(R.id.idGotoSearchView) {
-                val action = HomeFragmentDirections.actionHomeFragmentToSearchFragment(
+                val action = HomeFragmentDirections.toSearchFragment(
                     Query(sortBy = bookViewModel.query.sortBy)
                 )
                 findNavController().navigate(action)
@@ -97,7 +97,7 @@ class HomeFragment : ListFragment() {
             val activity = requireActivity()
             view?.let { myself -> activity.hideKeyboard(myself) }
             requireActivity().lifecycleScope.launch(Dispatchers.Main) {
-                val action = HomeFragmentDirections.actionEditNewBook(-1, it)
+                val action = HomeFragmentDirections.toEditFragment(-1, it)
                 findNavController().navigate(action)
             }
             app.loading(false, "$TAG.handleISBM")
