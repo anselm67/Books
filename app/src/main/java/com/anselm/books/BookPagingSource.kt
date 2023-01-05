@@ -14,13 +14,13 @@ class BookPagingSource(
     private val query: Query,
     private val repository: BookRepository
 ) : PagingSource<Int, Book>() {
-    private var itemCount = -1
 
     override val jumpingSupported: Boolean
         get() = true
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Book> {
         val page = params.key ?: START_PAGE
+        val itemCount = -1
 
         return try {
             val books = repository.getPagedList(query, params.loadSize, page * params.loadSize)
@@ -35,8 +35,13 @@ class BookPagingSource(
                     START_PAGE -> null
                     else -> page - 1 },
                 nextKey = if (books.isEmpty()) null else page + 1,
-                itemsBefore = page * params.loadSize,
-                itemsAfter = max(0, itemCount - (page + 1) * params.loadSize)
+            /*
+             * Proper handling of itemCount is required to set the scrollbar height properly. For now
+             * I just don't know how to get it here properly even though it's available in
+             * {List, Home, Search}Fragment
+             * itemsBefore = page * params.loadSize,
+             * itemsAfter = max(0, itemCount - (page + 1) * params.loadSize
+              */
             )
         } catch (e: Exception) {
             LoadResult.Error(e)
