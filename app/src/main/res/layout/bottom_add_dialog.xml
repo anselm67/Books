@@ -5,18 +5,7 @@
     android:layout_height="150dp"
     android:orientation="horizontal"
     android:layoutDirection="ltr"
-android:weightSum="3"
-    >
-
-    <Button
-        android:id="@+id/idScan"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:drawableTop="@drawable/scan_barcode"
-        android:text="@string/add_scan"
-        android:textAllCaps="false"
-        android:layout_weight="1"
-        style="?android:attr/buttonBarButtonStyle" />
+    android:weightSum="3" >
 
     <Button
         android:id="@+id/idType"
@@ -28,8 +17,7 @@ android:weightSum="3"
         android:textAllCaps="false"
         android:layout_weight="1"
 
-        style="?android:attr/buttonBarButtonStyle"
-        />
+        style="?android:attr/buttonBarButtonStyle" />
 
     <Button
         android:id="@+id/idSearch"
@@ -41,7 +29,17 @@ android:weightSum="3"
         android:textAllCaps="false"
         android:layout_weight="1"
 
-        style="?android:attr/buttonBarButtonStyle"
-        />
+        style="?android:attr/buttonBarButtonStyle" />
+
+    <Button
+        android:id="@+id/idScan"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:drawableTop="@drawable/scan_barcode"
+        android:text="@string/add_scan"
+        android:textAllCaps="false"
+        android:layout_weight="1"
+        style="?android:attr/buttonBarButtonStyle" />
+
 
 </LinearLayout>
