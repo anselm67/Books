@@ -2,6 +2,7 @@ package com.anselm.books.ui.edit
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.Editable
@@ -100,7 +101,11 @@ class EditFragment: BookFragment() {
                 saveChanges()
             },
             Pair(R.id.idDeleteBook) {
-                deleteBook()
+                val builder = AlertDialog.Builder(requireActivity())
+                builder.setMessage(getString(R.string.delete_book_confirmation, book?.title))
+                    .setPositiveButton(R.string.yes) { _, _ -> deleteBook() }
+                    .setNegativeButton(R.string.no) { _, _ -> }
+                    .show()
             },
         ))
 
@@ -110,8 +115,8 @@ class EditFragment: BookFragment() {
     private fun deleteBook() {
         val app = BooksApplication.app
         if (book != null && book!!.id >= 0) {
-            viewLifecycleOwner.lifecycleScope.launch {
-                BooksApplication.app.repository.deleteBook(book!!)
+            app.applicationScope.launch {
+                app.repository.deleteBook(book!!)
                 app.toast(getString(R.string.book_deleted, book!!.title))
             }
         }

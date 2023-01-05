@@ -73,6 +73,9 @@
     <string name="add_type">Type</string>
     <string name="add_search">Search</string>
     <string name="delete_book">Delete</string>
-    <string name="book_deleted">$%1s deleted.</string>
+    <string name="book_deleted">%1$s deleted.</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="delete_book_confirmation">Delete "%1$s"?</string>
 
 </resources>
