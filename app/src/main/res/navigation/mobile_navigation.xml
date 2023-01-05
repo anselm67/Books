@@ -113,7 +113,6 @@
 
         <action android:id="@+id/toEditFragment"
             app:destination="@id/nav_edit" />
-
         <action android:id="@+id/toSearchFragment"
             app:destination="@id/nav_search" />
 
