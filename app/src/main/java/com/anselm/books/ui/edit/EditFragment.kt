@@ -44,6 +44,7 @@ import com.anselm.books.databinding.EditYearLayoutBinding
 import com.anselm.books.databinding.FragmentEditBinding
 import com.anselm.books.ui.widgets.DnDList
 import com.bumptech.glide.Glide
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.lang.Integer.max
@@ -153,7 +154,9 @@ class EditFragment: Fragment() {
         // Creates and sets up an editor for every book property.
         val fields = arrayListOf(
             TextEditor(this, inflater, R.string.titleLabel,
-                book::title.getter, book::title.setter),
+                book::title.getter, book::title.setter) {
+                it.isNotEmpty()
+            },
             TextEditor(this, inflater, R.string.subtitleLabel,
                 book::subtitle.getter, book::subtitle.setter),
             MultiLabelEditor(this, inflater,
@@ -198,11 +201,21 @@ class EditFragment: Fragment() {
         return changed
     }
 
+    private fun validateChanges():Boolean {
+        return editors?.firstOrNull { ! it.isValid() } == null
+    }
+
     private fun saveChanges() {
+        // Validates the edits first, reject invalid books.
         val app = BooksApplication.app
+        if ( ! validateChanges() ) {
+            app.toast("Adjust highlighted fields.")
+            return
+        }
+        // Inserts or saves only when valid.
         check(book != null)
         val theBook = book!!
-        if (theBook.id <= 0 || saveEditorChanges()) {
+        if (saveEditorChanges() || theBook.id <= 0) {
             app.loading(true)
             activity?.lifecycleScope?.launch {
                 app.repository.save(theBook)
@@ -211,6 +224,9 @@ class EditFragment: Fragment() {
                 app.loading(false)
                 findNavController().popBackStack()
             }
+        } else {
+            // Nothing to save, head back.
+            findNavController().popBackStack()
         }
     }
 
@@ -240,7 +256,10 @@ class EditFragment: Fragment() {
     }
 
     private fun isValidEAN13(isbn: String): Boolean {
-        if (isbn.length != 13) {
+        // Quick checks: empty is fine.
+        if (isbn.isEmpty()) {
+            return true
+        } else if (isbn.length != 13) {
             return false
         }
         // Computes the expected checksum / last digit.
@@ -261,9 +280,12 @@ class EditFragment: Fragment() {
 private abstract class Editor(
     open val fragment: EditFragment,
     open val inflater: LayoutInflater) {
+
     abstract fun setup(container: ViewGroup?): View
     abstract fun isChanged(): Boolean
     abstract fun saveChange()
+
+    open fun isValid(): Boolean = true
 }
 
 private class YearEditor(
@@ -365,6 +387,13 @@ private open class TextEditor(
         editor.idUndoEdit.setOnClickListener {
             editor.idEditText.setText(getter())
         }
+        // Marks the field invalid immediately. This is for books that are being
+        // manually inserted which have empty mandatory fields such as title.
+        fragment.lifecycleScope.launch(Dispatchers.Main) {
+            if (checker != null && !checker!!.invoke(getter())) {
+                fragment.setInvalid(editor.idEditText, editor.idUndoEdit)
+            }
+        }
         return editor.root
     }
 
@@ -401,6 +430,14 @@ private open class TextEditor(
         setter(editor.idEditText.text.toString().trim())
     }
 
+    override fun isValid(): Boolean {
+        return if (checker != null) {
+            val value = editor.idEditText.text.toString().trim()
+            checker!!.invoke(value)
+        } else {
+            true
+        }
+    }
 }
 
 private class LabelArrayAdapter(

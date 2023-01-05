@@ -71,19 +71,20 @@ interface BookDao {
     @Query("SELECT * FROM book_table " +
             " JOIN book_fts ON book_table.id = book_fts.rowid " +
             " WHERE book_fts MATCH :query " +
-            "   AND id IN (" +
-            "   SELECT bookId FROM book_labels " +
-            "       WHERE :labelId1 = 0 OR labelId = :labelId1" +
-            " INTERSECT " +
-            "   SELECT bookId FROM book_labels " +
-            "       WHERE :labelId2 = 0 OR labelId = :labelId2" +
-            " INTERSECT " +
-            "   SELECT bookId FROM book_labels " +
-            "       WHERE :labelId3 = 0 OR labelId = :labelId3" +
-            " INTERSECT " +
-            "   SELECT bookId FROM book_labels " +
-            "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
-            ") " +
+            "   AND ((:labelId1 = 0 AND :labelId2 = 0 AND :labelId3 = 0 AND :labelId4 = 0) " +
+            "        OR id IN (" +
+            "      SELECT bookId FROM book_labels " +
+            "          WHERE :labelId1 = 0 OR labelId = :labelId1" +
+            "    INTERSECT " +
+            "      SELECT bookId FROM book_labels " +
+            "          WHERE :labelId2 = 0 OR labelId = :labelId2" +
+            "    INTERSECT " +
+            "      SELECT bookId FROM book_labels " +
+            "          WHERE :labelId3 = 0 OR labelId = :labelId3" +
+            "    INTERSECT " +
+            "      SELECT bookId FROM book_labels " +
+            "          WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            "   )) " +
             " ORDER BY " +
             "   CASE WHEN :param = 1 THEN book_table.title END ASC, " +
             "   CASE WHEN :param = 2 THEN date_added END DESC " +
@@ -122,7 +123,8 @@ interface BookDao {
     @Query("SELECT COUNT(*) FROM book_table " +
             " JOIN book_fts ON book_table.id = book_fts.rowid " +
             " WHERE book_fts MATCH :query " +
-            "   AND id IN (" +
+            "   AND ((:labelId1 = 0 AND :labelId2 = 0 AND :labelId3 = 0 AND :labelId4 = 0) " +
+            "        OR id IN (" +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId1 = 0 OR labelId = :labelId1" +
             " INTERSECT " +
@@ -134,7 +136,7 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
-            ")")
+            "))")
     suspend fun getTitlePagedListCount(
         query: String,
         labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
@@ -167,7 +169,8 @@ interface BookDao {
 
 
     @Query("SELECT * FROM book_table " +
-            " WHERE id IN (" +
+            " WHERE (:labelId1 = 0 AND :labelId2 = 0 AND :labelId3 = 0 AND :labelId4 = 0) " +
+            "    OR id IN (" +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId1 = 0 OR labelId = :labelId1" +
             " INTERSECT " +
@@ -179,7 +182,7 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
-            ") " +
+            ")" +
             " ORDER BY " +
             "   CASE WHEN :param = 1 THEN book_table.title END ASC, " +
             "   CASE WHEN :param = 2 THEN date_added END DESC " +
@@ -215,9 +218,10 @@ interface BookDao {
     }
 
     @Query("SELECT COUNT(*) FROM book_table " +
-            " WHERE id IN (" +
-            "   SELECT bookId FROM book_labels " +
-            "       WHERE :labelId1 = 0 OR labelId = :labelId1" +
+            " WHERE (:labelId1 = 0 AND :labelId2 = 0 AND :labelId3 = 0 AND :labelId4 = 0) " +
+            "    OR id IN (" +
+            "SELECT bookId FROM book_labels " +
+            "    WHERE :labelId1 = 0 OR labelId = :labelId1" +
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId2 = 0 OR labelId = :labelId2" +
@@ -263,7 +267,8 @@ interface BookDao {
     @Query("SELECT book_table.id FROM book_table " +
             " JOIN book_fts ON book_table.id = book_fts.rowid " +
             " WHERE book_fts MATCH :query " +
-            "   AND id IN (" +
+            "   AND ((:labelId1 = 0 AND :labelId2 = 0 AND :labelId3 = 0 AND :labelId4 = 0) " +
+            "        OR id IN (" +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId1 = 0 OR labelId = :labelId1" +
             " INTERSECT " +
@@ -275,7 +280,7 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
-            ") " +
+            "))" +
             " ORDER BY " +
             "   CASE WHEN :param = 1 THEN book_table.title END ASC, " +
             "   CASE WHEN :param = 2 THEN date_added END DESC ")
@@ -311,8 +316,8 @@ interface BookDao {
     }
 
     @Query("SELECT book_table.id FROM book_table " +
-            " WHERE id IN (" +
-            "   SELECT bookId FROM book_labels " +
+            " WHERE (:labelId1 = 0 AND :labelId2 = 0 AND :labelId3 = 0 AND :labelId4 = 0) " +
+            "    OR id IN (SELECT bookId FROM book_labels " +
             "       WHERE :labelId1 = 0 OR labelId = :labelId1" +
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
@@ -366,8 +371,9 @@ interface BookDao {
             "       label_table ON label_table.id = book_labels.labelId " +
             " WHERE " +
             "    book_fts MATCH :query" +
-            "    AND label_table.type = :type" +
-            "    AND book_table.id IN (" +
+            "    AND label_table.type = :type " +
+            "    AND ((:labelId1 = 0 AND :labelId2 = 0 AND :labelId3 = 0 AND :labelId4 = 0) "+
+            "         OR book_table.id IN (" +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId1 = 0 OR labelId = :labelId1" +
             " INTERSECT " +
@@ -379,7 +385,7 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
-            ") " +
+            "))" +
             " GROUP BY labelId " +
             " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
             "          CASE WHEN :param = 1 THEN label_table.name END ASC")
@@ -425,7 +431,8 @@ interface BookDao {
             "    book_fts MATCH :query " +
             "    AND label_fts MATCH :labelQuery" +
             "    AND label_table.type = :type" +
-            "    AND book_table.id IN (" +
+            "    AND ((:labelId1 = 0 AND :labelId2 = 0 AND :labelId3 = 0 AND :labelId4 = 0) "+
+            "         OR book_table.id IN (" +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId1 = 0 OR labelId = :labelId1" +
             " INTERSECT " +
@@ -437,7 +444,7 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
-            ") " +
+            "))" +
             " GROUP BY labelId "+
             " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
             "          CASE WHEN :param = 1 THEN label_table.name END ASC")
@@ -481,7 +488,8 @@ interface BookDao {
             "       label_table ON label_table.id = book_labels.labelId " +
             " WHERE label_table.type = :type" +
             "    AND label_table.type = :type" +
-            "    AND book_table.id IN (" +
+            "    AND ((:labelId1 = 0 AND :labelId2 = 0 AND :labelId3 = 0 AND :labelId4 = 0) "+
+            "         OR book_table.id IN (" +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId1 = 0 OR labelId = :labelId1" +
             " INTERSECT " +
@@ -493,7 +501,7 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
-            ") " +
+            "))" +
             " GROUP BY labelId " +
             " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
             "          CASE WHEN :param = 1 THEN label_table.name END ASC")

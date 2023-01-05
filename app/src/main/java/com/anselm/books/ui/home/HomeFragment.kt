@@ -12,9 +12,12 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.anselm.books.R
 import com.anselm.books.TAG
+import com.anselm.books.database.Book
 import com.anselm.books.database.BookDao
 import com.anselm.books.database.Query
+import com.anselm.books.databinding.BottomAddDialogBinding
 import com.anselm.books.hideKeyboard
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
@@ -55,12 +58,29 @@ class HomeFragment : ListFragment() {
         }
 
         binding.fab.setOnClickListener {
-            scanISBN()
+            showBottomAddDialog()
         }
 
         changeQuery(bookViewModel.query)
 
         return root
+    }
+
+    private fun showBottomAddDialog() {
+        val dialog = BottomSheetDialog(requireContext())
+        val binding = BottomAddDialogBinding.inflate(layoutInflater)
+        dialog.setContentView(binding.root)
+
+        binding.idScan.setOnClickListener {
+            scanISBN()
+            dialog.dismiss()
+        }
+        binding.idType.setOnClickListener {
+            val action = HomeFragmentDirections.toEditFragment(-1, Book())
+            findNavController().navigate(action)
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     private fun scanISBN() {
@@ -96,7 +116,7 @@ class HomeFragment : ListFragment() {
         }, {
             val activity = requireActivity()
             view?.let { myself -> activity.hideKeyboard(myself) }
-            requireActivity().lifecycleScope.launch(Dispatchers.Main) {
+            activity.lifecycleScope.launch(Dispatchers.Main) {
                 val action = HomeFragmentDirections.toEditFragment(-1, it)
                 findNavController().navigate(action)
             }

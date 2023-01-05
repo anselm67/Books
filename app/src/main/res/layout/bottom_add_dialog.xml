@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="150dp"
+    android:orientation="horizontal"
+    android:layoutDirection="ltr"
+android:weightSum="3"
+    >
+
+    <Button
+        android:id="@+id/idScan"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:drawableTop="@drawable/scan_barcode"
+        android:text="@string/add_scan"
+        android:textAllCaps="false"
+        android:layout_weight="1"
+        style="?android:attr/buttonBarButtonStyle" />
+
+    <Button
+        android:id="@+id/idType"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:drawableTop="@drawable/keyboard_typing"
+
+        android:text="@string/add_type"
+        android:textAllCaps="false"
+        android:layout_weight="1"
+
+        style="?android:attr/buttonBarButtonStyle"
+        />
+
+    <Button
+        android:id="@+id/idSearch"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:drawableTop="@drawable/scan_barcode"
+
+        android:text="@string/add_search"
+        android:textAllCaps="false"
+        android:layout_weight="1"
+
+        style="?android:attr/buttonBarButtonStyle"
+        />
+
+</LinearLayout>
