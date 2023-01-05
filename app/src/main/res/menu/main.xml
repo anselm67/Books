@@ -33,6 +33,13 @@
         app:showAsAction="ifRoom|withText" />
 
     <item
+        android:id="@+id/idDeleteBook"
+        android:icon="@drawable/ic_baseline_delete_24"
+        android:iconTint="@color/white"
+        android:title="@string/delete_book"
+        app:showAsAction="ifRoom|withText" />
+
+    <item
         android:id="@+id/idSearchView"
         android:icon="@drawable/ic_baseline_search_24"
         android:title="@string/search_title"

@@ -12,13 +12,19 @@ interface BookDao {
     suspend fun insert(book: Book): Long
 
     @Query("SELECT * FROM book_table WHERE id = :bookId")
-    suspend fun load(bookId: Long) : Book
+    suspend fun load(bookId: Long) : Book?
 
     @Update
     suspend fun update(book: Book)
 
     @Delete
     suspend fun delete(book: Book)
+
+    @Transaction
+    suspend fun deleteBook(book: Book) {
+        clearLabels(book.id)
+        delete(book)
+    }
 
     /**
      * Handling of labels.

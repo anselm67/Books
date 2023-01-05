@@ -2,13 +2,11 @@ package com.anselm.books.ui.details
 
 import android.app.ActionBar.LayoutParams
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.view.MenuHost
-import androidx.core.view.MenuProvider
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
@@ -25,10 +23,11 @@ import com.anselm.books.databinding.DetailsFieldLayoutBinding
 import com.anselm.books.databinding.DetailsMultiLabelLayoutBinding
 import com.anselm.books.databinding.FragmentDetailsBinding
 import com.anselm.books.databinding.RecyclerviewDetailsLabelItemBinding
+import com.anselm.books.ui.widgets.BookFragment
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
-class DetailsFragment : Fragment() {
+class DetailsFragment : BookFragment() {
     private var _binding: FragmentDetailsBinding? = null
     private val binding get() = _binding!!
     private var bookId: Long = -1L
@@ -47,12 +46,21 @@ class DetailsFragment : Fragment() {
         val safeArgs: DetailsFragmentArgs by navArgs()
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val book: Book = repository.load(safeArgs.bookId, decorate = true)
-            bookId = book.id
-            binding.bind(inflater, book)
+            val book: Book? = repository.load(safeArgs.bookId, decorate = true)
+            if (book != null) {
+                bookId = book.id
+                binding.bind(inflater, book)
+            } else {
+                navController.popBackStack()
+            }
         }
 
-        handleMenu(requireActivity())
+        handleMenu(listOf(
+            Pair(R.id.idEditBook) {
+                val action = DetailsFragmentDirections.toEditFragment(bookId)
+                navController.navigate(action)
+            }
+        ))
 
         return binding.root
     }
@@ -60,27 +68,6 @@ class DetailsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    private fun handleMenu(menuHost: MenuHost) {
-        menuHost.addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menu.findItem(R.id.idSortByDateAdded)?.isVisible = false
-                menu.findItem(R.id.idSortByTitle)?.isVisible = false
-                menu.findItem(R.id.idSearchView)?.isVisible = false
-                menu.findItem(R.id.idEditBook)?.isVisible = true
-                menu.findItem(R.id.idSaveBook)?.isVisible = false
-                menu.findItem(R.id.idGotoSearchView)?.isVisible = false
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                if (menuItem.itemId == R.id.idEditBook && bookId >= 0) {
-                    val action = DetailsFragmentDirections.toEditFragment(bookId)
-                    navController.navigate(action)
-                }
-                return false
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun bindField(

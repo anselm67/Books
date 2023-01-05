@@ -2,9 +2,9 @@ package com.anselm.books.ui.home
 
 import android.os.Bundle
 import android.util.Log
-import android.view.*
-import androidx.core.view.MenuProvider
-import androidx.fragment.app.Fragment
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -13,15 +13,18 @@ import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.anselm.books.*
+import com.anselm.books.BookViewModel
+import com.anselm.books.BooksApplication
+import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Query
 import com.anselm.books.databinding.FragmentListBinding
+import com.anselm.books.ui.widgets.BookFragment
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-open class ListFragment: Fragment() {
+open class ListFragment: BookFragment() {
     protected val app = BooksApplication.app
     private var _binding: FragmentListBinding? = null
     protected val binding get() = _binding!!
@@ -90,43 +93,6 @@ open class ListFragment: Fragment() {
         }
         binding.list.adapter = adapter
         binding.list.layoutManager = LinearLayoutManager(binding.list.context)
-    }
-
-    // FIXME This should somehow move to BooksApplication.
-    private val allItemIds = arrayOf(
-        R.id.idSortByDateAdded,
-        R.id.idSortByTitle,
-        R.id.idGotoSearchView,
-        R.id.idEditBook,
-        R.id.idSaveBook,
-        R.id.idSearchView,
-    )
-
-    // For subclasses to finish any toolbar work.
-    protected open fun onCreateMenu(menu: Menu) { }
-
-    protected fun handleMenu(items: List<Pair<Int, () -> Unit>>) {
-        requireActivity().addMenuProvider(object: MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                // Everything is invisible ...
-                allItemIds.forEach { menu.findItem(it)?.isVisible = false}
-                // Unless requested by the fragment.
-                items.forEach {
-                    menu.findItem(it.first)?.isVisible = true
-                }
-                onCreateMenu(menu)
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                val found = items.firstOrNull { menuItem.itemId == it.first }
-                return if (found != null) {
-                    found.second()
-                    true
-                } else {
-                    false
-                }
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     override fun onDestroyView() {

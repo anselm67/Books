@@ -64,6 +64,10 @@ class BookRepository(private val dao: BookDao) {
         dao.deleteAll()
     }
 
+    suspend fun deleteBook(book: Book) {
+        dao.deleteBook(book)
+    }
+
     suspend fun getHisto(
         type: Label.Type,
         labelQuery: String? = null,
@@ -105,9 +109,9 @@ class BookRepository(private val dao: BookDao) {
     /**
      * Loads a book by id.
      */
-    suspend fun load(bookId: Long, decorate: Boolean = false): Book {
+    suspend fun load(bookId: Long, decorate: Boolean = false): Book? {
         val book = dao.load(bookId)
-        if ( decorate ) {
+        if (book != null && decorate) {
             decorate(book)
         }
         return book

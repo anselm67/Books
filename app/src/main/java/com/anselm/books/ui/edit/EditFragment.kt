@@ -23,10 +23,6 @@ import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.view.MenuHost
-import androidx.core.view.MenuProvider
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -42,6 +38,7 @@ import com.anselm.books.databinding.EditMultiLabelLayoutBinding
 import com.anselm.books.databinding.EditSingleLabelLayoutBinding
 import com.anselm.books.databinding.EditYearLayoutBinding
 import com.anselm.books.databinding.FragmentEditBinding
+import com.anselm.books.ui.widgets.BookFragment
 import com.anselm.books.ui.widgets.DnDList
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +47,7 @@ import kotlinx.coroutines.runBlocking
 import java.lang.Integer.max
 
 
-class EditFragment: Fragment() {
+class EditFragment: BookFragment() {
     private var _binding: FragmentEditBinding? = null
     private val binding get() = _binding!!
     private var book: Book? = null
@@ -98,9 +95,27 @@ class EditFragment: Fragment() {
         invalidBorder = getBorderDrawable(R.drawable.textview_border_invalid)
         changedBorder = getBorderDrawable(R.drawable.textview_border_changed)
 
-        handleMenu(requireActivity())
+        handleMenu(listOf(
+            Pair(R.id.idSaveBook) {
+                saveChanges()
+            },
+            Pair(R.id.idDeleteBook) {
+                deleteBook()
+            },
+        ))
 
         return root
+    }
+
+    private fun deleteBook() {
+        val app = BooksApplication.app
+        if (book != null && book!!.id >= 0) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                BooksApplication.app.repository.deleteBook(book!!)
+                app.toast(getString(R.string.book_deleted, book!!.title))
+            }
+        }
+        findNavController().popBackStack()
     }
 
     override fun onDestroy() {
@@ -228,27 +243,6 @@ class EditFragment: Fragment() {
             // Nothing to save, head back.
             findNavController().popBackStack()
         }
-    }
-
-    private fun handleMenu(menuHost: MenuHost) {
-        menuHost.addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menu.findItem(R.id.idSortByDateAdded)?.isVisible = false
-                menu.findItem(R.id.idSortByTitle)?.isVisible = false
-                menu.findItem(R.id.idSearchView)?.isVisible = false
-                menu.findItem(R.id.idEditBook)?.isVisible = false
-                menu.findItem(R.id.idSaveBook)?.isVisible = true
-                menu.findItem(R.id.idGotoSearchView)?.isVisible = false
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                if (menuItem.itemId == R.id.idSaveBook) {
-                    Log.d(TAG, "Saving book ${this@EditFragment.book?.id}.")
-                    saveChanges()
-                }
-                return false
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun digit(c: Char): Int {
