@@ -84,17 +84,11 @@ class BarcodeAnalyzer(
         return Rect(left, top, right,bottom)
     }
 
-    var scaleX:Float = 1.0F
-    var scaleY:Float = 1.0F
-    var scaleR:Boolean = false
+    private var scaleX:Float = 1.0F
+    private var scaleY:Float = 1.0F
 
     private fun scale(x: Int, y: Int): Pair<Int, Int> {
-        // FIXME !!
-        return if ( scaleR ) {
-            Pair((x * scaleX).roundToInt(), (y * scaleY).roundToInt(), )
-        } else {
-            Pair((x * scaleX).roundToInt(), (y * scaleY).roundToInt())
-        }
+        return Pair((x * scaleX).roundToInt(), (y * scaleY).roundToInt(), )
     }
 
     @SuppressLint("SwitchIntDef")
@@ -103,22 +97,18 @@ class BarcodeAnalyzer(
             0 -> {
                 scaleX = previewView.width.toFloat() / resolutionInfo.resolution.width.toFloat()
                 scaleY = previewView.height.toFloat() / resolutionInfo.resolution.height.toFloat()
-                scaleR = false
             }
             90 -> {
                 scaleX = previewView.width.toFloat() / resolutionInfo.resolution.height.toFloat()
                 scaleY = previewView.height.toFloat() / resolutionInfo.resolution.width.toFloat()
-                scaleR = true
             }
             180 -> {
                 scaleX = previewView.width.toFloat() / resolutionInfo.resolution.width.toFloat()
                 scaleY = previewView.height.toFloat() / resolutionInfo.resolution.height.toFloat()
-                scaleR = false
             }
             270 -> {
                 scaleX = previewView.width.toFloat() / resolutionInfo.resolution.height.toFloat()
                 scaleY = previewView.height.toFloat() / resolutionInfo.resolution.width.toFloat()
-                scaleR = true
             }
         }
     }
