@@ -28,6 +28,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.util.Util
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 class ScanFragment: BookFragment() {
     private var _binding: FragmentScanBinding? = null
@@ -44,7 +45,7 @@ class ScanFragment: BookFragment() {
         _binding = FragmentScanBinding.inflate(inflater, container, false)
 
         // Sets up the recycler view.
-        adapter = IsbnArrayAdapter()
+        adapter = IsbnArrayAdapter { updateLookupStats(it)  }
         binding.idRecycler.adapter = adapter
         binding.idRecycler.layoutManager = LinearLayoutManager(binding.idRecycler.context)
 
@@ -116,6 +117,17 @@ class ScanFragment: BookFragment() {
         binding.idRecycler.scrollToPosition(0)
     }
 
+    private fun updateLookupStats(stats: LookupStats) {
+        // Updates the display of the stats.
+        binding.idMessageText.text = app.getString(
+            R.string.scan_stat_message,
+            stats.lookupCount.get(),
+            stats.matchCount.get(),
+            stats.noMatchCount.get(),
+            stats.errorCount.get(),
+        )
+    }
+
     private fun playSound() {
         val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val ringtone = RingtoneManager.getRingtone(requireContext(), notification)
@@ -135,8 +147,19 @@ private class LookupResult(
     var errorMessage: String? = null
 )
 
-private class IsbnArrayAdapter: RecyclerView.Adapter<IsbnArrayAdapter.ViewHolder>() {
+data class LookupStats(
+    val lookupCount: AtomicInteger = AtomicInteger(0),
+    val errorCount: AtomicInteger = AtomicInteger(0),
+    val matchCount: AtomicInteger = AtomicInteger(0),
+    val noMatchCount: AtomicInteger = AtomicInteger(0),
+)
+
+private class IsbnArrayAdapter(
+    private val statsListener: (LookupStats) -> Unit,
+): RecyclerView.Adapter<IsbnArrayAdapter.ViewHolder>() {
     private val dataSource = mutableListOf<Pair<String, LookupResult>>()
+    private val stats = LookupStats()
+
     inner class ViewHolder(
         val binding: RecyclerviewScanIsbnBinding,
     ): RecyclerView.ViewHolder(binding.root) {
@@ -211,16 +234,25 @@ private class IsbnArrayAdapter: RecyclerView.Adapter<IsbnArrayAdapter.ViewHolder
         val lookup = LookupResult()
         dataSource.add(0, Pair(isbn, lookup))
         notifyItemInserted(0)
+        stats.lookupCount.incrementAndGet()
         app.lookup(isbn, { _, e ->
             Log.e(TAG, "Failed to lookup $isbn.", e)
+            stats.errorCount.incrementAndGet()
             lookup.loading = false
             lookup.exception = e
             lookup.errorMessage = e?.message
             Util.postOnUiThread {  notifyDataSetChanged() }
+            statsListener(stats)
         }, { book ->
+            if (book == null) {
+                stats.noMatchCount.incrementAndGet()
+            } else {
+                stats.matchCount.incrementAndGet()
+            }
             lookup.loading = false
             lookup.book = book
             Util.postOnUiThread {  notifyDataSetChanged() }
+            statsListener(stats)
         })
     }
 }
