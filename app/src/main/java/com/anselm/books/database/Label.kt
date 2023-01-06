@@ -4,10 +4,10 @@ import androidx.room.*
 
 private class Converters {
     @TypeConverter
-    fun toType(value: Int) = enumValues<Label.Type>()[value]
+    fun toType(type: Int) = Label.Type.values().first { it.type == type }
 
     @TypeConverter
-    fun fromType(value: Label.Type) = value.ordinal
+    fun fromType(value: Label.Type) = value.type
 }
 
 @Entity(
