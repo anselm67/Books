@@ -15,6 +15,7 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.BooksApplication.Companion.app
@@ -26,6 +27,7 @@ import com.anselm.books.databinding.RecyclerviewScanIsbnBinding
 import com.anselm.books.ui.widgets.BookFragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.util.Util
+import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -48,6 +50,12 @@ class ScanFragment: BookFragment() {
         adapter = IsbnArrayAdapter { updateLookupStats(it)  }
         binding.idRecycler.adapter = adapter
         binding.idRecycler.layoutManager = LinearLayoutManager(binding.idRecycler.context)
+
+        // For now, that's your only option out of scanning.
+        binding.idDoneButton.setOnClickListener {
+            saveAllMatches()
+            findNavController().popBackStack()
+        }
 
         // Checks permissions and sets up the camera.
         if (allPermissionsGranted()) {
@@ -132,6 +140,16 @@ class ScanFragment: BookFragment() {
         val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val ringtone = RingtoneManager.getRingtone(requireContext(), notification)
         ringtone.play()
+    }
+
+    private fun saveAllMatches() {
+        val books = adapter.getAllBooks()
+        app.applicationScope.launch {
+            books.forEach {
+                app.repository.save(it)
+            }
+            app.toast(app.getString(R.string.scan_books_added, books.size))
+        }
     }
 
     override fun onDestroy() {
@@ -263,5 +281,9 @@ private class IsbnArrayAdapter(
                 statsListener(stats)
             }
         })
+    }
+
+    fun getAllBooks(): List<Book> {
+        return dataSource.mapNotNull { (_, result) -> result.book }
     }
 }
