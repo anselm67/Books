@@ -72,12 +72,17 @@ class GoogleBooksClient: SimpleClient() {
     private fun convert(
         resp: JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book) -> Unit
+        onBook: (Book?) -> Unit
     ) {
+        // Checks the kind, verifies we got some matches.
         check(resp.optString("kind") == "books#volumes")
         val itemCount = resp.getInt("totalItems")
+        if (itemCount <= 0) {
+            onBook(null)
+            return
+        }
+        // Converts the match and let the callback know about the outcome.
         val items = resp.getJSONArray("items")
-
         for (i in 0 until itemCount) {
             try {
                 onBook(convert(items.getJSONObject(i)))
@@ -94,7 +99,7 @@ class GoogleBooksClient: SimpleClient() {
     override fun lookup(
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book) -> Unit,
+        onBook: (Book?) -> Unit,
     ) {
         val url = "https://www.googleapis.com/books/v1/volumes?q=isbn:$isbn"
         runRequest(url, onError) {

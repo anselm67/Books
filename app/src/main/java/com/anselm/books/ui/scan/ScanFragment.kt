@@ -1,6 +1,7 @@
 package com.anselm.books.ui.scan
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.media.RingtoneManager
 import android.os.Bundle
@@ -16,11 +17,15 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
 import com.anselm.books.TAG
+import com.anselm.books.database.Book
 import com.anselm.books.databinding.FragmentScanBinding
 import com.anselm.books.databinding.RecyclerviewScanIsbnBinding
 import com.anselm.books.ui.widgets.BookFragment
+import com.bumptech.glide.Glide
+import com.bumptech.glide.util.Util
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -108,6 +113,7 @@ class ScanFragment: BookFragment() {
     private fun handleISBN(isbn: String) {
         playSound()
         adapter.insertFirst(isbn)
+        binding.idRecycler.scrollToPosition(0)
     }
 
     private fun playSound() {
@@ -122,14 +128,64 @@ class ScanFragment: BookFragment() {
     }
 }
 
+private class LookupResult(
+    var loading: Boolean = true,
+    var book: Book? = null,
+    var exception: Exception? = null,
+    var errorMessage: String? = null
+)
+
 private class IsbnArrayAdapter: RecyclerView.Adapter<IsbnArrayAdapter.ViewHolder>() {
-    private val dataSource = mutableListOf<String>()
+    private val dataSource = mutableListOf<Pair<String, LookupResult>>()
     inner class ViewHolder(
         val binding: RecyclerviewScanIsbnBinding,
     ): RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(isbn: String) {
+        fun updateStatus(loading: Boolean, checked: Boolean, error: Boolean) {
+            binding.idLoadProgress.visibility = if (loading) View.VISIBLE else View.GONE
+            binding.idCheckMark.visibility = if (checked) View.VISIBLE else View.GONE
+            binding.idErrorMark.visibility = if (error) View.VISIBLE else View.GONE
+        }
+
+        fun bind(item: Pair<String, LookupResult>) {
+            // We always have at least an ISBN to display.
+            val (isbn, result) = item
             binding.idISBNText.text = isbn
+            if (result.loading) {
+                updateStatus(true, checked = false, error = false)
+                return
+            }
+            // Results are back.
+            if (result.book != null) {
+                // A match wa found, fill in the bindings.
+                binding.idTitleText.text = result.book!!.title
+                binding.idAuthorText.text = result.book!!.authors.joinToString { it.name }
+                val uri = app.getCoverUri(result.book!!)
+                if (uri != null) {
+                    Glide.with(app.applicationContext)
+                        .load(uri)
+                        .placeholder(R.mipmap.ic_book_cover)
+                        .centerCrop()
+                        .into(binding.idCoverImage)
+                } else {
+                    Glide.with(app.applicationContext)
+                        .load(R.mipmap.ic_book_cover)
+                        .centerCrop()
+                        .into(binding.idCoverImage)
+                }
+                // Hide the progress, replace it with the checkmark.
+                updateStatus(loading = false, checked = true, error = false)
+                binding.idCheckMark.visibility = View.VISIBLE
+            } else {
+                // Some kind of error occurred: no match or a real error.
+                if ( result.exception != null ) {
+                    binding.idTitleText.text = result.errorMessage ?: result.exception!!.message
+                } else {
+                    binding.idTitleText.text = app.getString(R.string.no_match_found)
+                    binding.idAuthorText.text = app.getString(R.string.manual_input_required)
+                }
+                updateStatus(false, checked = false, error = true)
+            }
         }
     }
 
@@ -150,8 +206,21 @@ private class IsbnArrayAdapter: RecyclerView.Adapter<IsbnArrayAdapter.ViewHolder
         return dataSource.size
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun insertFirst(isbn: String) {
-        dataSource.add(0, isbn)
+        val lookup = LookupResult()
+        dataSource.add(0, Pair(isbn, lookup))
         notifyItemInserted(0)
+        app.lookup(isbn, { _, e ->
+            Log.e(TAG, "Failed to lookup $isbn.", e)
+            lookup.loading = false
+            lookup.exception = e
+            lookup.errorMessage = e?.message
+            Util.postOnUiThread {  notifyDataSetChanged() }
+        }, { book ->
+            lookup.loading = false
+            lookup.book = book
+            Util.postOnUiThread {  notifyDataSetChanged() }
+        })
     }
 }

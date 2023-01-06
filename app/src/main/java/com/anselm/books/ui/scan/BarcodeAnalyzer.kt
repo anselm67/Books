@@ -50,6 +50,20 @@ class BarcodeAnalyzer(
         }
     }
 
+    /**
+     * Atomically adds a barcode to the set; Returns true if the isbn is new,false if it was
+     * already known of.
+     */
+    @Synchronized
+    private fun addBarcode(isbn: String): Boolean {
+        return if (knownBarcodes.contains(isbn) ) {
+            false
+        } else {
+            knownBarcodes.add(isbn)
+            return true
+        }
+    }
+
     private fun handleBarcodes(barcodes: List<Barcode>) {
         overlay.clearRect()
         for (barcode in barcodes) {
@@ -57,14 +71,13 @@ class BarcodeAnalyzer(
                 continue
             }
             val isbn = barcode.rawValue!!
-            if ( knownBarcodes.contains(isbn) ) {
-                // This is a known isbn, draw it as such.
-                barcode.boundingBox?.let { drawKnownRect(it) }
-            } else {
+            if ( addBarcode(isbn) ) {
                 // We're adding this isbn to our known list.
                 barcode.boundingBox?.let { drawAddedRect(it) }
-                knownBarcodes.add(isbn)
                 onISBN?.invoke(isbn)
+            } else {
+                // This is a known isbn, draw it as such.
+                barcode.boundingBox?.let { drawKnownRect(it) }
             }
         }
         overlay.postInvalidate()

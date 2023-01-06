@@ -3,9 +3,11 @@
     <string-array name="serviceIdentifiers">
         <item>Google</item>
         <item>OpenLibrary</item>
+        <item>Both</item>
     </string-array>
     <string-array name="serviceNames">
         <item>Google Books</item>
         <item>Open Library</item>
+        <item>Both</item>
     </string-array>
 </resources>

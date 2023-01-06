@@ -86,7 +86,38 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
 
+        />
+
+        <ImageView
+            android:id="@+id/idCheckMark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:src="@drawable/ic_baseline_check_24"
+            app:tint="#44AA44"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/idISBNText"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:visibility="gone"
+            android:contentDescription="@string/scan_status_matched"
+        />
+
+        <ImageView
+            android:id="@+id/idErrorMark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:src="@drawable/ic_baseline_error_outline_24"
+            app:tint="#AA4444"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/idISBNText"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:visibility="gone"
+            android:contentDescription="@string/scan_status_error"
             />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <View android:id="@+id/idRuler"

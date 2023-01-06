@@ -46,6 +46,6 @@ abstract class SimpleClient {
     abstract fun lookup(
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (matches: Book) -> Unit,
+        onBook: (matches: Book?) -> Unit,
     )
 }

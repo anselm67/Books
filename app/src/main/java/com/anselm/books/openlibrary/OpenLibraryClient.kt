@@ -198,7 +198,7 @@ class OpenLibraryClient: SimpleClient() {
     private fun convert(
         obj: JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book) -> Unit) {
+        onBook: (Book?) -> Unit) {
         val book = app.repository.newBook()
         // Copies all the pass through fields.
         book.title = obj.optString("title","")
@@ -220,7 +220,7 @@ class OpenLibraryClient: SimpleClient() {
     override fun lookup(
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book) -> Unit
+        onBook: (Book?) -> Unit
     ) {
         val url = "$basedir/isbn/$isbn.json"
         runRequest(url, onError) {

@@ -104,11 +104,16 @@ class BooksApplication : Application() {
     fun lookup(
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book) -> Unit,
+        onBook: (Book?) -> Unit,
     ) {
         when(prefs.getString("lookup_service", "Google")) {
             "Google" -> glClient.lookup(isbn, onError, onBook)
             "OpenLibrary" -> olClient.lookup(isbn, onError, onBook)
+            "Both" -> glClient.lookup(isbn, {
+                _, _ -> olClient.lookup(isbn, onError, onBook)
+            }, {
+                book -> if (book != null) onBook(book) else olClient.lookup(isbn, onError, onBook)
+            })
         }
     }
 
