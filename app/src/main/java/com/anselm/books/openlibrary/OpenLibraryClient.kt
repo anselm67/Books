@@ -37,20 +37,31 @@ class OpenLibraryClient: SimpleClient() {
         }
         return null
     }
+
     private fun language(obj: JSONObject): String {
         val tag = firstKeyOrNull(obj, "languages") ?: return ""
         return languages[tag] ?: ""
     }
 
-    private fun foldAll(obj: JSONObject, key: String): String {
-        val list = obj.optJSONArray(key) ?: return ""
-        if (list.length() > 0) {
+    private fun asStringArray(obj: JSONObject, key: String): List<String> {
+        val list = obj.optJSONArray(key) ?: return emptyList()
+        return if (list.length() > 0) {
             val arr = ArrayList<String>()
             for (i: Int in 0 until list.length())
                 arr.add(list[i] as String)
-            return arr.joinToString()
+            return arr
+        } else {
+            emptyList()
         }
-        return ""
+    }
+
+    private fun foldAll(obj: JSONObject, key: String): String {
+        val values = asStringArray(obj,key)
+        return if (values.isEmpty()) {
+            ""
+        } else {
+            values.joinToString()
+        }
     }
 
     private fun coverUrl(obj: JSONObject): String {
@@ -160,7 +171,12 @@ class OpenLibraryClient: SimpleClient() {
         onBook: (Book?) -> Unit
     ) {
         book.summary = getDescription(work)
-        book.genre = foldAll(work, "subjects")
+        val genres = asStringArray(work, "subjects")
+        if (genres.isNotEmpty()) {
+            runBlocking {
+                book.genres = genres.map { it -> app.repository.label(Label.Type.Genres, it) }
+            }
+        }
         if (book.subtitle == "") {
             book.subtitle = work.optString("subtitle", "")
         }
