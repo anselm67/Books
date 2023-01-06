@@ -104,7 +104,7 @@ class OpenLibraryClient: SimpleClient() {
         book: Book,
         work:JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book) -> Unit
+        onBook: (Book?) -> Unit
     ) {
         val keys = extractAuthorsFromWork(work)
         if (keys != null && keys.isNotEmpty()) {
@@ -119,6 +119,7 @@ class OpenLibraryClient: SimpleClient() {
                         }
                         onError(msg, e)
                     },
+                    onBook,
                     {
                         values[i] = it.optString("name")
                         if (++ done == keys.size) {
@@ -156,7 +157,7 @@ class OpenLibraryClient: SimpleClient() {
         book: Book,
         work:JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book) -> Unit
+        onBook: (Book?) -> Unit
     ) {
         book.summary = getDescription(work)
         book.genre = foldAll(work, "subjects")
@@ -173,14 +174,14 @@ class OpenLibraryClient: SimpleClient() {
         book: Book,
         obj:JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book) -> Unit
+        onBook: (Book?) -> Unit
     ) {
         val key = firstKeyOrNull(obj, "works")
         if (key == null) {
             onBook(book)
         } else {
             val url = "https://openlibrary.org$key.json"
-            runRequest(url, onError) {
+            runRequest(url, onError, onBook) {
                 setupWorkAndAuthors(book, it, onError, onBook)
             }
         }
@@ -223,7 +224,7 @@ class OpenLibraryClient: SimpleClient() {
         onBook: (Book?) -> Unit
     ) {
         val url = "$basedir/isbn/$isbn.json"
-        runRequest(url, onError) {
+        runRequest(url, onError, onBook) {
             convert(it, onError, onBook)
         }
     }

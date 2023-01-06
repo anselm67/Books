@@ -206,7 +206,7 @@ private class IsbnArrayAdapter(
                     .centerCrop()
                     .into(binding.idCoverImage)
                 // Some kind of error occurred: no match or a real error.
-                if ( result.exception != null ) {
+                if ( result.errorMessage != null ) {
                     binding.idTitleText.text = result.errorMessage ?: result.exception!!.message
                 } else {
                     binding.idTitleText.text = app.getString(R.string.no_match_found)
@@ -240,12 +240,12 @@ private class IsbnArrayAdapter(
         dataSource.add(0, Pair(isbn, lookup))
         notifyItemInserted(0)
         stats.lookupCount.incrementAndGet()
-        app.lookup(isbn, { _, e ->
+        app.lookup(isbn, { msg, e ->
             Log.e(TAG, "Failed to lookup $isbn.", e)
             stats.errorCount.incrementAndGet()
             lookup.loading = false
             lookup.exception = e
-            lookup.errorMessage = e?.message
+            lookup.errorMessage = msg
             Util.postOnUiThread {
                 notifyDataSetChanged()
                 statsListener(stats)

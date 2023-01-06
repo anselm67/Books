@@ -13,9 +13,18 @@ import java.io.IOException
 abstract class SimpleClient {
     private val client = OkHttpClient()
 
+    /**
+    * Runs the request and parses it as a json object, with three possible outcomes:
+     * 1. All is good: onSuccess is invoked with the said json object,
+     * 2. No errors, bt the request resulted in a 404, onBook is called with null to
+     *    signal no-match
+     * 3. Some error occurred, onError is invoked with at least an error message and may be an
+     *    exception
+     */
     fun runRequest(
         url: String,
         onError: (message: String, e: Exception?) -> Unit,
+        onBook: (Book?) -> Unit,
         onSuccess: (JSONObject) -> Unit
     ): Call {
         val req = Request.Builder().url(url).build()
@@ -32,11 +41,17 @@ abstract class SimpleClient {
                     val obj = tok.nextValue()
                     if (obj !is JSONObject) {
                         onError("$url: parse failed got a ${obj.javaClass.name}.", null)
-                        return
+                    } else {
+                        onSuccess(obj)
                     }
-                    onSuccess(obj)
                 } else {
-                    onError( "$url: HTTP Request failed, status $response", null)
+                    if (response.code == 404) {
+                        //That's a no-match.
+                        onBook(null)
+                    } else {
+                        // A real error.
+                        onError( "$url: HTTP Request failed, status $response", null)
+                    }
                 }
             }
         })

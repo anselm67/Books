@@ -102,7 +102,7 @@ class GoogleBooksClient: SimpleClient() {
         onBook: (Book?) -> Unit,
     ) {
         val url = "https://www.googleapis.com/books/v1/volumes?q=isbn:$isbn"
-        runRequest(url, onError) {
+        runRequest(url, onError, onBook) {
             convert(it, onError, onBook)
         }
 
