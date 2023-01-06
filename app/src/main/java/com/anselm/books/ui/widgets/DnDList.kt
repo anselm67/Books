@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.database.Label
 import com.anselm.books.databinding.RecyclerviewEditLabelItemBinding
@@ -118,7 +119,8 @@ class DnDList(
         itemTouchHelper.attachToRecyclerView(list)
         adapter.differ.submitList(labels)
         list.adapter = adapter
-        // FIXME Why aren't we setting layout here?
+        list.layoutManager = LinearLayoutManager(list.context)
+
     }
 
     @SuppressLint("NotifyDataSetChanged")
