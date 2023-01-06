@@ -21,6 +21,7 @@ import androidx.preference.PreferenceFragmentCompat
 import com.anselm.books.BooksApplication
 import com.anselm.books.R
 import com.anselm.books.TAG
+import com.anselm.books.ui.widgets.BookFragment
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
@@ -71,10 +72,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private fun handleMenu(menuHost: MenuHost) {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menu.findItem(R.id.idSearchView)?.isVisible = false
-                menu.findItem(R.id.idEditBook)?.isVisible = false
-                menu.findItem(R.id.idSaveBook)?.isVisible = false
-                menu.findItem(R.id.idGotoSearchView)?.isVisible = false
+                BookFragment.allItemIds.forEach {
+                    menu.findItem(it).isVisible = false
+                }
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {

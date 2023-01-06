@@ -13,15 +13,18 @@ import com.anselm.books.R
 open class BookFragment: Fragment() {
     protected lateinit var app: BooksApplication
 
-    private val allItemIds = arrayOf(
-        R.id.idSortByDateAdded,
-        R.id.idSortByTitle,
-        R.id.idGotoSearchView,
-        R.id.idEditBook,
-        R.id.idSaveBook,
-        R.id.idSearchView,
-        R.id.idDeleteBook,
-    )
+    companion object {
+        // SettingsFragment can't inherit from BookFragment and it needs that list, sorry.
+        val allItemIds = arrayOf(
+            R.id.idSortByDateAdded,
+            R.id.idSortByTitle,
+            R.id.idGotoSearchView,
+            R.id.idEditBook,
+            R.id.idSaveBook,
+            R.id.idSearchView,
+            R.id.idDeleteBook,
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
