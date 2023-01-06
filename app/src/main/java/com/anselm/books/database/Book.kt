@@ -140,9 +140,9 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         // Handles label fields.
         obj.put(BookFields.AUTHOR, authors.map { it.name })
         obj.put(BookFields.GENRE, genres.map { it.name })
-        obj.put(BookFields.PHYSICAL_LOCATION, locations?.name ?: "")
-        obj.put(BookFields.PUBLISHER, publishers?.name ?: "")
-        obj.put(BookFields.LANGUAGE, languages?.name ?: "")
+        obj.put(BookFields.PHYSICAL_LOCATION, location?.name ?: "")
+        obj.put(BookFields.PUBLISHER, publisher?.name ?: "")
+        obj.put(BookFields.LANGUAGE, language?.name ?: "")
         return obj
     }
 
@@ -243,31 +243,23 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         }
     }
 
-    var publishers: Label?
+    var publisher: Label?
         get() = firstLabel(Label.Type.Publisher)
         set(value) {
             setOrReplaceLabel(Label.Type.Publisher, value)
         }
 
-    var languages: Label?
+    var language: Label?
         get() = firstLabel(Label.Type.Language)
         set(value) {
             setOrReplaceLabel(Label.Type.Language, value)
         }
 
-    var locations: Label?
+    var location: Label?
         get() = firstLabel(Label.Type.Location)
         set(value) {
             setOrReplaceLabel(Label.Type.Location, value)
         }
-
-    val location: String
-        get() {
-            return if (locations == null) "" else locations!!.name
-        }
-
-    var genre: String = ""
-        get() = getLabels(Label.Type.Genres).joinToString { it -> it.name }
 
     var genres: List<Label>
         get() = getLabels(Label.Type.Genres)
@@ -276,9 +268,12 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         }
 
     // This ensures that the authors get text-indexed by BookFTS.
+    // The compiler warning is to be ignored here: this field is only read - and by the dao only -
+    // upon inserting / saving a book to the database.
+    // That is in fact what it is for.
     @ColumnInfo(name = "author_text")
     var authorText: String = ""
-        get() = getLabels(Label.Type.Authors).joinToString { it -> it.name }
+        get() = getLabels(Label.Type.Authors).joinToString { it.name }
 
     var authors: List<Label>
         get() = getLabels(Label.Type.Authors)

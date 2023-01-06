@@ -55,9 +55,9 @@ class GoogleBooksClient: SimpleClient() {
         // FIXME book.yearPublished
         book.summary = volumeInfo.optString("description")
         book.imgUrl = volumeInfo.optJSONObject("imageLinks")?.optString("thumbnail") ?: ""
-        book.languages = getLanguage(volumeInfo.optString("language", ""))
+        book.language = getLanguage(volumeInfo.optString("language", ""))
         book.numberOfPages = getNumberOfPages(volumeInfo.optInt("pageCount", 0))
-        book.publishers = app.repository.labelOrNullB(
+        book.publisher = app.repository.labelOrNullB(
             Label.Type.Publisher, volumeInfo.optString("publisher", ""))
         // Label-fields:
         book.authors = arrayToList<String>(volumeInfo.optJSONArray("authors"))

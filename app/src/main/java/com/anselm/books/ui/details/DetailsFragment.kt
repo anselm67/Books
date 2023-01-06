@@ -104,7 +104,7 @@ class DetailsFragment : BookFragment() {
     }
 
     private fun bindDetails(inflater: LayoutInflater, detailsView: ViewGroup?, book: Book) {
-        if (book.numberOfPages == "" && book.languages == null && book.isbn == "")
+        if (book.numberOfPages == "" && book.language == null && book.isbn == "")
             return
         val container = LinearLayout(detailsView?.context)
         container.layoutDirection = View.LAYOUT_DIRECTION_RTL
@@ -120,7 +120,7 @@ class DetailsFragment : BookFragment() {
                 binding.isbnView
             ),
             Triple(
-                { book::languages.getter()?.name ?: "" },
+                { book::language.getter()?.name ?: "" },
                 binding.languageContainerView,
                 binding.languageView
             ),
@@ -201,14 +201,14 @@ class DetailsFragment : BookFragment() {
         bindDetails(inflater, detailsView, book)
         // Remaining fields.
         val fields = mutableListOf<Triple<Int, () -> String, ((String?) -> Unit)?>>(
-            Triple(R.string.publisherLabel, { book::publishers.getter()?.name ?: "" }) {
+            Triple(R.string.publisherLabel, { book::publisher.getter()?.name ?: "" }) {
                 val action = DetailsFragmentDirections.toSearchFragment(
                     Query(filters = Query.asFilter(book.firstLabel(Label.Type.Publisher)))
                 )
                 navController.navigate(action)
             },
             Triple(R.string.yearPublishedLabel, book::yearPublished.getter, null),
-            Triple(R.string.physicalLocationLabel, book::location.getter) {
+            Triple(R.string.physicalLocationLabel, { book::location.getter()?.name ?: "" } ) {
                 val action = DetailsFragmentDirections.toSearchFragment(
                     Query(filters = Query.asFilter(book.firstLabel(Label.Type.Location)))
                 )

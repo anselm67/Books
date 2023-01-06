@@ -184,20 +184,20 @@ class EditFragment: BookFragment() {
                 book::authors.getter, book::authors.setter),
             SingleLabelEditor(this, inflater,
                 Label.Type.Publisher, R.string.publisherLabel,
-                book::publishers.getter, book::publishers.setter),
+                book::publisher.getter, book::publisher.setter),
             MultiLabelEditor(this, inflater,
                 Label.Type.Genres, R.string.genreLabel,
                 book::genres.getter, book::genres.setter),
             SingleLabelEditor(this, inflater,
                 Label.Type.Location, R.string.physicalLocationLabel,
-                book::locations.getter, book::locations.setter),
+                book::location.getter, book::location.setter),
             TextEditor(this, inflater, R.string.isbnLabel,
                 book::isbn.getter, book::isbn.setter) {
                 isValidEAN13(it)
             },
             SingleLabelEditor(this, inflater,
                 Label.Type.Language, R.string.languageLabel,
-                book::languages.getter, book::languages.setter),
+                book::language.getter, book::language.setter),
             TextEditor(this, inflater, R.string.numberOfPagesLabel,
                 book::numberOfPages.getter, book::numberOfPages.setter) {
                 isValidNumber(it)

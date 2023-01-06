@@ -159,7 +159,8 @@ class BookRepository(private val dao: BookDao) {
     private val labelsByValue = HashMap<Pair<Label.Type,String>, Label>()
     private val labelsById = HashMap<Long, Label>()
 
-    suspend fun label(type: Label.Type, name: String): Label {
+    suspend fun label(type: Label.Type, rawName: String): Label {
+        val name = rawName.trim()
         val key = Pair(type, name)
         var label = labelsByValue[key]
         if (label == null) {

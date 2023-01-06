@@ -54,15 +54,6 @@ class OpenLibraryClient: SimpleClient() {
         }
     }
 
-    private fun foldAll(obj: JSONObject, key: String): String {
-        val values = asStringArray(obj,key)
-        return if (values.isEmpty()) {
-            ""
-        } else {
-            values.joinToString()
-        }
-    }
-
     private fun coverUrl(obj: JSONObject): String {
         val coverId = firstOrEmpty(obj,"covers")
         if (coverId != "") {
@@ -212,9 +203,9 @@ class OpenLibraryClient: SimpleClient() {
         book.subtitle = obj.optString("subtitle", "")
         book.numberOfPages = obj.optString("number_of_pages", "")
         book.isbn = firstOrEmpty(obj, "isbn_13")
-        book.languages = app.repository.labelOrNullB(Label.Type.Language, language(obj))
-        book.publishers = app.repository.labelOrNullB(
-            Label.Type.Publisher, foldAll(obj, "publishers"))
+        book.language = app.repository.labelOrNullB(Label.Type.Language, language(obj))
+        book.publisher = app.repository.labelOrNullB(
+            Label.Type.Publisher, asStringArray(obj, "publishers").joinToString())
         book.imgUrl = coverUrl(obj)
         val date = publishDate(obj)
         if (date != null) {
