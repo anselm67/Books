@@ -5,7 +5,6 @@ import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
-import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -31,11 +30,7 @@ class GoogleBooksClient: SimpleClient() {
     )
 
     private fun getLanguage(str: String): Label? {
-        var value: Label?
-        runBlocking {
-            value = app.repository.label(Label.Type.Language, languages.getOrDefault(str, str))
-        }
-        return value
+        return app.repository.labelOrNullB(Label.Type.Language, languages.getOrDefault(str, str))
     }
 
     private fun getNumberOfPages(num: Int): String {
@@ -62,14 +57,13 @@ class GoogleBooksClient: SimpleClient() {
         book.imgUrl = volumeInfo.optJSONObject("imageLinks")?.optString("thumbnail") ?: ""
         book.languages = getLanguage(volumeInfo.optString("language", ""))
         book.numberOfPages = getNumberOfPages(volumeInfo.optInt("pageCount", 0))
-        book.publisher = volumeInfo.optString("publisher", "")
+        book.publishers = app.repository.labelOrNullB(
+            Label.Type.Publisher, volumeInfo.optString("publisher", ""))
         // Label-fields:
-        runBlocking {
-            book.authors = arrayToList<String>(volumeInfo.optJSONArray("authors"))
-                .map { repository.label(Label.Type.Authors, it) }
-            book.genres = arrayToList<String>(volumeInfo.optJSONArray("categories"))
-                .map { repository.label(Label.Type.Genres, it) }
-        }
+        book.authors = arrayToList<String>(volumeInfo.optJSONArray("authors"))
+            .map { repository.labelB(Label.Type.Authors, it) }
+        book.genres = arrayToList<String>(volumeInfo.optJSONArray("categories"))
+            .map { repository.labelB(Label.Type.Genres, it) }
         return book
     }
 

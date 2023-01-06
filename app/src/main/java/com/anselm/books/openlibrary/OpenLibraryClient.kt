@@ -212,11 +212,9 @@ class OpenLibraryClient: SimpleClient() {
         book.subtitle = obj.optString("subtitle", "")
         book.numberOfPages = obj.optString("number_of_pages", "")
         book.isbn = firstOrEmpty(obj, "isbn_13")
-        var languageName = language(obj)
-        if (languageName.isNotEmpty()) {
-            book.languages = app.repository.labelB(Label.Type.Language, languageName)
-        }
-        book.publisher = foldAll(obj, "publishers")
+        book.languages = app.repository.labelOrNullB(Label.Type.Language, language(obj))
+        book.publishers = app.repository.labelOrNullB(
+            Label.Type.Publisher, foldAll(obj, "publishers"))
         book.imgUrl = coverUrl(obj)
         val date = publishDate(obj)
         if (date != null) {

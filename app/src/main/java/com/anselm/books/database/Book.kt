@@ -243,15 +243,6 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         }
     }
 
-    var publisher: String
-        get() {
-            check(decorated)
-            return labels!!.firstOrNull { it.type == Label.Type.Publisher }?.name ?: ""
-        }
-        set(value) {
-            setOrReplaceLabel(Label.Type.Publisher, Label(Label.Type.Publisher,value))
-        }
-
     var publishers: Label?
         get() = firstLabel(Label.Type.Publisher)
         set(value) {

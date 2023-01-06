@@ -184,6 +184,10 @@ class BookRepository(private val dao: BookDao) {
         return label
     }
 
+    fun labelOrNullB(type: Label.Type, name: String):Label? {
+        return if (name.isEmpty()) null else labelB(type, name)
+
+    }
     suspend fun label(id: Long): Label {
         var label = labelsById[id]
         if (label == null) {

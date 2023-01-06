@@ -201,7 +201,7 @@ class DetailsFragment : BookFragment() {
         bindDetails(inflater, detailsView, book)
         // Remaining fields.
         val fields = mutableListOf<Triple<Int, () -> String, ((String?) -> Unit)?>>(
-            Triple(R.string.publisherLabel, book::publisher.getter) {
+            Triple(R.string.publisherLabel, { book::publishers.getter()?.name ?: "" }) {
                 val action = DetailsFragmentDirections.toSearchFragment(
                     Query(filters = Query.asFilter(book.firstLabel(Label.Type.Publisher)))
                 )
