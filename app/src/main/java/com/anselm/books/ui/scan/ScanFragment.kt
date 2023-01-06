@@ -200,6 +200,11 @@ private class IsbnArrayAdapter(
                 updateStatus(loading = false, checked = true, error = false)
                 binding.idCheckMark.visibility = View.VISIBLE
             } else {
+                // Clears the image in case this holder was used by a match before.
+                Glide.with(app.applicationContext)
+                    .load(R.mipmap.ic_book_cover)
+                    .centerCrop()
+                    .into(binding.idCoverImage)
                 // Some kind of error occurred: no match or a real error.
                 if ( result.exception != null ) {
                     binding.idTitleText.text = result.errorMessage ?: result.exception!!.message
@@ -241,8 +246,10 @@ private class IsbnArrayAdapter(
             lookup.loading = false
             lookup.exception = e
             lookup.errorMessage = e?.message
-            Util.postOnUiThread {  notifyDataSetChanged() }
-            statsListener(stats)
+            Util.postOnUiThread {
+                notifyDataSetChanged()
+                statsListener(stats)
+            }
         }, { book ->
             if (book == null) {
                 stats.noMatchCount.incrementAndGet()
@@ -251,8 +258,10 @@ private class IsbnArrayAdapter(
             }
             lookup.loading = false
             lookup.book = book
-            Util.postOnUiThread {  notifyDataSetChanged() }
-            statsListener(stats)
+            Util.postOnUiThread {
+                notifyDataSetChanged()
+                statsListener(stats)
+            }
         })
     }
 }
