@@ -14,7 +14,8 @@
   ~ limitations under the License.
   -->
 
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+<PreferenceScreen
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory app:title="@string/import_preferences_header">
@@ -29,7 +30,7 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="Display">
+    <PreferenceCategory app:title="@string/preference_category_lookup_service">
 
         <DropDownPreference
             app:key="lookup_service"
@@ -39,14 +40,20 @@
             android:title="Lookup Service"
             app:useSimpleSummaryProvider="true"/>
 
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/preference_category_display">
+
+
         <CheckBoxPreference
             app:key="display_book_id"
-            app:title="Display last modified date?"
+            app:title="@string/preference_display_book_id"
             android:defaultValue="false"/>
 
         <CheckBoxPreference
             app:key="display_last_modified"
-            app:title="Display last modified date?"
+            app:title="@string/preference_display_last_modified"
             android:defaultValue="false"/>
 
     </PreferenceCategory>

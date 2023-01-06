@@ -87,4 +87,8 @@
     <string name="scan_stat_message">%1$d lookups: %2$d matches (%3$d didn\'t match and %4$d failed)</string>
     <string name="scan_books_added">Added %1$d books to your library.</string>
     <string name="done">Done</string>
+    <string name="preference_display_book_id">Display last modified date?</string>
+    <string name="preference_display_last_modified">Display last modified date?</string>
+    <string name="preference_category_lookup_service">Lookup service</string>
+    <string name="preference_category_display">Display</string>
 </resources>
