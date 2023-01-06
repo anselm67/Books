@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 open class ListFragment: BookFragment() {
-    protected val app = BooksApplication.app
     private var _binding: FragmentListBinding? = null
     protected val binding get() = _binding!!
     protected val bookViewModel: BookViewModel by viewModels { BookViewModel.Factory }

@@ -1,7 +1,7 @@
 package com.anselm.books.openlibrary
 
 import android.util.Log
-import com.anselm.books.BooksApplication
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
@@ -11,7 +11,7 @@ import org.json.JSONObject
 
 
 class GoogleBooksClient: SimpleClient() {
-    val repository by lazy { BooksApplication.app.repository }
+    val repository by lazy { app.repository }
 
     private fun extractIsbn(obj: JSONObject): String {
         val ids = obj.optJSONArray("industryIdentifiers")
@@ -47,7 +47,7 @@ class GoogleBooksClient: SimpleClient() {
     }
 
     private fun convert(obj: JSONObject): Book {
-        val book = Book()
+        val book = app.repository.newBook()
         val volumeInfo = obj.optJSONObject("volumeInfo")
         check(volumeInfo != null)
         book.isbn = extractIsbn(volumeInfo)

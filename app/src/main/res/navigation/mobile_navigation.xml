@@ -24,6 +24,9 @@
         <action
             android:id="@+id/toPagerFragment"
             app:destination="@id/nav_pager" />
+        <action
+            android:id="@+id/toScanFragment"
+            app:destination="@id/nav_scan" />
 
     </fragment>
 
@@ -116,6 +119,12 @@
         <action android:id="@+id/toSearchFragment"
             app:destination="@id/nav_search" />
 
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_scan"
+        android:name="com.anselm.books.ui.scan.ScanFragment"
+        tools:layout="@layout/fragment_scan" >
     </fragment>
 
 </navigation>

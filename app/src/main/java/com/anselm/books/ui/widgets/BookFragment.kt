@@ -1,14 +1,18 @@
 package com.anselm.books.ui.widgets
 
+import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import com.anselm.books.BooksApplication
 import com.anselm.books.R
 
 open class BookFragment: Fragment() {
+    protected lateinit var app: BooksApplication
+
     private val allItemIds = arrayOf(
         R.id.idSortByDateAdded,
         R.id.idSortByTitle,
@@ -18,6 +22,11 @@ open class BookFragment: Fragment() {
         R.id.idSearchView,
         R.id.idDeleteBook,
     )
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        app = BooksApplication.app
+    }
 
     // For subclasses to finish any toolbar work.
     protected open fun onCreateMenu(menu: Menu) { }

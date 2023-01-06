@@ -1,36 +1,3 @@
-        book = {}
-        volumeInfo = item['volumeInfo']
-        book['isbn'] = self.extractIsbn(volumeInfo) or isbn
-        book['title'] = volumeInfo.get('title') or ''
-        book['author'] = volumeInfo.get('authors') or []
-        book['publish_date'] = volumeInfo.get('publishedDate') or ''
-        book['summary'] = volumeInfo.get('description') or ''
-        book['genre'] = volumeInfo.get('categories') or []
-        imageLinks = volumeInfo.get('imageLinks')
-        book['uploaded_image_url'] = (imageLinks and imageLinks.get('thumbnail')) or ''
-        book['language'] = self.LANGUAGES.get(volumeInfo.get('language') or '') or ''
-        book['number_of_pages'] = str(volumeInfo.get('pageCount') or '')
-        book['publisher'] = volumeInfo.get('publisher') or ''
-        # book['year_published']
-        return book
-
-
-    def extractIsbn(self, volumeInfo):
-        ids = volumeInfo.get('industryIdentifiers') or []
-        id = next((id for id in ids if id['type'] == 'ISBN_13'), None)
-        if id:
-            return id['identifier']
-        return ""
-
-    LANGUAGES = {
-        '': '',
-        'fr': 'French',
-        'en': 'English',
-        'es': 'Spanish',
-    }
-
-
-
 
 Sorting data sources and switching accordingly:
 https://stackoverflow.com/questions/65643600/android-paging-3-library-how-to-change-list-with-new-param

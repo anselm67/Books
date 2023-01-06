@@ -144,6 +144,14 @@ class BookRepository(private val dao: BookDao) {
     }
 
     /**
+     * Creates a new book for insertion.
+     * This might set some default values for some fields based on preferences.
+     */
+    fun newBook(): Book {
+        return Book()
+    }
+
+    /**
      * Handling of cached labels.
      * All labels are to be gotten through these methods which caches them as needed.
      */

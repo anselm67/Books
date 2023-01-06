@@ -118,6 +118,7 @@ class DnDList(
         itemTouchHelper.attachToRecyclerView(list)
         adapter.differ.submitList(labels)
         list.adapter = adapter
+        // FIXME Why aren't we setting layout here?
     }
 
     @SuppressLint("NotifyDataSetChanged")

@@ -77,12 +77,20 @@ dependencies {
     // Kotlin reflection
     implementation "org.jetbrains.kotlin:kotlin-reflect:$reflectVersion"
 
-    // OkHttp for openlibrary access.
+    // OkHttp for OpenLibrary and GoogleBooks access.
     implementation("com.squareup.okhttp3:okhttp:$okHttpVersion")
 
-    // Barcode scanning
-    implementation 'com.google.android.gms:play-services-base:18.1.0'
-    implementation 'com.google.android.gms:play-services-code-scanner:16.0.0-beta3'
+    // CameraX
+    implementation "androidx.camera:camera-core:${camerax_version}"
+    implementation "androidx.camera:camera-camera2:${camerax_version}"
+    implementation "androidx.camera:camera-lifecycle:${camerax_version}"
+    implementation "androidx.camera:camera-video:${camerax_version}"
+
+    implementation "androidx.camera:camera-view:${camerax_version}"
+    implementation "androidx.camera:camera-extensions:${camerax_version}"
+
+    // Barcode scanning with mlkit, including the model.
+    implementation 'com.google.mlkit:barcode-scanning:17.0.3'
 
     // Testing
     testImplementation "junit:junit:$rootProject.junitVersion"

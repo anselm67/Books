@@ -1,7 +1,7 @@
 package com.anselm.books.openlibrary
 
 import android.util.Log
-import com.anselm.books.BooksApplication
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.database.Book
 import com.anselm.books.TAG
 import com.anselm.books.database.Label
@@ -125,7 +125,7 @@ class OpenLibraryClient: SimpleClient() {
                             book.authors = values.filter { ! it.isNullOrEmpty() }
                                 .map {
                                     runBlocking {
-                                        BooksApplication.app.repository.label(
+                                        app.repository.label(
                                             Label.Type.Authors,
                                             it!!
                                         )
@@ -199,7 +199,7 @@ class OpenLibraryClient: SimpleClient() {
         obj: JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
         onBook: (Book) -> Unit) {
-        val book = Book()
+        val book = app.repository.newBook()
         // Copies all the pass through fields.
         book.title = obj.optString("title","")
         book.subtitle = obj.optString("subtitle", "")

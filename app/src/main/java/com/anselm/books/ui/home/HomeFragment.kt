@@ -1,7 +1,6 @@
 package com.anselm.books.ui.home
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,17 +10,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.anselm.books.R
-import com.anselm.books.TAG
-import com.anselm.books.database.Book
 import com.anselm.books.database.BookDao
 import com.anselm.books.database.Query
 import com.anselm.books.databinding.BottomAddDialogBinding
-import com.anselm.books.hideKeyboard
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.mlkit.vision.barcode.common.Barcode
-import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
-import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class HomeFragment : ListFragment() {
@@ -72,17 +64,19 @@ class HomeFragment : ListFragment() {
         dialog.setContentView(binding.root)
 
         binding.idScan.setOnClickListener {
-            scanISBN()
+            val action = HomeFragmentDirections.toScanFragment()
+            findNavController().navigate(action)
             dialog.dismiss()
         }
         binding.idType.setOnClickListener {
-            val action = HomeFragmentDirections.toEditFragment(-1, Book())
+            val action = HomeFragmentDirections.toEditFragment(-1, app.repository.newBook())
             findNavController().navigate(action)
             dialog.dismiss()
         }
         dialog.show()
     }
 
+    /*
     private fun scanISBN() {
         val options = GmsBarcodeScannerOptions.Builder()
             .setBarcodeFormats(Barcode.FORMAT_EAN_13)
@@ -123,5 +117,7 @@ class HomeFragment : ListFragment() {
             app.loading(false, "$TAG.handleISBM")
         })
     }
+
+     */
 }
 

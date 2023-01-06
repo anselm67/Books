@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layoutDirection="ltr">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/idCoverImage"
+            android:layout_width="60sp"
+            android:layout_height="90sp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:contentDescription="@string/book_image_description"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/ic_book_cover"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="1.0"
+            app:layout_constraintEnd_toStartOf="@id/idAuthorText"
+            app:layout_constraintStart_toStartOf="parent"
+            card_view:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/idTitleText"
+            android:scrollHorizontally="true"
+            android:ellipsize="end"
+            android:maxLines="2"
+            style="@style/BookCardFieldValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/default_title_string"
+            android:textStyle="bold"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            app:layout_constraintBottom_toTopOf="@id/idAuthorText"
+            app:layout_constraintEnd_toStartOf="@id/idLoadProgress"
+            app:layout_constraintStart_toEndOf="@id/idCoverImage"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/idAuthorText"
+            android:scrollHorizontally="true"
+            android:ellipsize="end"
+            android:maxLines="1"
+            style="@style/BookCardFieldValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/default_author_string"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            app:layout_constraintEnd_toStartOf="@id/idLoadProgress"
+            app:layout_constraintStart_toEndOf="@id/idCoverImage"
+            app:layout_constraintTop_toBottomOf="@id/idTitleText"
+            app:layout_constraintBottom_toTopOf="@id/idISBNText"/>
+
+        <TextView
+            android:id="@+id/idISBNText"
+            android:scrollHorizontally="true"
+            android:ellipsize="end"
+            android:maxLines="1"
+            style="@style/BookCardFieldValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/default_isbn_string"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            app:layout_constraintEnd_toStartOf="@id/idLoadProgress"
+            app:layout_constraintStart_toEndOf="@id/idCoverImage"
+            app:layout_constraintTop_toBottomOf="@id/idAuthorText" />
+
+        <ProgressBar
+            android:id="@+id/idLoadProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/idISBNText"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+
+            />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View android:id="@+id/idRuler"
+        style="@style/BookDetailsRuler" />
+
+</LinearLayout>
