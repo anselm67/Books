@@ -120,7 +120,6 @@ class DnDList(
         adapter.differ.submitList(labels)
         list.adapter = adapter
         list.layoutManager = LinearLayoutManager(list.context)
-
     }
 
     @SuppressLint("NotifyDataSetChanged")

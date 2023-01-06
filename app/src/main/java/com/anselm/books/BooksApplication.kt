@@ -110,8 +110,6 @@ class BooksApplication : Application() {
             "Google" -> glClient.lookup(isbn, onError, onBook)
             "OpenLibrary" -> olClient.lookup(isbn, onError, onBook)
         }
-
-
     }
 
     companion object {
