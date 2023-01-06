@@ -195,8 +195,9 @@ class EditFragment: BookFragment() {
                 book::isbn.getter, book::isbn.setter) {
                 isValidEAN13(it)
             },
-            TextEditor(this, inflater, R.string.languageLabel,
-                book::language.getter, book::language.setter),
+            SingleLabelEditor(this, inflater,
+                Label.Type.Language, R.string.languageLabel,
+                book::languages.getter, book::languages.setter),
             TextEditor(this, inflater, R.string.numberOfPagesLabel,
                 book::numberOfPages.getter, book::numberOfPages.setter) {
                 isValidNumber(it)
@@ -551,11 +552,7 @@ private class LabelAutoComplete(
                     return false
                 val text = if (v == null || v.text == null) "" else v.text.toString().trim()
                 if (text != initialText) {
-                    var label: Label?
-                    runBlocking {
-                        label = repository.label(type, text)
-                    }
-                    handleLabel(label!!)
+                    handleLabel(repository.labelB(type, text))
                 }
                 return false
             }

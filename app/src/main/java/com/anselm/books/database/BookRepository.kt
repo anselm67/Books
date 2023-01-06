@@ -2,6 +2,7 @@ package com.anselm.books.database
 
 import android.util.Log
 import com.anselm.books.TAG
+import kotlinx.coroutines.runBlocking
 
 class BookRepository(private val dao: BookDao) {
 
@@ -170,6 +171,15 @@ class BookRepository(private val dao: BookDao) {
             }
             labelsByValue[key] = label
             labelsById[label.id] = label
+        }
+        return label
+    }
+
+    // A (B)locking version of label, cause it's used everywhere and usually right in the cache.
+    fun labelB(type: Label.Type, name: String): Label {
+        var label: Label
+        runBlocking {
+            label = label(type, name)
         }
         return label
     }

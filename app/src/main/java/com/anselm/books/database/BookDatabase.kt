@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
         Label::class, LabelFTS::class,
         BookLabels::class
     ],
-    version = 18,
+    version = 19,
     exportSchema = false)
 abstract class BookDatabase : RoomDatabase() {
 

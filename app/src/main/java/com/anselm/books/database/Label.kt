@@ -31,7 +31,8 @@ data class Label(
         Authors(1),
         Genres(2),
         Location(3),
-        Publisher(4)
+        Publisher(4),
+        Language(5),
     }
 }
 

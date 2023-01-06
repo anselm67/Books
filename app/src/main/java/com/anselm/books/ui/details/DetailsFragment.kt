@@ -104,7 +104,7 @@ class DetailsFragment : BookFragment() {
     }
 
     private fun bindDetails(inflater: LayoutInflater, detailsView: ViewGroup?, book: Book) {
-        if (book.numberOfPages == "" && book.language == "" && book.isbn == "")
+        if (book.numberOfPages == "" && book.languages == null && book.isbn == "")
             return
         val container = LinearLayout(detailsView?.context)
         container.layoutDirection = View.LAYOUT_DIRECTION_RTL
@@ -120,7 +120,7 @@ class DetailsFragment : BookFragment() {
                 binding.isbnView
             ),
             Triple(
-                book::language.getter,
+                { book::languages.getter()?.name ?: "" },
                 binding.languageContainerView,
                 binding.languageView
             ),

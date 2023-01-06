@@ -59,9 +59,6 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
     @ColumnInfo(name = "numberOfPages")
     var numberOfPages = ""
 
-    @ColumnInfo(name = "language")
-    var language = ""
-
     // Handles date added conversion type:
     // It's imported from json as a String encoded number of seconds. That's also how it
     // is stored in the database. The private _dateAdded stores the db value, the public
@@ -116,15 +113,16 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         this.summary = obj.optString(BookFields.SUMMARY, "")
         this.yearPublished = obj.optString(BookFields.YEAR_PUBLISHED, "")
         this.numberOfPages = obj.optString(BookFields.NUMBER_OF_PAGES, "")
-        this.language = obj.optString(BookFields.LANGUAGE, "")
         this.rawDateAdded = obj.optLong(BookFields.DATE_ADDED, 0)
         this.imageFilename = obj.optString(BookFields.IMAGE_FILENAME, "")
         this.rawLastModified = obj.optLong(BookFields.LAST_MODIFIED, 0)
         // Handles label fields:
-        arrayToLabels(Label.Type.Authors, obj, "author")
-        arrayToLabels(Label.Type.Genres, obj, "genre")
-        stringToLabel(Label.Type.Location, obj, "physical_location")
-        stringToLabel(Label.Type.Publisher, obj, "publisher")
+        arrayToLabels(Label.Type.Authors, obj, BookFields.AUTHOR)
+        arrayToLabels(Label.Type.Genres, obj, BookFields.GENRE)
+        stringToLabel(Label.Type.Location, obj, BookFields.PHYSICAL_LOCATION)
+        stringToLabel(Label.Type.Publisher, obj, BookFields.PUBLISHER)
+        stringToLabel(Label.Type.Language, obj, BookFields.LANGUAGE)
+
     }
 
     fun toJson(): JSONObject {
@@ -136,7 +134,6 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         obj.put(BookFields.SUMMARY, summary)
         obj.put(BookFields.YEAR_PUBLISHED, yearPublished)
         obj.put(BookFields.NUMBER_OF_PAGES, numberOfPages)
-        obj.put(BookFields.LANGUAGE, language)
         obj.put(BookFields.DATE_ADDED, rawDateAdded)
         obj.put(BookFields.IMAGE_FILENAME, imageFilename)
         obj.put(BookFields.LAST_MODIFIED, rawLastModified)
@@ -145,6 +142,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         obj.put(BookFields.GENRE, genres.map { it.name })
         obj.put(BookFields.PHYSICAL_LOCATION, locations?.name ?: "")
         obj.put(BookFields.PUBLISHER, publishers?.name ?: "")
+        obj.put(BookFields.LANGUAGE, languages?.name ?: "")
         return obj
     }
 
@@ -258,6 +256,12 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         get() = firstLabel(Label.Type.Publisher)
         set(value) {
             setOrReplaceLabel(Label.Type.Publisher, value)
+        }
+
+    var languages: Label?
+        get() = firstLabel(Label.Type.Language)
+        set(value) {
+            setOrReplaceLabel(Label.Type.Language, value)
         }
 
     var locations: Label?

@@ -5,7 +5,6 @@ import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.database.Book
 import com.anselm.books.TAG
 import com.anselm.books.database.Label
-import kotlinx.coroutines.runBlocking
 import okhttp3.*
 import org.json.JSONObject
 import java.time.format.DateTimeFormatter
@@ -135,14 +134,7 @@ class OpenLibraryClient: SimpleClient() {
                         values[i] = it.optString("name")
                         if (++ done == keys.size) {
                             book.authors = values.filter { ! it.isNullOrEmpty() }
-                                .map {
-                                    runBlocking {
-                                        app.repository.label(
-                                            Label.Type.Authors,
-                                            it!!
-                                        )
-                                    }
-                                }
+                                .map { app.repository.labelB(Label.Type.Authors, it!!) }
                             onBook(book)
                         }
                     }
@@ -173,9 +165,7 @@ class OpenLibraryClient: SimpleClient() {
         book.summary = getDescription(work)
         val genres = asStringArray(work, "subjects")
         if (genres.isNotEmpty()) {
-            runBlocking {
-                book.genres = genres.map { it -> app.repository.label(Label.Type.Genres, it) }
-            }
+            book.genres = genres.map { it -> app.repository.labelB(Label.Type.Genres, it) }
         }
         if (book.subtitle == "") {
             book.subtitle = work.optString("subtitle", "")
@@ -222,7 +212,10 @@ class OpenLibraryClient: SimpleClient() {
         book.subtitle = obj.optString("subtitle", "")
         book.numberOfPages = obj.optString("number_of_pages", "")
         book.isbn = firstOrEmpty(obj, "isbn_13")
-        book.language = language(obj)
+        var languageName = language(obj)
+        if (languageName.isNotEmpty()) {
+            book.languages = app.repository.labelB(Label.Type.Language, languageName)
+        }
         book.publisher = foldAll(obj, "publishers")
         book.imgUrl = coverUrl(obj)
         val date = publishDate(obj)

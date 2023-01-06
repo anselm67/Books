@@ -30,8 +30,12 @@ class GoogleBooksClient: SimpleClient() {
         "es" to "Spanish",
     )
 
-    private fun getLanguage(str: String): String {
-        return languages.getOrDefault(str, str)
+    private fun getLanguage(str: String): Label? {
+        var value: Label?
+        runBlocking {
+            value = app.repository.label(Label.Type.Language, languages.getOrDefault(str, str))
+        }
+        return value
     }
 
     private fun getNumberOfPages(num: Int): String {
@@ -56,7 +60,7 @@ class GoogleBooksClient: SimpleClient() {
         // FIXME book.yearPublished
         book.summary = volumeInfo.optString("description")
         book.imgUrl = volumeInfo.optJSONObject("imageLinks")?.optString("thumbnail") ?: ""
-        book.language = getLanguage(volumeInfo.optString("language", ""))
+        book.languages = getLanguage(volumeInfo.optString("language", ""))
         book.numberOfPages = getNumberOfPages(volumeInfo.optInt("pageCount", 0))
         book.publisher = volumeInfo.optString("publisher", "")
         // Label-fields:
