@@ -47,7 +47,7 @@ class ScanFragment: BookFragment() {
         _binding = FragmentScanBinding.inflate(inflater, container, false)
 
         // Sets up the recycler view.
-        adapter = IsbnArrayAdapter { updateLookupStats(it)  }
+        adapter = IsbnArrayAdapter({ updateLookupStats(it)  }, { onLookupResultClick(it) })
         binding.idRecycler.adapter = adapter
         binding.idRecycler.layoutManager = LinearLayoutManager(binding.idRecycler.context)
 
@@ -152,6 +152,10 @@ class ScanFragment: BookFragment() {
         }
     }
 
+    private fun onLookupResultClick(result: LookupResult) {
+        // We do nothing and that's fine for now.
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
@@ -174,6 +178,7 @@ data class LookupStats(
 
 private class IsbnArrayAdapter(
     private val statsListener: (LookupStats) -> Unit,
+    private val onClick: (LookupResult) -> Unit,
 ): RecyclerView.Adapter<IsbnArrayAdapter.ViewHolder>() {
     private val dataSource = mutableListOf<Pair<String, LookupResult>>()
     private val stats = LookupStats()
@@ -192,6 +197,7 @@ private class IsbnArrayAdapter(
             // We always have at least an ISBN to display.
             val (isbn, result) = item
             binding.idISBNText.text = isbn
+            binding.root.setOnClickListener { onClick(result) }
             if (result.loading) {
                 updateStatus(true, checked = false, error = false)
                 return
@@ -201,7 +207,7 @@ private class IsbnArrayAdapter(
                 // A match wa found, fill in the bindings.
                 binding.idTitleText.text = result.book!!.title
                 binding.idAuthorText.text = result.book!!.authors.joinToString { it.name }
-                val uri = app.getCoverUri(result.book!!)
+                val uri = app.imageRepository.getCoverUri(result.book!!)
                 if (uri != null) {
                     Glide.with(app.applicationContext)
                         .load(uri)

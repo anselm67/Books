@@ -1,7 +1,9 @@
 package com.anselm.books.database
 
 import android.util.Log
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.TAG
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class BookRepository(private val dao: BookDao) {
@@ -109,6 +111,8 @@ class BookRepository(private val dao: BookDao) {
 
     /**
      * Loads a book by id.
+     * If there is any chance you'll save the book down the road, you have to
+     * set decorate to true, as saving the book requires access to the authors.
      */
     suspend fun load(bookId: Long, decorate: Boolean = false): Book? {
         val book = dao.load(bookId)
@@ -121,7 +125,7 @@ class BookRepository(private val dao: BookDao) {
     /**
      * Saves - inserts or updates - keeps track of dateAdded and last modified timestamps.
      */
-    suspend fun save(book: Book) {
+    suspend fun save(book: Book, saveCover: Boolean = true) {
         var bookId = book.id
         val timestamp = System.currentTimeMillis() / 1000
         if (book.id <= 0) {
@@ -141,6 +145,20 @@ class BookRepository(private val dao: BookDao) {
                 val label = label(it.type, it.name)
                 BookLabels(bookId, label.id, sortKey++)
             }.toTypedArray())
+        }
+        if (book.id <= 0 && book.imageFilename.isEmpty() && saveCover) {
+            // Fetches the image cover right away.
+            // - The saveCover flag will avoid an infinite loop. For sure.
+            // - We *have* - sigh - to load the book again so that book.id is set which allows us
+            //   to update the book using save(Book).
+            app.imageRepository.saveCover(book) { _, filename ->
+                app.applicationScope.launch {
+                    load(bookId, true)?.let { book ->
+                        book.imageFilename = filename
+                        save(book, false)
+                    }
+                }
+            }
         }
     }
 
@@ -202,6 +220,4 @@ class BookRepository(private val dao: BookDao) {
     suspend fun decorate(book: Book) {
         book.decorate(dao.labels(book.id).map { label(it) })
     }
-
-
 }

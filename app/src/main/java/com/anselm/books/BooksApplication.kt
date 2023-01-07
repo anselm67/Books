@@ -3,10 +3,8 @@ package com.anselm.books
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.SharedPreferences
-import android.net.Uri
 import android.view.View
 import android.widget.Toast
-import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import com.anselm.books.database.Book
@@ -25,16 +23,6 @@ class BooksApplication : Application() {
 
     private val basedir by lazy {
         File(applicationContext?.filesDir, "import")
-    }
-
-    fun getCoverUri(book: Book): Uri? {
-        return if (book.imageFilename != "") {
-            File(basedir, book.imageFilename).toUri()
-        } else if (book.imgUrl != "") {
-            Uri.parse(book.imgUrl)
-        } else {
-            null
-        }
     }
 
     fun toast(resId: Int) {
@@ -66,6 +54,10 @@ class BooksApplication : Application() {
 
     val importExport by lazy {
         ImportExport(repository, applicationContext?.contentResolver!!, basedir)
+    }
+
+    val imageRepository by lazy {
+        ImageRepository(applicationContext, basedir)
     }
 
     private var progressBarView: View? = null

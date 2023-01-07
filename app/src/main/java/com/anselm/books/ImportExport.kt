@@ -79,11 +79,11 @@ class ImportExport(private val repository: BookRepository,
         var imageCount = 0
         while (entry != null) {
             val file = File(basedir, entry.name)
-            if (entry.name == "images"  && entry.isDirectory) {
+            if (entry.name == app.imageRepository.imageDirectoryName  && entry.isDirectory) {
                 file.mkdirs()
             } else if (entry.name == "books.json") {
                 bookCount = importJsonText(readText(zipInputStream))
-            } else if (entry.name.startsWith("images")) {
+            } else if (entry.name.startsWith(app.imageRepository.imageDirectoryName)) {
                 file.parentFile?.mkdirs()
                 withContext(Dispatchers.IO) {
                     FileOutputStream(file).use { out ->
@@ -150,9 +150,8 @@ class ImportExport(private val repository: BookRepository,
             it.putNextEntry(ZipEntry("books.json"))
             bookCount = exportJson(it)
             // And all the images.
-            File(basedir, "images").walk().forEach { file ->
+            app.imageRepository.imageDirectory.walk().forEach { file ->
                 val path = file.relativeTo(basedir).path
-                Log.d(TAG, "Adding $path from ${file.path}")
                 if (file.isFile) {
                     it.putNextEntry(ZipEntry(path))
                     FileInputStream(file).copyTo(it)

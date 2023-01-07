@@ -16,7 +16,7 @@ class BookViewHolder(
     fun bind(book: Book) {
         show()
         val app = BooksApplication.app
-        val uri = app.getCoverUri(book)
+        val uri = app.imageRepository.getCoverUri(book)
         binding.titleView.text = book.title
         binding.authorView.text = book.authors.joinToString { it.name }
         if (uri != null) {

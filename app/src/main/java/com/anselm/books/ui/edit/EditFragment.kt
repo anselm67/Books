@@ -159,7 +159,7 @@ class EditFragment: BookFragment() {
 
     private fun bind(inflater: LayoutInflater, book: Book): List<Editor> {
         val app = BooksApplication.app
-        val uri = app.getCoverUri(book)
+        val uri = app.imageRepository.getCoverUri(book)
         // Binds the cover to its image via Glide.
         if (uri != null) {
             Glide.with(app.applicationContext)

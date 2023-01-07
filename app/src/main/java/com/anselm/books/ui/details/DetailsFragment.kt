@@ -175,7 +175,7 @@ class DetailsFragment : BookFragment() {
 
     private fun FragmentDetailsBinding.bind(inflater: LayoutInflater, book: Book) {
         val app = BooksApplication.app
-        val uri = app.getCoverUri(book)
+        val uri = app.imageRepository.getCoverUri(book)
         app.title = book.title
         // Main part of the details.
         titleView.text = book.title
