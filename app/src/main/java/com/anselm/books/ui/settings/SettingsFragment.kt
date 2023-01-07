@@ -1,7 +1,5 @@
 package com.anselm.books.ui.settings
 
-import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -63,7 +61,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val exporter = setupExport()
         findPreference<Preference>("export_preference")?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                exporter.launch("books.json")
+                exporter.launch("books.zip")
                 true
             }
 
@@ -122,7 +120,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val app = BooksApplication.app
         val context = app.applicationContext
         val importExport = app.importExport
-        return registerForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+        return registerForActivityResult(ActivityResultContracts.CreateDocument("*/*")) { uri ->
             if (uri == null) {
                 Log.d(TAG, "Failed to select directory tree.")
                 app.toast("Select a file to export to.")
@@ -133,9 +131,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 var msg: String? = null
                 app.applicationScope.launch {
                     try {
-                        count = importExport.exportJson(uri)
+                        count = importExport.exportZipFile(uri)
                     } catch (e: Exception) {
-                        Log.e(TAG, "Failed to write to file $uri", e)
+                        Log.e(TAG, "Export to $uri failed.", e)
                         msg = e.TAG
                     }
                 }.invokeOnCompletion {
@@ -150,73 +148,5 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
         }
     }
-
 }
 
-class PermGetContent: ActivityResultContracts.OpenDocument() {
-    override fun createIntent(context: Context, input: Array<String>): Intent {
-        return super.createIntent(context, input).addFlags(
-            Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
-        )
-    }
-}
-/*
-class FooCommentedButUsefulSoon {
-    private val openDocument = registerForActivityResult(PermGetContent()) {
-        getFilePerm(it!!)
-        mainUri = it!!
-        Log.d(TAG, "Perm on $it")
-    }
-
-    private fun save() {
-        writeDocument.launch("database.json")
-    }
-
-    private val writeDocument =
-        registerForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
-            if (uri == null) {
-                Log.d(TAG, "Failed to select directory tree.")
-            } else {
-                Log.d(TAG, "Opening directory ${uri}")
-                activity?.lifecycleScope?.launch {
-                    val startTime = System.currentTimeMillis()
-                    saveJson(uri)
-                    Log.d(TAG, "Wrote object in ${System.currentTimeMillis() - startTime}ms.")
-                }
-            }
-        }
-
-    private fun saveJson(uri: Uri) {
-        val startTime = System.currentTimeMillis()
-        val text = jsonObject?.toString(2)
-        try {
-            context?.contentResolver?.openFileDescriptor(uri, "w")?.use { file ->
-                FileOutputStream(file.fileDescriptor).use { output ->
-                    OutputStreamWriter(output, Charsets.UTF_8).use {
-                        it.write(text)
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to write to file {uri}")
-        }
-        Log.d(TAG, "Wrote ${jsonObject?.optJSONArray("books")?.length()} books in ${System.currentTimeMillis() - startTime}ms.")
-    }
-
-    private fun getFilePerm(uri: Uri) {
-        val contentResolver = requireContext().contentResolver
-        val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        // Check for the freshest data.
-        contentResolver.takePersistableUriPermission(uri, takeFlags)
-        Log.d(TAG, "takePersistableUriPermission: done on $uri")
-    }
-
-
-
-}
-
-
-*/

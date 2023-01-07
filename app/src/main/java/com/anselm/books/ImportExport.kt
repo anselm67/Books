@@ -3,6 +3,7 @@ package com.anselm.books
 import android.content.ContentResolver
 import android.net.Uri
 import android.util.Log
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.database.Book
 import com.anselm.books.database.BookRepository
 import com.anselm.books.database.Query
@@ -12,11 +13,13 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 class ImportExport(private val repository: BookRepository,
                    private val contentResolver: ContentResolver,
@@ -58,15 +61,7 @@ class ImportExport(private val repository: BookRepository,
             return false
         // Copy in the file as expected, converting exceptions to boolean return
         try {
-            val buffer = ByteArray(8192)
-            while (true) {
-                val size = inp.read(buffer)
-                if (size > 0) {
-                    out.write(buffer)
-                } else {
-                    break
-                }
-            }
+            inp.copyTo(out)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to copy zip stream into local file.", e)
             return false
@@ -121,7 +116,7 @@ class ImportExport(private val repository: BookRepository,
         return ret
     }
 
-    suspend fun exportJson(uri: Uri): Int {
+    private suspend fun exportJson(out: OutputStream): Int {
         // Convert all books to JSON, hold them tight(!)
         val jsonBooks = JSONArray()
         var offset = 0
@@ -138,13 +133,47 @@ class ImportExport(private val repository: BookRepository,
         jsonRoot.put("books", jsonBooks)
         // Write it all to the given URI.
         val text = jsonRoot.toString(2)
-        contentResolver.openFileDescriptor(uri, "w").use { fd ->
-            FileOutputStream(fd?.fileDescriptor).use { outputStream ->
-                OutputStreamWriter(outputStream, Charsets.UTF_8).use {
-                    it.write(text)
+        val writer =  OutputStreamWriter(out, Charsets.UTF_8)
+        withContext(Dispatchers.IO) {
+            writer.write(text)
+            writer.flush()
+        }
+        return offset
+    }
+
+    private suspend fun exportZipFile(zipFile: File, dest:Uri): Int {
+        // Collects all the files that need to be included.
+        val zipOut = ZipOutputStream(zipFile.outputStream())
+        var bookCount: Int
+        zipOut.use {
+            // Writes out the json file.
+            it.putNextEntry(ZipEntry("books.json"))
+            bookCount = exportJson(it)
+            // And all the images.
+            File(basedir, "images").walk().forEach { file ->
+                val path = file.relativeTo(basedir).path
+                Log.d(TAG, "Adding $path from ${file.path}")
+                if (file.isFile) {
+                    it.putNextEntry(ZipEntry(path))
+                    FileInputStream(file).copyTo(it)
                 }
             }
         }
-        return offset
+        // Copies the temp file into the provided destination.
+        contentResolver.openFileDescriptor(dest, "w").use { fd ->
+            FileOutputStream(fd?.fileDescriptor).use {
+                FileInputStream(zipFile).copyTo(it)
+            }
+        }
+        return bookCount
+    }
+
+    suspend fun exportZipFile(dest: Uri): Int {
+        val zipFile = File(app.cacheDir, "books.zip")
+        try {
+            return exportZipFile(zipFile, dest)
+        } finally {
+            zipFile.delete()
+        }
     }
 }
