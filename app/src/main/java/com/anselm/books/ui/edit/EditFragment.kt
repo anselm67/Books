@@ -3,7 +3,12 @@ package com.anselm.books.ui.edit
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -22,8 +27,12 @@ import android.widget.ImageButton
 import android.widget.NumberPicker.OnValueChangeListener
 import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.content.res.ResourcesCompat
+import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -42,16 +51,18 @@ import com.anselm.books.databinding.FragmentEditBinding
 import com.anselm.books.ui.widgets.BookFragment
 import com.anselm.books.ui.widgets.DnDList
 import com.bumptech.glide.Glide
+import com.bumptech.glide.util.Util
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.io.File
 import java.lang.Integer.max
 
 
 class EditFragment: BookFragment() {
     private var _binding: FragmentEditBinding? = null
     private val binding get() = _binding!!
-    private var book: Book? = null
+    private lateinit var book: Book
 
     private var validBorder: Drawable? = null
     private var invalidBorder: Drawable? = null
@@ -72,8 +83,7 @@ class EditFragment: BookFragment() {
         _binding = FragmentEditBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val repository = BooksApplication.app.repository
-
+        val repository = app.repository
 
         // Parses the arguments, we can have either:
         // - A bookId, which means we want to edit/update an existing book,
@@ -81,12 +91,12 @@ class EditFragment: BookFragment() {
         val safeArgs: EditFragmentArgs by navArgs()
         if (safeArgs.bookId > 0) {
             viewLifecycleOwner.lifecycleScope.launch {
-                book = repository.load(safeArgs.bookId, decorate = true)
-                book?.let { editors = bind(inflater, it) }
+                book = repository.load(safeArgs.bookId, decorate = true)!!
+                editors = bind(inflater, book)
             }
         } else if (safeArgs.book != null) {
-            book = safeArgs.book
-            editors = bind(inflater, book!!)
+            book = safeArgs.book!!
+            editors = bind(inflater, book)
         } else {
             Log.d(TAG, "No books to edit.")
         }
@@ -102,22 +112,24 @@ class EditFragment: BookFragment() {
             },
             Pair(R.id.idDeleteBook) {
                 val builder = AlertDialog.Builder(requireActivity())
-                builder.setMessage(getString(R.string.delete_book_confirmation, book?.title))
+                builder.setMessage(getString(R.string.delete_book_confirmation, book.title))
                     .setPositiveButton(R.string.yes) { _, _ -> deleteBook() }
                     .setNegativeButton(R.string.no) { _, _ -> }
                     .show()
             },
         ))
 
+        setupCoverImageLauncher()
+
         return root
     }
 
     private fun deleteBook() {
         val app = BooksApplication.app
-        if (book != null && book!!.id >= 0) {
+        if (book.id >= 0) {
             app.applicationScope.launch {
-                app.repository.deleteBook(book!!)
-                app.toast(getString(R.string.book_deleted, book!!.title))
+                app.repository.deleteBook(book)
+                app.toast(getString(R.string.book_deleted, book.title))
             }
         }
         findNavController().popBackStack()
@@ -157,10 +169,7 @@ class EditFragment: BookFragment() {
         binding.idScrollView.smoothScrollTo(0, max(0, view.top - 25))
     }
 
-    private fun bind(inflater: LayoutInflater, book: Book): List<Editor> {
-        val app = BooksApplication.app
-        val uri = app.imageRepository.getCoverUri(book)
-        // Binds the cover to its image via Glide.
+    private fun loadCoverImage(uri: Uri?) {
         if (uri != null) {
             Glide.with(app.applicationContext)
                 .load(uri).centerCrop()
@@ -170,6 +179,14 @@ class EditFragment: BookFragment() {
             Glide.with(app.applicationContext)
                 .load(R.mipmap.ic_book_cover)
                 .into(binding.coverImageView)
+        }
+    }
+
+    private fun bind(inflater: LayoutInflater, book: Book): List<Editor> {
+        val app = BooksApplication.app
+        loadCoverImage(app.imageRepository.getCoverUri(book))
+        binding.coverImageView.setOnClickListener {
+            editCoverImage()
         }
         // Creates and sets up an editor for every book property.
         val fields = arrayListOf(
@@ -211,8 +228,71 @@ class EditFragment: BookFragment() {
         return fields
     }
 
+    private lateinit var launcher: ActivityResultLauncher<Uri>
+    private var editedImageFile: File? = null
+    private var editCoverBitmap: Bitmap? = null
+
+    // http://sylvana.net/jpegcrop/exif_orientation.html
+    private val exifAngles = mapOf<Int, Float>(
+        1 to 0F,
+        2 to 0F,
+        3 to 180F,
+        4 to 180F,
+        5 to 90F,
+        6 to 90F,
+        7 to 270F,
+        8 to 270F,
+    )
+
+    private fun setupCoverImageLauncher() {
+        launcher = registerForActivityResult(ActivityResultContracts.TakePicture()) {
+            // No bitmap? the user cancelled on us.
+            if ( ! it || editedImageFile == null) {
+                return@registerForActivityResult
+            }
+            val exifRotation = ExifInterface(editedImageFile!!)
+                .getAttribute(ExifInterface.TAG_ORIENTATION)
+                ?.toIntOrNull()
+            BitmapFactory.decodeFile(editedImageFile!!.path, BitmapFactory.Options().apply {
+                inSampleSize = 8 // Going from about 4,000px width down to about 500px.
+            }).also { cameraBitmap ->
+                editCoverBitmap = Bitmap.createBitmap(
+                    cameraBitmap,
+                    0, 0, cameraBitmap.width, cameraBitmap.height,
+                    Matrix().apply {
+                       postRotate(exifAngles.getOrDefault(key = exifRotation, defaultValue = 0F))
+                    },
+                    true)
+                Util.postOnUiThread {
+                    // loadCoverImage(app.imageRepository.getCoverUri(book))
+                    binding.coverImageView.setImageDrawable(
+                        BitmapDrawable(resources, editCoverBitmap)
+                    )
+                }
+            }
+        }
+    }
+
+    private fun editCoverImage() {
+        if (editedImageFile == null) {
+            editedImageFile = File.createTempFile("cover_edit", ".png", app.cacheDir).apply {
+                createNewFile()
+                deleteOnExit()
+            }
+        }
+        launcher.launch(FileProvider.getUriForFile(app.applicationContext,
+            "${BuildConfig.APPLICATION_ID}.provider",
+            editedImageFile!!)
+        )
+    }
+
+    private suspend fun saveCoverImage() {
+        check(editCoverBitmap != null)
+        book.imageFilename = app.imageRepository.convertAndSave(book, editCoverBitmap!!)
+    }
+
     private fun saveEditorChanges(): Boolean {
-        var changed = false
+        var changed = (editCoverBitmap != null)
         editors?.forEach {
             if (it.isChanged()) {
                 changed = true
@@ -234,14 +314,14 @@ class EditFragment: BookFragment() {
             return
         }
         // Inserts or saves only when valid.
-        check(book != null)
-        val theBook = book!!
-        if (saveEditorChanges() || theBook.id <= 0) {
+        if (saveEditorChanges() || book.id <= 0) {
             app.loading(true)
             activity?.lifecycleScope?.launch {
-                app.repository.save(theBook)
+                // saveCoverImage makes additional changes to the book, it needs to come first.
+                saveCoverImage()
+                app.repository.save(book)
             }?.invokeOnCompletion {
-                app.toast("${theBook.title} saved.")
+                app.toast("${book.title} saved.")
                 app.loading(false)
                 findNavController().popBackStack()
             }

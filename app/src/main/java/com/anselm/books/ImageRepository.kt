@@ -36,9 +36,11 @@ class ImageRepository(
     }
 
     /**
-     * Ensures this book cover is saved, fetches and saves it if needed.
+     * Fetches the book cover from its URL when needed.
+     * Checks if the book's cover has already been loaded; If not fetches it, converts it
+     * to the HEIF format, and stores it locally so it'll be included if you exportZip.
      */
-    suspend fun saveCover(book: Book, onImageSaved: (Book, String) -> Unit) {
+    suspend fun fetchCover(book: Book, onImageSaved: (Book, String) -> Unit) {
         // Finds the book URL, if none we're done.
         if (book.imgUrl.isEmpty()) {
             return
@@ -61,10 +63,8 @@ class ImageRepository(
         }
     }
 
-    private suspend fun convertAndSave(book: Book, bitmap: Bitmap): String {
-        val path = getImageFilenameFor(book)
-        val sep = File.separator
-        val file = File(basedir, "$imageDirectoryName${sep}${path.substring(0, 2)}${sep}${path}")
+    suspend fun convertAndSave(book: Book, bitmap: Bitmap): String {
+        val file = getFileFor(book)
         file.parentFile?.mkdirs()
 
         withContext(Dispatchers.IO) {
@@ -82,15 +82,26 @@ class ImageRepository(
                 }
             }
         }
+        if ( book.imageFilename.isNotEmpty() ) {
+            File(basedir, book.imageFilename).delete()
+        }
         return file.relativeTo(basedir).path
     }
 
-    private fun getImageFilenameFor(book: Book): String {
+    /**
+     * Computes a unique image filename for this book.
+     * We change the imageFilename every time this function is called. this is intended.
+     * This is intended to defeat the Glide cache that doesn't offer a way to invalidate a
+     * cache entry.
+     */
+    private fun getFileFor(book: Book): File {
         // Doing our best to generate a random string id for this book.
         val now = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
         val input = "$now:${book.title}:${book.authors.joinToString { it.name }}"
         val md = MessageDigest.getInstance("MD5")
-        return BigInteger(1, md.digest(input.toByteArray()))
+        val path = BigInteger(1, md.digest(input.toByteArray()))
             .toString(16).padStart(32, '0').uppercase()
+        val sep = File.separator
+        return File(basedir, "$imageDirectoryName${sep}${path.substring(0, 2)}${sep}${path}")
     }
 }

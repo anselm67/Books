@@ -151,7 +151,7 @@ class BookRepository(private val dao: BookDao) {
             // - The saveCover flag will avoid an infinite loop. For sure.
             // - We *have* - sigh - to load the book again so that book.id is set which allows us
             //   to update the book using save(Book).
-            app.imageRepository.saveCover(book) { _, filename ->
+            app.imageRepository.fetchCover(book) { _, filename ->
                 app.applicationScope.launch {
                     load(bookId, true)?.let { book ->
                         book.imageFilename = filename
