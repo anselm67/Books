@@ -91,4 +91,6 @@
     <string name="preference_display_last_modified">Display last modified date?</string>
     <string name="preference_category_lookup_service">Lookup service</string>
     <string name="preference_category_display">Display</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="pick_media">Pick Media</string>
 </resources>
