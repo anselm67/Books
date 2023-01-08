@@ -135,6 +135,7 @@ class CoverImageEditor(
             }
             app.contentResolver.openFileDescriptor(uri, "r").use { it?.let {
                     FileInputStream(it.fileDescriptor).use { inputStream ->
+                        // FIXME Resize bitmap
                         editCoverBitmap = BitmapFactory.decodeStream(inputStream)
                     }
                 }
