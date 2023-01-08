@@ -28,6 +28,7 @@ import android.widget.NumberPicker.OnValueChangeListener
 import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -56,6 +57,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.File
+import java.io.FileInputStream
 import java.lang.Integer.max
 
 
@@ -119,7 +121,8 @@ class EditFragment: BookFragment() {
             },
         ))
 
-        setupCoverImageLauncher()
+        setupCoverCameraLauncher()
+        setupCoverPickerLauncher()
 
         return root
     }
@@ -174,19 +177,22 @@ class EditFragment: BookFragment() {
             Glide.with(app.applicationContext)
                 .load(uri).centerCrop()
                 .placeholder(R.mipmap.ic_book_cover)
-                .into(binding.coverImageView)
+                .into(binding.idCoverImage)
         } else {
             Glide.with(app.applicationContext)
                 .load(R.mipmap.ic_book_cover)
-                .into(binding.coverImageView)
+                .into(binding.idCoverImage)
         }
     }
 
     private fun bind(inflater: LayoutInflater, book: Book): List<Editor> {
         val app = BooksApplication.app
         loadCoverImage(app.imageRepository.getCoverUri(book))
-        binding.coverImageView.setOnClickListener {
-            editCoverImage()
+        binding.idCameraPickerButton.setOnClickListener {
+            launchCoverCamera()
+        }
+        binding.idMediaPickerButton.setOnClickListener {
+            launchCoverPicker()
         }
         // Creates and sets up an editor for every book property.
         val fields = arrayListOf(
@@ -228,7 +234,9 @@ class EditFragment: BookFragment() {
         return fields
     }
 
-    private lateinit var launcher: ActivityResultLauncher<Uri>
+    private lateinit var coverCameraLauncher: ActivityResultLauncher<Uri>
+    private lateinit var coverPickerLauncher: ActivityResultLauncher<PickVisualMediaRequest>
+
     private var editedImageFile: File? = null
     private var editCoverBitmap: Bitmap? = null
 
@@ -244,8 +252,8 @@ class EditFragment: BookFragment() {
         8 to 270F,
     )
 
-    private fun setupCoverImageLauncher() {
-        launcher = registerForActivityResult(ActivityResultContracts.TakePicture()) {
+    private fun setupCoverCameraLauncher() {
+        coverCameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) {
             // No bitmap? the user cancelled on us.
             if ( ! it || editedImageFile == null) {
                 return@registerForActivityResult
@@ -264,8 +272,7 @@ class EditFragment: BookFragment() {
                     },
                     true)
                 Util.postOnUiThread {
-                    // loadCoverImage(app.imageRepository.getCoverUri(book))
-                    binding.coverImageView.setImageDrawable(
+                    binding.idCoverImage.setImageDrawable(
                         BitmapDrawable(resources, editCoverBitmap)
                     )
                 }
@@ -273,16 +280,43 @@ class EditFragment: BookFragment() {
         }
     }
 
-    private fun editCoverImage() {
+    private fun launchCoverCamera() {
         if (editedImageFile == null) {
             editedImageFile = File.createTempFile("cover_edit", ".png", app.cacheDir).apply {
                 createNewFile()
                 deleteOnExit()
             }
         }
-        launcher.launch(FileProvider.getUriForFile(app.applicationContext,
+        coverCameraLauncher.launch(FileProvider.getUriForFile(app.applicationContext,
             "${BuildConfig.APPLICATION_ID}.provider",
             editedImageFile!!)
+        )
+    }
+
+    private fun setupCoverPickerLauncher() {
+        coverPickerLauncher = registerForActivityResult(
+            ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri == null) {
+                return@registerForActivityResult
+            }
+            app.contentResolver.openFileDescriptor(uri, "r").use { it?.let {
+                    FileInputStream(it.fileDescriptor).use { inputStream ->
+                        editCoverBitmap = BitmapFactory.decodeStream(inputStream)
+                    }
+                }
+            }
+            Util.postOnUiThread {
+                binding.idCoverImage.setImageDrawable(
+                    BitmapDrawable(resources, editCoverBitmap)
+                )
+            }
+            Log.d(TAG, "Got $uri")
+        }
+    }
+
+    private fun launchCoverPicker() {
+        coverPickerLauncher.launch(
+            PickVisualMediaRequest(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly)
         )
     }
 

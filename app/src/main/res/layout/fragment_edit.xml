@@ -15,20 +15,67 @@
         android:padding="5dp"
 
         android:clipToPadding="false"
-        android:clipChildren="false" >
+        android:clipChildren="false"
 
-        <ImageView
-            android:id="@+id/coverImageView"
-            android:layout_width="100dp"
-            android:layout_height="150dp"
-            android:contentDescription="@string/book_image_description"
-            android:layout_gravity="center"
-            android:scaleType="centerCrop"
-            android:src="@mipmap/ic_book_cover"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        >
 
-        <!-- Additional editors added dynamically -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layoutDirection="ltr"
+            android:padding="5dp"
 
+            android:clipToPadding="false"
+            android:clipChildren="false" >
+
+            <ImageView
+                android:id="@+id/idCoverImage"
+                android:layout_width="140dp"
+                android:layout_height="210dp"
+                android:contentDescription="@string/book_image_description"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/ic_book_cover"
+                android:layout_margin="5dp"
+                android:padding="5dp"
+                android:background="@drawable/textview_border"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/idCameraPickerButton"
+                app:layout_constraintTop_toTopOf="parent"
+                />
+
+            <Button
+                android:id="@+id/idCameraPickerButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cornerRadius = "15dp"
+                android:drawableTop="@drawable/ic_outline_camera_alt_24"
+                android:text="@string/take_photo"
+                android:textAllCaps="false"
+                style="?android:attr/buttonBarButtonStyle"
+
+                app:layout_constraintStart_toEndOf="@id/idCoverImage"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/idMediaPickerButton"
+            />
+
+            <Button
+                android:id="@+id/idMediaPickerButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cornerRadius = "15dp"
+                android:drawableTop="@drawable/ic_baseline_add_photo_alternate_24"
+                android:text="@string/pick_media"
+                android:textAllCaps="false"
+                style="?android:attr/buttonBarButtonStyle"
+                app:layout_constraintStart_toEndOf="@id/idCoverImage"
+                app:layout_constraintTop_toBottomOf="@id/idCameraPickerButton"
+                />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Additional editors added dynamically -->
     </LinearLayout>
+
 </androidx.core.widget.NestedScrollView>
