@@ -19,13 +19,13 @@ class BookRepository(private val dao: BookDao) {
         )
         return if ( query.query.isNullOrEmpty() ) {
             dao.getFilteredPagedList(
-                query.filters.map { it -> it.labelId },
+                query.filters.map { it.labelId },
                 query.sortBy, limit, offset
             )
         } else /* Requests text matching. */ {
             dao.getTitlePagedList(
                 if (query.partial) query.query!! + '*' else query.query!!,
-                query.filters.map { it -> it.labelId },
+                query.filters.map { it.labelId },
                 query.sortBy, limit, offset
             )
         }
@@ -63,8 +63,10 @@ class BookRepository(private val dao: BookDao) {
         }
     }
 
-    suspend fun deleteAll() {
-        dao.deleteAll()
+    fun deleteAll() {
+        clearLabelCaches()
+        app.database.clearAllTables()
+        Log.d(TAG, "deleteAll: cleared all tables.")
     }
 
     suspend fun deleteBook(book: Book) {
@@ -177,6 +179,11 @@ class BookRepository(private val dao: BookDao) {
     private val labelsByValue = HashMap<Pair<Label.Type,String>, Label>()
     private val labelsById = HashMap<Long, Label>()
 
+    private fun clearLabelCaches() {
+        labelsByValue.clear()
+        labelsById.clear()
+    }
+
     suspend fun label(type: Label.Type, rawName: String): Label {
         val name = rawName.trim()
         val key = Pair(type, name)
@@ -207,10 +214,12 @@ class BookRepository(private val dao: BookDao) {
         return if (name.isEmpty()) null else labelB(type, name)
 
     }
+
     suspend fun label(id: Long): Label {
         var label = labelsById[id]
         if (label == null) {
             label = dao.label(id)
+            check(label != null)
             labelsByValue[Pair(label.type, label.name)] = label
             labelsById[label.id] = label
         }

@@ -10,6 +10,8 @@ import com.anselm.books.TAG
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+const val DATABASE_NAME = "book_database"
+
 @Database(
     entities = [
         Book::class, BookFTS::class,
@@ -35,6 +37,7 @@ abstract class BookDatabase : RoomDatabase() {
             Log.d(TAG, "Cleared database through deleteAll.")
         }
     }
+
     companion object {
         @Volatile
         private var INSTANCE: BookDatabase? = null
@@ -44,13 +47,12 @@ abstract class BookDatabase : RoomDatabase() {
                 Room.databaseBuilder(
                     context.applicationContext,
                     BookDatabase::class.java,
-                    "book_database"
+                    DATABASE_NAME,
                 ).fallbackToDestructiveMigration()
                 .addCallback(BookDatabaseCallback(scope))
                 .build()
                 .also { INSTANCE = it }
             }
         }
-
     }
 }

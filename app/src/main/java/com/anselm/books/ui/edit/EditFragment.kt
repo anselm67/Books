@@ -3,12 +3,7 @@ package com.anselm.books.ui.edit
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -27,13 +22,8 @@ import android.widget.ImageButton
 import android.widget.NumberPicker.OnValueChangeListener
 import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.core.content.res.ResourcesCompat
-import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -51,26 +41,24 @@ import com.anselm.books.databinding.EditYearLayoutBinding
 import com.anselm.books.databinding.FragmentEditBinding
 import com.anselm.books.ui.widgets.BookFragment
 import com.anselm.books.ui.widgets.DnDList
-import com.bumptech.glide.Glide
-import com.bumptech.glide.util.Util
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.io.File
-import java.io.FileInputStream
 import java.lang.Integer.max
 
 
 class EditFragment: BookFragment() {
     private var _binding: FragmentEditBinding? = null
-    private val binding get() = _binding!!
     private lateinit var book: Book
+    val binding get() = _binding!!
 
     private var validBorder: Drawable? = null
     private var invalidBorder: Drawable? = null
     private var changedBorder: Drawable? = null
 
-    private var editors: List<Editor>? = null
+    private var editors: MutableList<Editor> = emptyList<Editor>().toMutableList()
+    private val coverImageEditor
+        get() = (editors[0] as CoverImageEditor)
 
     private fun getBorderDrawable(resourceId: Int): Drawable {
         return ResourcesCompat.getDrawable(resources, resourceId, null)!!
@@ -83,9 +71,12 @@ class EditFragment: BookFragment() {
     ): View {
         super.onCreateView(inflater, container, savedInstanceState)
         _binding = FragmentEditBinding.inflate(inflater, container, false)
-        val root: View = binding.root
-
         val repository = app.repository
+
+        // We restart the list of editors from scratch, cause we might get restarted.
+        editors = mutableListOf(CoverImageEditor(this@EditFragment, inflater) {
+            app.imageRepository.getCoverUri(book)
+        })
 
         // Parses the arguments, we can have either:
         // - A bookId, which means we want to edit/update an existing book,
@@ -94,11 +85,11 @@ class EditFragment: BookFragment() {
         if (safeArgs.bookId > 0) {
             viewLifecycleOwner.lifecycleScope.launch {
                 book = repository.load(safeArgs.bookId, decorate = true)!!
-                editors = bind(inflater, book)
+                bind(inflater, book)
             }
         } else if (safeArgs.book != null) {
             book = safeArgs.book!!
-            editors = bind(inflater, book)
+            bind(inflater, book)
         } else {
             Log.d(TAG, "No books to edit.")
         }
@@ -120,11 +111,7 @@ class EditFragment: BookFragment() {
                     .show()
             },
         ))
-
-        setupCoverCameraLauncher()
-        setupCoverPickerLauncher()
-
-        return root
+        return binding.root
     }
 
     private fun deleteBook() {
@@ -172,30 +159,15 @@ class EditFragment: BookFragment() {
         binding.idScrollView.smoothScrollTo(0, max(0, view.top - 25))
     }
 
-    private fun loadCoverImage(uri: Uri?) {
-        if (uri != null) {
-            Glide.with(app.applicationContext)
-                .load(uri).centerCrop()
-                .placeholder(R.mipmap.ic_book_cover)
-                .into(binding.idCoverImage)
-        } else {
-            Glide.with(app.applicationContext)
-                .load(R.mipmap.ic_book_cover)
-                .into(binding.idCoverImage)
-        }
-    }
-
-    private fun bind(inflater: LayoutInflater, book: Book): List<Editor> {
-        val app = BooksApplication.app
-        loadCoverImage(app.imageRepository.getCoverUri(book))
-        binding.idCameraPickerButton.setOnClickListener {
-            launchCoverCamera()
-        }
-        binding.idMediaPickerButton.setOnClickListener {
-            launchCoverPicker()
-        }
+    /**
+     * Creates and binds all field editors; Adds them all to the [editors] list.
+     * Keep in mind that at this point, editors already contains the CoverImageEditor which
+     * has to be initialized before any view is created. Cause it wants to
+     * registerForActivityResult.
+     */
+    private fun bind(inflater: LayoutInflater, book: Book) {
         // Creates and sets up an editor for every book property.
-        val fields = arrayListOf(
+        editors.addAll(arrayListOf(
             TextEditor(this, inflater, R.string.titleLabel,
                 book::title.getter, book::title.setter) {
                 it.isNotEmpty()
@@ -227,107 +199,16 @@ class EditFragment: BookFragment() {
             },
             TextEditor(this, inflater, R.string.summaryLabel,
                 book::summary.getter, book::summary.setter),
-            YearEditor(this, inflater, book::yearPublished.getter, book::yearPublished.setter))
-        fields.forEach {
-            binding.editView.addView(it.setup(binding.editView))
+            YearEditor(this, inflater, book::yearPublished.getter, book::yearPublished.setter),
+        ))
+        editors.forEach {
+            it.setup(binding.editView)?.let { view -> binding.editView.addView(view) }
         }
-        return fields
-    }
-
-    private lateinit var coverCameraLauncher: ActivityResultLauncher<Uri>
-    private lateinit var coverPickerLauncher: ActivityResultLauncher<PickVisualMediaRequest>
-
-    private var editedImageFile: File? = null
-    private var editCoverBitmap: Bitmap? = null
-
-    // http://sylvana.net/jpegcrop/exif_orientation.html
-    private val exifAngles = mapOf<Int, Float>(
-        1 to 0F,
-        2 to 0F,
-        3 to 180F,
-        4 to 180F,
-        5 to 90F,
-        6 to 90F,
-        7 to 270F,
-        8 to 270F,
-    )
-
-    private fun setupCoverCameraLauncher() {
-        coverCameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) {
-            // No bitmap? the user cancelled on us.
-            if ( ! it || editedImageFile == null) {
-                return@registerForActivityResult
-            }
-            val exifRotation = ExifInterface(editedImageFile!!)
-                .getAttribute(ExifInterface.TAG_ORIENTATION)
-                ?.toIntOrNull()
-            BitmapFactory.decodeFile(editedImageFile!!.path, BitmapFactory.Options().apply {
-                inSampleSize = 8 // Going from about 4,000px width down to about 500px.
-            }).also { cameraBitmap ->
-                editCoverBitmap = Bitmap.createBitmap(
-                    cameraBitmap,
-                    0, 0, cameraBitmap.width, cameraBitmap.height,
-                    Matrix().apply {
-                       postRotate(exifAngles.getOrDefault(key = exifRotation, defaultValue = 0F))
-                    },
-                    true)
-                Util.postOnUiThread {
-                    binding.idCoverImage.setImageDrawable(
-                        BitmapDrawable(resources, editCoverBitmap)
-                    )
-                }
-            }
-        }
-    }
-
-    private fun launchCoverCamera() {
-        if (editedImageFile == null) {
-            editedImageFile = File.createTempFile("cover_edit", ".png", app.cacheDir).apply {
-                createNewFile()
-                deleteOnExit()
-            }
-        }
-        coverCameraLauncher.launch(FileProvider.getUriForFile(app.applicationContext,
-            "${BuildConfig.APPLICATION_ID}.provider",
-            editedImageFile!!)
-        )
-    }
-
-    private fun setupCoverPickerLauncher() {
-        coverPickerLauncher = registerForActivityResult(
-            ActivityResultContracts.PickVisualMedia()) { uri ->
-            if (uri == null) {
-                return@registerForActivityResult
-            }
-            app.contentResolver.openFileDescriptor(uri, "r").use { it?.let {
-                    FileInputStream(it.fileDescriptor).use { inputStream ->
-                        editCoverBitmap = BitmapFactory.decodeStream(inputStream)
-                    }
-                }
-            }
-            Util.postOnUiThread {
-                binding.idCoverImage.setImageDrawable(
-                    BitmapDrawable(resources, editCoverBitmap)
-                )
-            }
-            Log.d(TAG, "Got $uri")
-        }
-    }
-
-    private fun launchCoverPicker() {
-        coverPickerLauncher.launch(
-            PickVisualMediaRequest(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly)
-        )
-    }
-
-    private suspend fun saveCoverImage() {
-        check(editCoverBitmap != null)
-        book.imageFilename = app.imageRepository.convertAndSave(book, editCoverBitmap!!)
     }
 
     private fun saveEditorChanges(): Boolean {
-        var changed = (editCoverBitmap != null)
-        editors?.forEach {
+        var changed = false
+        editors.forEach {
             if (it.isChanged()) {
                 changed = true
                 it.saveChange()
@@ -337,7 +218,7 @@ class EditFragment: BookFragment() {
     }
 
     private fun validateChanges():Boolean {
-        return editors?.firstOrNull { ! it.isValid() } == null
+        return editors.firstOrNull { ! it.isValid() } == null
     }
 
     private fun saveChanges() {
@@ -352,7 +233,7 @@ class EditFragment: BookFragment() {
             app.loading(true)
             activity?.lifecycleScope?.launch {
                 // saveCoverImage makes additional changes to the book, it needs to come first.
-                saveCoverImage()
+                coverImageEditor.saveCoverImage(book)
                 app.repository.save(book)
             }?.invokeOnCompletion {
                 app.toast("${book.title} saved.")
@@ -391,11 +272,11 @@ class EditFragment: BookFragment() {
     }
 }
 
-private abstract class Editor(
+abstract class Editor(
     open val fragment: EditFragment,
     open val inflater: LayoutInflater) {
 
-    abstract fun setup(container: ViewGroup?): View
+    abstract fun setup(container: ViewGroup?): View?
     abstract fun isChanged(): Boolean
     abstract fun saveChange()
 
@@ -403,8 +284,8 @@ private abstract class Editor(
 }
 
 private class YearEditor(
-    override val fragment: EditFragment,
-    override val inflater: LayoutInflater,
+    fragment: EditFragment,
+    inflater: LayoutInflater,
     val getter: () -> String,
     val setter: (String) -> Unit
 ): Editor(fragment, inflater) {
@@ -465,8 +346,8 @@ private class YearEditor(
 }
 
 private open class TextEditor(
-    override val fragment: EditFragment,
-    override val inflater: LayoutInflater,
+    fragment: EditFragment,
+    inflater: LayoutInflater,
     open val labelId: Int,
     open val getter: () -> String,
     open val setter: (String) -> Unit,
@@ -677,8 +558,8 @@ private class LabelAutoComplete(
 }
 
 private class MultiLabelEditor(
-    override val fragment: EditFragment,
-    override val inflater: LayoutInflater,
+    fragment: EditFragment,
+    inflater: LayoutInflater,
     val type: Label.Type,
     val labelId: Int,
     val getter: () -> List<Label>,
@@ -735,8 +616,8 @@ private class MultiLabelEditor(
 }
 
 private class SingleLabelEditor(
-    override val fragment: EditFragment,
-    override val inflater: LayoutInflater,
+    fragment: EditFragment,
+    inflater: LayoutInflater,
     val type: Label.Type,
     val labelId: Int,
     val getter: () -> Label?,
@@ -767,10 +648,11 @@ private class SingleLabelEditor(
     }
 
     override fun isChanged(): Boolean {
-        return getter() != editLabel
+        return (editLabel != null) && (getter() != editLabel)
     }
 
     override fun saveChange() {
+        check(editLabel != null)
         editLabel?.let { setter(it) }
     }
 

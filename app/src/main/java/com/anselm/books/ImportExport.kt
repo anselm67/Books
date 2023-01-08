@@ -41,7 +41,6 @@ class ImportExport(private val repository: BookRepository,
             return -1
         }
         var count = 0
-        repository.deleteAll()
         (0 until books.length()).forEach { i ->
             val obj = books.getJSONObject(i)
             try {
@@ -105,6 +104,7 @@ class ImportExport(private val repository: BookRepository,
     suspend fun importZipFile(uri: Uri): Pair<Int, Int> {
         var ret: Pair<Int, Int> = Pair(-1, 0)
         Log.d(TAG, "Importing $uri.")
+        repository.deleteAll()
         contentResolver.openInputStream(uri)?.use { input ->
             input.buffered(128 * 1024).use { zipInputStream ->
                 ZipInputStream(zipInputStream).use {

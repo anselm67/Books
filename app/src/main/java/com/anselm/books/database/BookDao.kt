@@ -40,10 +40,10 @@ interface BookDao {
     suspend fun label(type: Int, name: String): Label?
 
     @Query("SELECT * FROM label_table WHERE id = :id")
-    suspend fun label(id: Long): Label
+    suspend fun label(id: Long): Label?
 
     @Query("SELECT labelId from book_labels WHERE bookId = :bookId ORDER BY sortKey ASC")
-    suspend fun labels(bookId: Long): LongArray
+    suspend fun labels(bookId: Long): List<Long>
 
     @Query("DELETE FROM book_labels WHERE bookId = :bookId")
     suspend fun clearLabels(bookId: Long)
