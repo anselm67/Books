@@ -62,12 +62,10 @@
 
 
     <fragment
-        android:id="@+id/nav_gallery"
-        android:name="com.anselm.books.ui.gallery.GalleryFragment"
-        android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery">
-
-        <action android:id="@+id/toEditFragment" app:destination="@id/nav_edit"/>
+        android:id="@+id/nav_cleanup"
+        android:name="com.anselm.books.ui.cleanup.CleanUpFragment"
+        android:label="@string/menu_cleanup"
+        tools:layout="@layout/fragment_cleanup">
 
     </fragment>
 

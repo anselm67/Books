@@ -600,12 +600,63 @@ interface BookDao {
         return emptyList()
     }
 
+    /**
+     * Stats queries.
+     */
+    @Query("SELECT type, COUNT(*) as count FROM label_table GROUP BY type")
+    @TypeConverters(Converters::class)
+    suspend fun getLabelTypeCounts(): List<LabelTypeCount>
+
+    /*
+    Duplicate books (same title, same author) query.
+     @Query("    SELECT b.title as title, lt.name as name , count(*) as count " +
+            "      FROM book_table as b " +
+            " LEFT JOIN book_labels as bl on bl.bookId = b.id " +
+            "      JOIN label_table as lt on lt.id = bl.labelId " +
+            "     WHERE lt.type = 1 " +
+            " GROUP BY  title, name HAVING count > 1 ORDER BY count DESC")
+     */
+    @Query("SELECT COUNT(*) FROM (" +
+            "    SELECT b.title as title, lt.name as name , count(*) as count " +
+            "      FROM book_table as b " +
+            " LEFT JOIN book_labels as bl on bl.bookId = b.id " +
+            "      JOIN label_table as lt on lt.id = bl.labelId " +
+            "     WHERE lt.type = 1 " + // Label.Typ.Authors = 1
+            "GROUP BY title, name HAVING count > 1" +
+            ")")
+    suspend fun getDuplicateBooksCount(): Int
+
+    /*
+    SELECT * FROM book_table WHERE id NOT IN (select bl.bookId FROM book_labels as bl JOIN label_table as lt ON lt.id = bl.labelId WHERE lt.type = 1);
+     */
+    @Query("SELECT COUNT(*) FROM book_table " +
+            " WHERE id NOT IN (" +
+            "    SELECT bl.bookId FROM book_labels AS bl " +
+            "      JOIN label_table AS lt ON lt.id = bl.labelId " +
+            "      WHERE lt.type = :type" +
+            ")")
+    @TypeConverters(Converters::class)
+    suspend fun getBooksWithoutLabelCount(type: Label.Type): Int
+
+    @Query(" SELECT COUNT(*) FROM book_table " +
+            " WHERE image_filename = '' OR image_filename IS NULL")
+    suspend fun getBooksWithoutCoverImage(): Int
+
+    @Query("DELETE FROM label_table AS lt " +
+           " WHERE lt.id NOT IN (SELECT labelId FROM book_labels)")
+    suspend fun deleteUnusedLabels(): Int
+
     companion object {
         const val SortByTitle = 1
         const val SortByDateAdded = 2
         const val SortByCount = 3
     }
 }
+
+data class LabelTypeCount(
+    val type: Label.Type,
+    val count: Int,
+)
 
 data class Histo(
     val labelId: Long,

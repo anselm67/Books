@@ -2,7 +2,7 @@ package com.anselm.books.database
 
 import androidx.room.*
 
-private class Converters {
+class Converters {
     @TypeConverter
     fun toType(type: Int) = Label.Type.values().first { it.type == type }
 

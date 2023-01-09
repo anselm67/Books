@@ -36,21 +36,23 @@ abstract class SimpleClient {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                if ( response.isSuccessful ) {
-                    val tok = JSONTokener(response.body!!.string())
-                    val obj = tok.nextValue()
-                    if (obj !is JSONObject) {
-                        onError("$url: parse failed got a ${obj.javaClass.name}.", null)
+                response.use { resp ->
+                    if (resp.isSuccessful) {
+                        val tok = JSONTokener(resp.body!!.string())
+                        val obj = tok.nextValue()
+                        if (obj !is JSONObject) {
+                            onError("$url: parse failed got a ${obj.javaClass.name}.", null)
+                        } else {
+                            onSuccess(obj)
+                        }
                     } else {
-                        onSuccess(obj)
-                    }
-                } else {
-                    if (response.code == 404) {
-                        //That's a no-match.
-                        onBook(null)
-                    } else {
-                        // A real error.
-                        onError( "$url: HTTP Request failed, status $response", null)
+                        if (resp.code == 404) {
+                            //That's a no-match.
+                            onBook(null)
+                        } else {
+                            // A real error.
+                            onError("$url: HTTP Request failed, status $resp", null)
+                        }
                     }
                 }
             }

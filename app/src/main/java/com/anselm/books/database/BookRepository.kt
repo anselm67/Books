@@ -229,4 +229,27 @@ class BookRepository(private val dao: BookDao) {
     suspend fun decorate(book: Book) {
         book.decorate(dao.labels(book.id).map { label(it) })
     }
+
+    /**
+     * Stats queries.
+     */
+    suspend fun getLabelTypeCounts(): List<LabelTypeCount> {
+        return dao.getLabelTypeCounts()
+    }
+
+    suspend fun getDuplicateBooksCount(): Int {
+        return dao.getDuplicateBooksCount()
+    }
+
+    suspend fun getBooksWithoutLabelCount(type: Label.Type): Int {
+        return dao.getBooksWithoutLabelCount(type)
+    }
+
+    suspend fun getBooksWithoutCoverImage(): Int {
+        return dao.getBooksWithoutCoverImage()
+    }
+
+    suspend fun deleteUnusedLabels(): Int {
+        return dao.deleteUnusedLabels()
+    }
 }
