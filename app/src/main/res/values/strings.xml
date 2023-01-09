@@ -67,11 +67,12 @@
     <string name="bookIdLabel">SQL Identifier</string>
     <string name="drag_to_re_order">Drag to re-order.</string>
     <string name="enter_text">Enter text…</string>
+    <string name="enter_isbn">Enter ISBN…</string>
     <string name="export_preference_title">Export books&#8230;</string>
     <string name="book_pager_label">Export books&#8230;</string>
     <string name="add_scan">Scan</string>
     <string name="add_type">Type</string>
-    <string name="add_search">Search</string>
+    <string name="add_isbn">ISBN</string>
     <string name="delete_book">Delete</string>
     <string name="book_deleted">%1$s deleted.</string>
     <string name="yes">Yes</string>
@@ -93,4 +94,5 @@
     <string name="preference_category_display">Display</string>
     <string name="take_photo">Take Photo</string>
     <string name="pick_media">Pick Media</string>
+    <string name="add_isbn_go_prompt">Go</string>
 </resources>

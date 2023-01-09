@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="150dp"
-    android:orientation="horizontal"
-    android:layoutDirection="ltr"
-    android:weightSum="3" >
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <Button
         android:id="@+id/idType"
@@ -18,20 +16,32 @@
         android:textAllCaps="false"
         android:layout_weight="1"
 
-        style="?android:attr/buttonBarButtonStyle" />
+        style="?android:attr/buttonBarButtonStyle"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/idIsbn"
+        app:layout_constraintTop_toTopOf="parent"
+
+        />
 
     <Button
-        android:id="@+id/idSearch"
+        android:id="@+id/idIsbn"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:drawableTop="@drawable/scan_barcode"
         android:drawableTint="#6200EE"
 
-        android:text="@string/add_search"
+        android:text="@string/add_isbn"
         android:textAllCaps="false"
         android:layout_weight="1"
 
-        style="?android:attr/buttonBarButtonStyle" />
+        style="?android:attr/buttonBarButtonStyle"
+
+        app:layout_constraintStart_toEndOf="@id/idType"
+        app:layout_constraintEnd_toStartOf="@id/idScan"
+        app:layout_constraintTop_toTopOf="parent"
+
+        />
 
     <Button
         android:id="@+id/idScan"
@@ -43,7 +53,45 @@
         android:text="@string/add_scan"
         android:textAllCaps="false"
         android:layout_weight="1"
-        style="?android:attr/buttonBarButtonStyle" />
 
+        style="?android:attr/buttonBarButtonStyle"
 
-</LinearLayout>
+        app:layout_constraintStart_toEndOf="@id/idIsbn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+    <EditText
+        android:id="@+id/idIsbnEdit"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:importantForAutofill="no"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/idIsbnButton"
+        app:layout_constraintTop_toBottomOf="@id/idScan"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_margin="5dp"
+
+        android:visibility="gone"
+
+        tools:ignore="LabelFor" />
+
+    <Button
+        android:id="@+id/idIsbnButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/add_isbn_go_prompt"
+        android:hint="@string/enter_isbn"
+        app:layout_constraintStart_toEndOf="@id/idIsbnEdit"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/idScan"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:padding="0dp"
+        android:layout_margin="5dp"
+        app:cornerRadius = "15dp"
+
+        android:visibility="gone"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
