@@ -613,6 +613,10 @@ interface BookDao {
     @TypeConverters(Converters::class)
     suspend fun getLabelTypeCounts(): List<LabelTypeCount>
 
+    @Query("SELECT * FROM label_table WHERE type = :type ORDER BY name ASC")
+    @TypeConverters(Converters::class)
+    suspend fun getLabels(type: Label.Type): List<Label>
+
     @Query("     SELECT bt1.id FROM book_table AS bt1 " +
             " LEFT JOIN book_labels AS bl1 ON bl1.bookId = bt1.id " +
             "     WHERE (title, labelId) IN " +

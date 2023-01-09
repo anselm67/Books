@@ -53,7 +53,6 @@
         android:id="@+id/search_dialog_fragment"
         android:name="com.anselm.books.ui.home.SearchDialogFragment" >
 
-        <!-- Label.PhysicalLocation == 3 -->
         <argument android:name="type"
             app:argType="com.anselm.books.database.Label$Type" />
         <argument android:name="query" app:argType="com.anselm.books.database.Query"
@@ -67,11 +66,23 @@
         android:label="@string/menu_cleanup"
         tools:layout="@layout/fragment_cleanup">
 
-        <action
-            android:id="@+id/toPagerFragment"
+        <action android:id="@+id/toPagerFragment"
             app:destination="@id/nav_pager" />
 
+        <action
+            android:id="@+id/toCleanupLabelFragment"
+            app:destination="@id/nav_cleanup_label" />
     </fragment>
+
+    <fragment
+        android:id="@+id/nav_cleanup_label"
+        android:name="com.anselm.books.ui.cleanup.CleanUpLabelFragment"
+        tools:layout="@layout/fragment_cleanup_label" >
+
+        <argument android:name="type"
+            app:argType="com.anselm.books.database.Label$Type" />
+    </fragment>
+
 
     <fragment
         android:id="@id/nav_settings"

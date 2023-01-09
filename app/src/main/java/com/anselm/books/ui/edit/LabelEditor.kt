@@ -200,7 +200,7 @@ class MultiLabelEditor(
         setter(dndlist.getLabels())
     }
 
-    fun addLabel(label: Label) {
+    private fun addLabel(label: Label) {
         if ( dndlist.addLabel(label) ) {
             fragment.setChanged(editor.root, editor.idUndoEdit)
         }
@@ -249,7 +249,7 @@ class SingleLabelEditor(
         editLabel?.let { setter(it) }
     }
 
-    fun setLabel(label: Label) {
+    private fun setLabel(label: Label) {
         if (label != getter()) {
             editLabel = label
             fragment.setChanged(editor.root, editor.idUndoEdit)

@@ -242,6 +242,10 @@ class BookRepository(private val dao: BookDao) {
         return dao.getLabelTypeCounts()
     }
 
+    suspend fun getLabels(type: Label.Type): List<Label> {
+        return dao.getLabels(type)
+    }
+
     suspend fun getDuplicateBooksCount(): Int {
         return dao.getDuplicateBooksCount()
     }

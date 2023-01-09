@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layoutDirection="ltr">
+
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ic_outline_label_24"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="5dp"
+        android:backgroundTint="#555555"
+        android:layout_gravity="center_vertical"
+
+        />
+
+    <EditText
+        android:id="@+id/idLabelText"
+        android:textSize="18sp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_gravity="center_vertical"
+        android:imeOptions="actionDone"
+        android:inputType="text"
+        android:importantForAutofill="no"
+        android:maxLines="1"
+        tools:ignore="LabelFor" />
+
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/idEditLabel"
+        android:layout_width="36dp"
+        android:layout_height="wrap_content"
+        app:icon="@drawable/ic_baseline_mode_edit_24"
+        app:iconTint="#6200EE"
+        android:layout_gravity="center_vertical"
+        app:iconGravity="textTop"
+        style="?android:attr/buttonBarButtonStyle"
+
+        />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/idDeleteLabel"
+        android:layout_width="36dp"
+        android:layout_height="wrap_content"
+        app:icon="@drawable/ic_baseline_delete_24"
+        app:iconTint="#6200EE"
+        app:iconPadding="0dp"
+        android:layout_gravity="center_vertical"
+        app:iconGravity="start"
+        style="?android:attr/buttonBarButtonStyle"
+        />
+</LinearLayout>

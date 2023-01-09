@@ -30,6 +30,11 @@ class CleanUpFragment: BookFragment() {
             var count = app.repository.deleteUnusedLabels()
             text.append("Deleted $count unused labels.\n")
 
+            binding.idBookHeader.text = getString(
+                R.string.book_count,
+                app.repository.getTotalCount())
+
+
             // Books hygiene.
             count = app.repository.getDuplicateBooksCount()
             if (count > 0) {
@@ -62,6 +67,53 @@ class CleanUpFragment: BookFragment() {
 
             }
 
+            val types = app.repository.getLabelTypeCounts()
+            // Authors
+            binding.idCleanupAuthors.text = getString(
+                R.string.authors_cleanup,
+                types.firstOrNull { it.type == Label.Type.Authors }?.count ?: 0
+            )
+            binding.idCleanupAuthors.setOnClickListener {
+                val action = CleanUpFragmentDirections.toCleanupLabelFragment(Label.Type.Authors)
+                findNavController().navigate(action)
+            }
+            // Genres
+            binding.idCleanupGenres.text = getString(
+                R.string.genres_cleanup,
+                types.firstOrNull { it.type == Label.Type.Genres }?.count ?: 0
+            )
+            binding.idCleanupGenres.setOnClickListener {
+                val action = CleanUpFragmentDirections.toCleanupLabelFragment(Label.Type.Genres)
+                findNavController().navigate(action)
+            }
+            // Publishers
+            binding.idCleanupPublishers.text = getString(
+                R.string.publishers_cleanup,
+                types.firstOrNull { it.type == Label.Type.Publisher }?.count ?: 0
+            )
+            binding.idCleanupPublishers.setOnClickListener {
+                val action = CleanUpFragmentDirections.toCleanupLabelFragment(Label.Type.Publisher)
+                findNavController().navigate(action)
+            }
+            // Languages
+            binding.idCleanupLanguages.text = getString(
+                R.string.languages_cleanup,
+                types.firstOrNull { it.type == Label.Type.Language }?.count ?: 0
+            )
+            binding.idCleanupLanguages.setOnClickListener {
+                val action = CleanUpFragmentDirections.toCleanupLabelFragment(Label.Type.Language)
+                findNavController().navigate(action)
+            }
+            // Locations
+            binding.idCleanupLocations.text = getString(
+                R.string.locations_cleanup,
+                types.firstOrNull { it.type == Label.Type.Location }?.count ?: 0
+            )
+            binding.idCleanupLocations.setOnClickListener {
+                val action = CleanUpFragmentDirections.toCleanupLabelFragment(Label.Type.Location)
+                findNavController().navigate(action)
+            }
+
             // Books without certain types of labels.
             count = app.repository.getBooksWithoutLabelCount(Label.Type.Authors)
             text.append("$count without author.\n")
@@ -73,19 +125,6 @@ class CleanUpFragment: BookFragment() {
             text.append("$count without a language.\n")
 
 
-            // Label management: count of different values.
-            val types = app.repository.getLabelTypeCounts()
-            types.map {
-                text.append(it.count)
-                when (it.type) {
-                    Label.Type.Authors -> text.append(" authors")
-                    Label.Type.Genres -> text.append(" genres")
-                    Label.Type.Location -> text.append(" locations")
-                    Label.Type.Publisher -> text.append(" publishers")
-                    Label.Type.Language -> text.append(" languages")
-                }
-                text.append('\n')
-            }
             binding.idStatsView.text = text
 
 
