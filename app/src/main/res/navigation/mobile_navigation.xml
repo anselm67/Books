@@ -67,6 +67,10 @@
         android:label="@string/menu_cleanup"
         tools:layout="@layout/fragment_cleanup">
 
+        <action
+            android:id="@+id/toPagerFragment"
+            app:destination="@id/nav_pager" />
+
     </fragment>
 
     <fragment

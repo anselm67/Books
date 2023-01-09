@@ -96,4 +96,7 @@
     <string name="take_photo">Take Photo</string>
     <string name="pick_media">Pick Media</string>
     <string name="add_isbn_go_prompt">Go</string>
+    <string name="duplicate_books_cleanup">%1$d potential duplicates.</string>
+
+
 </resources>

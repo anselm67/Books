@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import com.anselm.books.R
 import com.anselm.books.database.Label
 import com.anselm.books.databinding.FragmentCleanupBinding
 import com.anselm.books.ui.widgets.BookFragment
@@ -28,9 +30,20 @@ class CleanUpFragment: BookFragment() {
             var count = app.repository.deleteUnusedLabels()
             text.append("Deleted $count unused labels.\n")
 
-            // Books hygiene
+            // Books hygiene.
             count = app.repository.getDuplicateBooksCount()
-            text.append("$count potential duplicates.\n")
+            if (count > 0) {
+                binding.idDuplicateText.visibility = View.VISIBLE
+                binding.idDuplicateText.text = getString(R.string.duplicate_books_cleanup, count)
+                binding.idDuplicateText.setOnClickListener {
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        val dupes = app.repository.getDuplicateBookIds()
+                        val action = CleanUpFragmentDirections.toPagerFragment(
+                            dupes.toLongArray(), 0)
+                        findNavController().navigate(action)
+                    }
+                }
+            }
 
             // Books without certain types of labels.
             count = app.repository.getBooksWithoutLabelCount(Label.Type.Authors)
