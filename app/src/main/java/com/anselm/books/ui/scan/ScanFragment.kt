@@ -27,7 +27,6 @@ import com.anselm.books.databinding.FragmentScanBinding
 import com.anselm.books.databinding.RecyclerviewScanIsbnBinding
 import com.anselm.books.ui.widgets.BookFragment
 import com.bumptech.glide.Glide
-import com.bumptech.glide.util.Util
 import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -278,7 +277,7 @@ class IsbnArrayAdapter(
             lookup.loading = false
             lookup.exception = e
             lookup.errorMessage = msg
-            Util.postOnUiThread {
+            app.postOnUiThread {
                 notifyDataSetChanged()
                 statsListener(stats)
             }
@@ -290,7 +289,7 @@ class IsbnArrayAdapter(
             }
             lookup.loading = false
             lookup.book = book
-            Util.postOnUiThread {
+            app.postOnUiThread {
                 notifyDataSetChanged()
                 statsListener(stats)
             }

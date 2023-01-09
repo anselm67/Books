@@ -36,6 +36,10 @@ class BooksApplication : Application() {
         }
     }
 
+    fun postOnUiThread(block: () ->Unit) {
+        applicationScope.launch(Dispatchers.Main) { block() }
+    }
+
     override fun onCreate() {
         super.onCreate()
         app = this

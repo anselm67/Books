@@ -1,6 +1,7 @@
 package com.anselm.books.ui.details
 
 import android.app.ActionBar.LayoutParams
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -50,19 +51,41 @@ class DetailsFragment : BookFragment() {
             if (book != null) {
                 bookId = book.id
                 binding.bind(inflater, book)
+
+                // We have to wait for the book to setup the menu.
+                handleMenu(listOf(
+                    Pair(R.id.idEditBook) {
+                        val action = DetailsFragmentDirections.toEditFragment(bookId)
+                        navController.navigate(action)
+                    },
+                    Pair(R.id.idDeleteBook) {
+                        val builder = AlertDialog.Builder(requireActivity())
+                        builder.setMessage(getString(R.string.delete_book_confirmation, book.title))
+                            .setPositiveButton(R.string.yes) { _, _ -> deleteBook(book) }
+                            .setNegativeButton(R.string.no) { _, _ -> }
+                            .show()
+                    },
+                ))
+
             } else {
                 navController.popBackStack()
             }
         }
 
-        handleMenu(listOf(
-            Pair(R.id.idEditBook) {
-                val action = DetailsFragmentDirections.toEditFragment(bookId)
-                navController.navigate(action)
-            }
-        ))
-
         return binding.root
+    }
+
+    private fun deleteBook(book: Book) {
+        val app = BooksApplication.app
+        if (book.id >= 0) {
+            app.applicationScope.launch {
+                app.repository.deleteBook(book)
+                app.toast(getString(R.string.book_deleted, book.title))
+                app.postOnUiThread {
+                    findNavController().popBackStack()
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {
