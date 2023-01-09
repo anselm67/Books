@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="5dp"
@@ -22,7 +23,23 @@
             android:textSize="18sp"
             android:padding="5dp"
             android:layout_margin="5dp"
-            android:drawableEnd="@drawable/ic_baseline_arrow_right_24"/>
+            android:drawableEnd="@drawable/ic_baseline_arrow_right_24"
+            tools:ignore="UseCompatTextViewDrawableXml" />
+
+
+        <View style="@style/BookDetailsRuler" />
+
+        <TextView
+            android:id="@+id/idWithoutCoverText"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:textSize="18sp"
+            android:padding="5dp"
+            android:layout_margin="5dp"
+            android:drawableEnd="@drawable/ic_baseline_arrow_right_24"
+            tools:ignore="UseCompatTextViewDrawableXml" />
 
 
         <View style="@style/BookDetailsRuler" />

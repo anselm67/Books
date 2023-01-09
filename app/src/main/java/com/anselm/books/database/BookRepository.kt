@@ -246,16 +246,20 @@ class BookRepository(private val dao: BookDao) {
         return dao.getDuplicateBooksCount()
     }
 
-    suspend fun getDuplicateBookIds(): List<Long> {
-        return dao.getDuplicateBookIds()
+    suspend fun getDuplicateBooksIds(): List<Long> {
+        return dao.getDuplicateBooksIds()
+    }
+
+    suspend fun getWithoutCoverBooksCount(): Int {
+        return dao.getWithoutCoverBooksCount()
+    }
+
+    suspend fun getWithoutCoverBookIds(): List<Long> {
+        return dao.getWithoutCoverBooksIds()
     }
 
     suspend fun getBooksWithoutLabelCount(type: Label.Type): Int {
         return dao.getBooksWithoutLabelCount(type)
-    }
-
-    suspend fun getBooksWithoutCoverImage(): Int {
-        return dao.getBooksWithoutCoverImage()
     }
 
     suspend fun deleteUnusedLabels(): Int {

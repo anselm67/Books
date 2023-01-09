@@ -621,7 +621,7 @@ interface BookDao {
             "        JOIN label_table as lt on lt.id = bl.labelId " +
             "       WHERE lt.type = 1 " +
             "    GROUP BY title, name HAVING count(*) > 1)")
-    suspend fun getDuplicateBookIds(): List<Long>
+    suspend fun getDuplicateBooksIds(): List<Long>
 
     @Query("SELECT COUNT(*) FROM (" +
             "    SELECT b.title as title, lt.name as name , count(*) as count " +
@@ -633,9 +633,6 @@ interface BookDao {
             ")")
     suspend fun getDuplicateBooksCount(): Int
 
-    /*
-    SELECT * FROM book_table WHERE id NOT IN (select bl.bookId FROM book_labels as bl JOIN label_table as lt ON lt.id = bl.labelId WHERE lt.type = 1);
-     */
     @Query("SELECT COUNT(*) FROM book_table " +
             " WHERE id NOT IN (" +
             "    SELECT bl.bookId FROM book_labels AS bl " +
@@ -647,7 +644,11 @@ interface BookDao {
 
     @Query(" SELECT COUNT(*) FROM book_table " +
             " WHERE image_filename = '' OR image_filename IS NULL")
-    suspend fun getBooksWithoutCoverImage(): Int
+    suspend fun getWithoutCoverBooksCount(): Int
+
+    @Query(" SELECT id FROM book_table " +
+            " WHERE image_filename = '' OR image_filename IS NULL")
+    suspend fun getWithoutCoverBooksIds(): List<Long>
 
     @Query("DELETE FROM label_table " +
            " WHERE id NOT IN (SELECT labelId FROM book_labels)")

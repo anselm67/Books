@@ -37,12 +37,29 @@ class CleanUpFragment: BookFragment() {
                 binding.idDuplicateText.text = getString(R.string.duplicate_books_cleanup, count)
                 binding.idDuplicateText.setOnClickListener {
                     viewLifecycleOwner.lifecycleScope.launch {
-                        val dupes = app.repository.getDuplicateBookIds()
+                        val dupes = app.repository.getDuplicateBooksIds()
                         val action = CleanUpFragmentDirections.toPagerFragment(
                             dupes.toLongArray(), 0)
                         findNavController().navigate(action)
                     }
                 }
+            }
+            // Books without cover images.
+            count = app.repository.getWithoutCoverBooksCount()
+            if (count > 0) {
+                binding.idWithoutCoverText.visibility = View.VISIBLE
+                binding.idWithoutCoverText.text = getString(
+                    R.string.without_cover_books_cleanup, count
+                )
+                binding.idWithoutCoverText.setOnClickListener {
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        val withoutCovers = app.repository.getWithoutCoverBookIds()
+                        val action = CleanUpFragmentDirections.toPagerFragment(
+                            withoutCovers.toLongArray(), 0)
+                        findNavController().navigate(action)
+                    }
+                }
+
             }
 
             // Books without certain types of labels.
@@ -55,9 +72,6 @@ class CleanUpFragment: BookFragment() {
             count = app.repository.getBooksWithoutLabelCount(Label.Type.Language)
             text.append("$count without a language.\n")
 
-            // Books without cover images.
-            count = app.repository.getBooksWithoutCoverImage()
-            text.append("$count without a cover image.\n")
 
             // Label management: count of different values.
             val types = app.repository.getLabelTypeCounts()
