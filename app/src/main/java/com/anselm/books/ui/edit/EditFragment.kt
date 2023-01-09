@@ -80,7 +80,7 @@ class EditFragment: BookFragment() {
 
         handleMenu(listOf(
             Pair(R.id.idSaveBook) {
-                saveChanges()
+                checkChanges()
             },
             Pair(R.id.idDeleteBook) {
                 val builder = AlertDialog.Builder(requireActivity())
@@ -200,27 +200,63 @@ class EditFragment: BookFragment() {
         return editors.firstOrNull { ! it.isValid() } == null
     }
 
-    private fun saveChanges() {
-        // Validates the edits first, reject invalid books.
+    /**
+     * Check for changes, validates them and saves the book being edited if all ok.
+     * This is a three steps trip:
+     * 1. checkChanges checks that there are changes, and that the changes are valid,
+     * 2. checkForDuplicates check the edited book for duplicates and prompts the user as needed.
+     * 3. If all above steps agree, doSave() actually writes the book and its image to the database.
+     * */
+    private fun checkChanges() {
         val app = BooksApplication.app
-        if ( ! validateChanges() ) {
+        // Validates the edits first, reject invalid books.
+        if (!validateChanges()) {
             app.toast("Adjust highlighted fields.")
             return
         }
         // Inserts or saves only when valid.
         if (saveEditorChanges() || book.id <= 0) {
-            app.loading(true)
-            activity?.lifecycleScope?.launch {
-                // saveCoverImage makes additional changes to the book, it needs to come first.
-                coverImageEditor.saveCoverImage(book)
-                app.repository.save(book)
-            }?.invokeOnCompletion {
-                app.toast("${book.title} saved.")
-                app.loading(false)
-                findNavController().popBackStack()
-            }
+            checkForDuplicates()
         } else {
             // Nothing to save, head back.
+            findNavController().popBackStack()
+        }
+    }
+
+    // Checks for duplicates and save the book if the user is ok.
+    private fun checkForDuplicates() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val dupes = app.repository.getDuplicates(book).filter {
+                it.id != book.id
+            }
+            if (dupes.isNotEmpty()) {
+                val builder = AlertDialog.Builder(requireActivity())
+                builder.setMessage(
+                    getString(
+                        R.string.duplicate_book_confirmation,
+                        book.title,
+                        dupes.size
+                    )
+                )
+                .setPositiveButton(R.string.yes) { _, _ -> doSave() }
+                .setNegativeButton(R.string.no) { _, _ -> }
+                .show()
+            }
+        }
+    }
+
+    // Saves the book no matter what, this is the last hop in the path to save the book being
+    // edited: after saveChanges has checked that there are changes, and after checkForDuplicates
+    // approved.
+    private fun doSave() {
+        app.loading(true)
+        activity?.lifecycleScope?.launch {
+            // saveCoverImage makes additional changes to the book, it needs to come first.
+            coverImageEditor.saveCoverImage(book)
+            app.repository.save(book)
+        }?.invokeOnCompletion {
+            app.toast("${book.title} saved.")
+            app.loading(false)
             findNavController().popBackStack()
         }
     }

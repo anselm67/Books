@@ -164,6 +164,11 @@ class BookRepository(private val dao: BookDao) {
         }
     }
 
+    suspend fun getDuplicates(book: Book): List<Book> {
+        val authorId = if (book.authors.isEmpty()) 0 else book.authors[0].id
+        return dao.getDuplicates(book.title, authorId)
+    }
+
     /**
      * Creates a new book for insertion.
      * This might set some default values for some fields based on preferences.

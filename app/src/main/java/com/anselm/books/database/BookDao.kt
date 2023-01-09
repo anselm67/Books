@@ -14,6 +14,12 @@ interface BookDao {
     @Query("SELECT * FROM book_table WHERE id = :bookId")
     suspend fun load(bookId: Long) : Book?
 
+    @Query("SELECT bt.* FROM book_table AS bt " +
+            " LEFT JOIN book_labels AS lb ON lb.bookId = bt.id " +
+            " WHERE bt.title = :title " +
+            "   AND (:authorId = 0) OR (lb.labelId = :authorId)")
+    suspend fun getDuplicates(title: String, authorId: Long): List<Book>
+
     @Update
     suspend fun update(book: Book)
 
@@ -642,8 +648,8 @@ interface BookDao {
             " WHERE image_filename = '' OR image_filename IS NULL")
     suspend fun getBooksWithoutCoverImage(): Int
 
-    @Query("DELETE FROM label_table AS lt " +
-           " WHERE lt.id NOT IN (SELECT labelId FROM book_labels)")
+    @Query("DELETE FROM label_table " +
+           " WHERE id NOT IN (SELECT labelId FROM book_labels)")
     suspend fun deleteUnusedLabels(): Int
 
     companion object {
