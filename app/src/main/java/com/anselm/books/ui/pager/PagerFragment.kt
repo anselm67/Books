@@ -29,10 +29,9 @@ class PagerFragment: Fragment() {
         _binding = FragmentPagerBinding.inflate(inflater, container, false)
         val safeArgs: PagerFragmentArgs by navArgs()
 
-        if (safeArgs.bookIds != null) {
-            viewModel.bookIds = safeArgs.bookIds.asList()
-            viewModel.position = safeArgs.position
-        }
+        viewModel.bookIds = safeArgs.bookIds.asList()
+        viewModel.position = safeArgs.position
+
         val adapter = BookPagerAdapter(this, viewModel.bookIds)
         binding.idPager.adapter = adapter
         binding.idPager.setCurrentItem(viewModel.position, false)
