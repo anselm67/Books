@@ -16,6 +16,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.BooksApplication.Companion.app
@@ -51,6 +52,7 @@ class ScanFragment: BookFragment() {
         binding.idRecycler.adapter = adapter
         binding.idRecycler.layoutManager = LinearLayoutManager(binding.idRecycler.context)
 
+        ItemTouchHelper(ScanItemTouchHelper(adapter)).attachToRecyclerView(binding.idRecycler)
         // For now, that's your only option out of scanning.
         binding.idDoneButton.setOnClickListener {
             saveAllMatches()
@@ -162,7 +164,7 @@ class ScanFragment: BookFragment() {
     }
 }
 
-private class LookupResult(
+class LookupResult(
     var loading: Boolean = true,
     var book: Book? = null,
     var exception: Exception? = null,
@@ -176,7 +178,7 @@ data class LookupStats(
     val noMatchCount: AtomicInteger = AtomicInteger(0),
 )
 
-private class IsbnArrayAdapter(
+class IsbnArrayAdapter(
     private val statsListener: (LookupStats) -> Unit,
     private val onClick: (LookupResult) -> Unit,
 ): RecyclerView.Adapter<IsbnArrayAdapter.ViewHolder>() {
@@ -256,6 +258,12 @@ private class IsbnArrayAdapter(
 
     override fun getItemCount(): Int {
         return dataSource.size
+    }
+
+    fun removeAt(position: Int) {
+        check (position >= 0 && position < dataSource.size)
+        dataSource.removeAt(position)
+        notifyItemRemoved(position)
     }
 
     @SuppressLint("NotifyDataSetChanged")

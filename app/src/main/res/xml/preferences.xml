@@ -34,7 +34,7 @@
 
         <DropDownPreference
             app:key="lookup_service"
-            android:defaultValue="Google"
+            android:defaultValue="Both"
             android:entries="@array/serviceNames"
             android:entryValues="@array/serviceIdentifiers"
             android:title="Lookup Service"

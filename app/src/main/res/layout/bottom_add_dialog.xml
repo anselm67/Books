@@ -12,6 +12,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:drawableTop="@drawable/keyboard_typing"
+        android:drawableTint="#6200EE"
 
         android:text="@string/add_type"
         android:textAllCaps="false"

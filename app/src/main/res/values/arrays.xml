@@ -8,6 +8,6 @@
     <string-array name="serviceNames">
         <item>Google Books</item>
         <item>Open Library</item>
-        <item>Both</item>
+        <item>Merge Both</item>
     </string-array>
 </resources>

@@ -3,6 +3,7 @@ package com.anselm.books
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.SharedPreferences
+import android.util.DisplayMetrics
 import android.view.View
 import android.widget.Toast
 import androidx.core.view.isVisible
@@ -60,6 +61,12 @@ class BooksApplication : Application() {
         ImageRepository(applicationContext, basedir)
     }
 
+    val displayMetrics: DisplayMetrics by lazy { resources.displayMetrics }
+
+    private val bookMerger by lazy {
+        BookMerger()
+    }
+
     private var progressBarView: View? = null
     fun enableProgressBar(view: View) {
         progressBarView = view
@@ -101,12 +108,34 @@ class BooksApplication : Application() {
         when(prefs.getString("lookup_service", "Google")) {
             "Google" -> glClient.lookup(isbn, onError, onBook)
             "OpenLibrary" -> olClient.lookup(isbn, onError, onBook)
-            "Both" -> glClient.lookup(isbn, {
-                _, _ -> olClient.lookup(isbn, onError, onBook)
-            }, {
-                book -> if (book != null) onBook(book) else olClient.lookup(isbn, onError, onBook)
-            })
+            "Both" -> lookupBoth(isbn, onError, onBook)
         }
+    }
+
+    private fun lookupBoth(
+        isbn: String,
+        onError: (msg: String, e: Exception?) -> Unit,
+        onBook: (Book?) -> Unit,
+    ) {
+        glClient.lookup(isbn, { _, _ ->
+            olClient.lookup(isbn, onError, onBook)
+        }, { glBook ->
+            if (glBook == null) {
+                olClient.lookup(isbn, onError, onBook)
+            } else {
+                olClient.lookup(isbn, { _, _ ->
+                    // If OpenLibrary fails when GoogleBooks succeeded, use GoogleBooks.
+                    onBook(glBook)
+                }, { olBook ->
+                    // Now we have two versions of the book, merge them.
+                    onBook(if (olBook != null) {
+                        app.bookMerger.merge(glBook, olBook)
+                    } else {
+                        glBook
+                    })
+                })
+            }
+        })
     }
 
     companion object {
