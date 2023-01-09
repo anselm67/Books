@@ -76,7 +76,7 @@ class ImageRepository(
                 )
                 .build().apply {
                     start()
-                    addBitmap(bitmap)
+                    addBitmap(resize(bitmap))
                     stop(0)
                     close()
                 }
@@ -103,5 +103,14 @@ class ImageRepository(
             .toString(16).padStart(32, '0').uppercase()
         val sep = File.separator
         return File(basedir, "$imageDirectoryName${sep}${path.substring(0, 2)}${sep}${path}")
+    }
+
+    private fun resize(bitmap:Bitmap): Bitmap {
+        return Bitmap.createScaledBitmap(
+            bitmap,
+            Constants.IMAGE_SIZE.width,
+            Constants.IMAGE_SIZE.height,
+            true
+        )
     }
 }

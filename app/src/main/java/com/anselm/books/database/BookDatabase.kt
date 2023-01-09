@@ -6,11 +6,10 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.anselm.books.Constants
 import com.anselm.books.TAG
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-
-const val DATABASE_NAME = "book_database"
 
 @Database(
     entities = [
@@ -47,7 +46,7 @@ abstract class BookDatabase : RoomDatabase() {
                 Room.databaseBuilder(
                     context.applicationContext,
                     BookDatabase::class.java,
-                    DATABASE_NAME,
+                    Constants.DATABASE_NAME,
                 ).fallbackToDestructiveMigration()
                 .addCallback(BookDatabaseCallback(scope))
                 .build()
