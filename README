@@ -1,3 +1,18 @@
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/idEditLabel"
+        android:layout_width="36dp"
+        android:layout_height="wrap_content"
+        app:icon="@drawable/ic_baseline_mode_edit_24"
+        app:iconTint="#6200EE"
+        android:layout_gravity="center_vertical"
+        app:iconGravity="textTop"
+        style="?android:attr/buttonBarButtonStyle"
+
+        />
+
+
+
+
 BookBuddy - which you can look at via a proxy uses the following URLs to lookup ISBN:
 http://www.worldcat.org/webservices/catalog/content/isbn/9782957002610?wskey=REDACTED&maximumRecords=1&recordSchema=info:srw/schema/1/dc
 http://lx2.loc.gov:210/lcdb?version=1.1&operation=searchRetrieve&query=bath.isbn%3D9782957002610&maximumRecords=1&recordSchema=mods

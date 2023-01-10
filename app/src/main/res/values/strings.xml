@@ -111,6 +111,7 @@
     <string name="labels_cleanup_header">Labels</string>
 
     <string name="merge_labels_prompt">Merge %1$s into %2$s?</string>
+    <string name="delete_label_prompt">Delete label "%1$s"?</string>
 
 
 

@@ -4,19 +4,10 @@
     android:id="@+id/idLabelCleanupContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
-    android:layoutDirection="ltr">
-
-
-    <ImageView
-        android:id="@+id/idDragHandle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/ic_baseline_drag_indicator_24"
-        android:layout_marginBottom="-2sp"
-        android:contentDescription="@string/drag_to_re_order"
-        android:layout_gravity="center_vertical" />
+    android:layoutDirection="ltr"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
 
     <ImageView
         android:layout_width="wrap_content"
@@ -36,34 +27,13 @@
         android:layout_weight="1"
         android:layout_gravity="center_vertical" />
 
-
-    <CheckBox
+    <ImageView
+        android:id="@+id/idDragHandle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        />
+        android:background="@drawable/ic_baseline_drag_indicator_24"
+        android:layout_marginBottom="-2sp"
+        android:contentDescription="@string/drag_to_re_order"
+        android:layout_gravity="center_vertical" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/idEditLabel"
-        android:layout_width="36dp"
-        android:layout_height="wrap_content"
-        app:icon="@drawable/ic_baseline_mode_edit_24"
-        app:iconTint="#6200EE"
-        android:layout_gravity="center_vertical"
-        app:iconGravity="textTop"
-        style="?android:attr/buttonBarButtonStyle"
-
-        />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/idDeleteLabel"
-        android:layout_width="36dp"
-        android:layout_height="wrap_content"
-        app:icon="@drawable/ic_baseline_delete_24"
-        app:iconTint="#6200EE"
-        app:iconPadding="0dp"
-        android:layout_gravity="center_vertical"
-        app:iconGravity="start"
-        style="?android:attr/buttonBarButtonStyle"
-        />
 </LinearLayout>
