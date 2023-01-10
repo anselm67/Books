@@ -289,4 +289,9 @@ class BookRepository(private val dao: BookDao) {
         labelsById.remove(label.id)
         dao.deleteLabel(label.id)
     }
+
+    suspend fun mergeLabels(fromLabel: Label, intoLabel: Label) {
+        dao.mergeLabel(fromLabel.id, intoLabel.id)
+        deleteLabel(fromLabel)
+    }
 }

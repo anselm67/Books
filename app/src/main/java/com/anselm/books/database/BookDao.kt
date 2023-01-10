@@ -672,6 +672,9 @@ interface BookDao {
     @TypeConverters(Converters::class)
     suspend fun searchLabels(type: Label.Type, labelQuery: String?): List<Label>
 
+    @Query("UPDATE book_labels SET labelId = :toLabelId WHERE labelId = :fromLabelId")
+    suspend fun mergeLabel(fromLabelId: Long, toLabelId: Long): Int
+
     companion object {
         const val SortByTitle = 1
         const val SortByDateAdded = 2

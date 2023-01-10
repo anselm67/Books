@@ -110,6 +110,8 @@
     <string name="locations_cleanup">%1$d locations</string>
     <string name="labels_cleanup_header">Labels</string>
 
+    <string name="merge_labels_prompt">Merge %1$s into %2$s?</string>
+
 
 
 </resources>
