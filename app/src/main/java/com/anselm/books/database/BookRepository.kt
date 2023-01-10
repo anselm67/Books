@@ -82,24 +82,24 @@ class BookRepository(private val dao: BookDao) {
         val histos = if ( query.query.isNullOrEmpty() ) {
             if (labelQuery.isNullOrEmpty()) {
                 dao.getFilteredHisto(
-                    type.type, query.filters.map { it.labelId }, sortBy,
+                    type, query.filters.map { it.labelId }, sortBy,
                 )
             } else {
                 dao.searchFilteredHisto(
-                    type.type, labelQuery, query.filters.map { it.labelId }, sortBy,
+                    type, labelQuery, query.filters.map { it.labelId }, sortBy,
                 )
             }
         } else /* Requests text match. */ {
             if (labelQuery.isNullOrEmpty()) {
                 dao.getTitleHisto(
-                    type.type,
+                    type,
                     if (query.partial) query.query!! + '*' else query.query!!,
                     query.filters.map { it.labelId },
                     sortBy,
                 )
             } else {
                 dao.searchTitleHisto(
-                    type.type,
+                    type,
                     labelQuery,
                     if (query.partial) query.query!! + '*' else query.query!!,
                     query.filters.map { it.labelId },
@@ -195,7 +195,7 @@ class BookRepository(private val dao: BookDao) {
         var label = labelsByValue[key]
         if (label == null) {
             // No need for synchronization as the underlying sql table has a unique constraint.
-            label = dao.label(type.type, name)
+            label = dao.label(type, name)
             if (label == null) {
                 val id = dao.insert(Label(type, name))
                 label = Label(id, type, name)

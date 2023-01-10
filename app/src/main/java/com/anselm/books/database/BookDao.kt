@@ -43,7 +43,8 @@ interface BookDao {
     suspend fun insert(vararg bookLabels: BookLabels)
 
     @Query("SELECT * FROM label_table WHERE type = :type AND name = :name")
-    suspend fun label(type: Int, name: String): Label?
+    @TypeConverters(Converters::class)
+    suspend fun label(type: Label.Type, name: String): Label?
 
     @Query("SELECT * FROM label_table WHERE id = :id")
     suspend fun label(id: Long): Label?
@@ -384,15 +385,16 @@ interface BookDao {
             " GROUP BY labelId " +
             " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
             "          CASE WHEN :param = 1 THEN label_table.name END ASC")
+    @TypeConverters(Converters::class)
     suspend fun getTitleHisto(
-        type: Int,
+        type: Label.Type,
         query: String,
         labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
         param: Int,
     ): List<Histo>
 
     suspend fun getTitleHisto(
-        type: Int, query: String, labelIds: List<Long>,
+        type: Label.Type, query: String, labelIds: List<Long>,
         param: Int = SortByCount,
     ): List<Histo> {
         when (labelIds.size) {
@@ -443,15 +445,16 @@ interface BookDao {
             " GROUP BY labelId "+
             " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
             "          CASE WHEN :param = 1 THEN label_table.name END ASC")
+    @TypeConverters(Converters::class)
     suspend fun searchTitleHisto(
-        type: Int,
+        type: Label.Type,
         labelQuery: String, query: String,
         labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
         param: Int,
     ): List<Histo>
 
     suspend fun searchTitleHisto(
-        type: Int,
+        type: Label.Type,
         labelQuery: String, query: String,
         labelIds: List<Long>,
         param: Int = SortByCount
@@ -500,15 +503,15 @@ interface BookDao {
             " GROUP BY labelId " +
             " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
             "          CASE WHEN :param = 1 THEN label_table.name END ASC")
-
+    @TypeConverters(Converters::class)
     suspend fun getFilteredHisto(
-        type: Int,
+        type: Label.Type,
         labelId1: Long, labelId2: Long,labelId3: Long,labelId4: Long,
         param: Int,
     ): List<Histo>
 
     suspend fun getFilteredHisto(
-        type: Int, labelIds: List<Long>, param: Int = SortByCount
+        type: Label.Type, labelIds: List<Long>, param: Int = SortByCount
     ): List<Histo> {
         when (labelIds.size) {
             0 -> return getFilteredHisto(
@@ -554,15 +557,16 @@ interface BookDao {
             " GROUP BY labelId " +
             " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
             "          CASE WHEN :param = 1 THEN label_table.name END ASC")
+    @TypeConverters(Converters::class)
     suspend fun searchFilteredHisto(
-        type: Int,
+        type: Label.Type,
         labelQuery: String,
         labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
         param: Int,
     ): List<Histo>
 
     suspend fun searchFilteredHisto(
-        type: Int,
+        type: Label.Type,
         labelQuery: String,
         labelIds: List<Long>,
         param: Int = SortByCount,
