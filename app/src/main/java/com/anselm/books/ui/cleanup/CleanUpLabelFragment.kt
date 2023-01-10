@@ -1,8 +1,11 @@
 package com.anselm.books.ui.cleanup
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -26,6 +29,8 @@ import kotlinx.coroutines.launch
 class CleanUpLabelFragment: BookFragment() {
     private var _binding: FragmentCleanupLabelBinding? = null
     private val binding get() = _binding!!
+    private lateinit var adapter: LabelCleanupArrayAdapter
+    private lateinit var type: Label.Type
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,17 +41,40 @@ class CleanUpLabelFragment: BookFragment() {
         _binding = FragmentCleanupLabelBinding.inflate(inflater, container, false)
 
         val safeArgs: CleanUpLabelFragmentArgs by navArgs()
+        type = safeArgs.type
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val labels = app.repository.getLabels(safeArgs.type).toMutableList()
-            binding.idLabelRecyclerView.adapter = LabelCleanupArrayAdapter(labels)
+            adapter = LabelCleanupArrayAdapter(app.repository.getLabels(type).toMutableList())
+            binding.idLabelRecyclerView.adapter = adapter
             binding.idLabelRecyclerView.layoutManager = LinearLayoutManager(
                 binding.idLabelRecyclerView.context
             )
             binding.idLabelRecyclerView.addItemDecoration(
                 DividerItemDecoration(requireActivity(), RecyclerView.VERTICAL))
         }
+
+        binding.idAutoComplete.addTextChangedListener(object: TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { }
+
+            override fun afterTextChanged(s: Editable?) {
+                val labelQuery = s.toString()
+                if (labelQuery.isEmpty()) {
+                    loadLabels()
+                } else {
+                    loadLabels(s.toString() + '*')
+                }
+            }
+        })
+        super.handleMenu(emptyList())
         return binding.root
+    }
+
+    private fun loadLabels(labelQuery: String? = null) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val labels = app.repository.searchLabels(type, labelQuery)
+            adapter.updateData(labels)
+        }
     }
 }
 
@@ -105,7 +133,19 @@ private class LabelCleanupArrayAdapter(
     }
 
     private fun removeAt(position: Int) {
-        // FIXME Don't forget to kill the cache too.
+        val label = labels[position]
+        app.applicationScope.launch {
+            app.repository.deleteLabel(label)
+            labels.removeAt(position)
+            app.postOnUiThread { notifyItemRemoved(position) }
+        }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun updateData(newLabels: List<Label>) {
+        labels.clear()
+        labels.addAll(newLabels)
+        notifyDataSetChanged()
     }
 }
 

@@ -241,6 +241,8 @@ class EditFragment: BookFragment() {
                 .setPositiveButton(R.string.yes) { _, _ -> doSave() }
                 .setNegativeButton(R.string.no) { _, _ -> }
                 .show()
+            } else {
+                doSave()
             }
         }
     }

@@ -17,10 +17,10 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.anselm.books.BooksApplication
-import com.anselm.books.database.Histo
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
 import com.anselm.books.database.BookDao
+import com.anselm.books.database.Histo
 import com.anselm.books.database.Label
 import com.anselm.books.database.Query
 import com.anselm.books.databinding.SearchDialogFragmentBinding
@@ -128,7 +128,7 @@ class SearchDialogFragment: BottomSheetDialogFragment() {
     }
 
     private fun loadValues(labelQuery: String? = null) {
-        val repository = BooksApplication.app.repository
+        val repository = app.repository
         viewLifecycleOwner.lifecycleScope.launch {
             updateData(repository.getHisto(type, labelQuery, BookDao.SortByCount, query))
         }

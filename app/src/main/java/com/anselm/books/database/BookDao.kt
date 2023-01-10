@@ -55,23 +55,6 @@ interface BookDao {
     suspend fun clearLabels(bookId: Long)
 
     /**
-     * Clears everything.
-     */
-    @Query("DELETE FROM book_table")
-    suspend fun deleteBooks(): Int
-
-    @Query("DELETE FROM label_table")
-    suspend fun deleteLabels(): Int
-
-    @Query("DELETE FROM book_labels")
-    suspend fun deleteBookLabels(): Int
-
-    @Transaction
-    suspend fun deleteAll():Int {
-        return deleteBooks() + deleteLabels() + deleteBookLabels()
-    }
-
-    /**
      * Gets the total number of books in the library.
      */
     @Query("SELECT COUNT(*) FROM book_table")
@@ -625,7 +608,7 @@ interface BookDao {
             "        JOIN label_table as lt on lt.id = bl.labelId " +
             "       WHERE lt.type = 1 " +
             "    GROUP BY title, name HAVING count(*) > 1)")
-    suspend fun getDuplicateBooksIds(): List<Long>
+    suspend fun getDuplicateBookIds(): List<Long>
 
     @Query("SELECT COUNT(*) FROM (" +
             "    SELECT b.title as title, lt.name as name , count(*) as count " +
@@ -635,7 +618,7 @@ interface BookDao {
             "     WHERE lt.type = 1 " + // Label.Typ.Authors = 1
             "GROUP BY title, name HAVING count > 1" +
             ")")
-    suspend fun getDuplicateBooksCount(): Int
+    suspend fun getDuplicateBookCount(): Int
 
     @Query("SELECT COUNT(*) FROM book_table " +
             " WHERE id NOT IN (" +
@@ -644,11 +627,20 @@ interface BookDao {
             "      WHERE lt.type = :type" +
             ")")
     @TypeConverters(Converters::class)
-    suspend fun getBooksWithoutLabelCount(type: Label.Type): Int
+    suspend fun getWithoutLabelBookCount(type: Label.Type): Int
+
+    @Query("SELECT id FROM book_table " +
+            " WHERE id NOT IN (" +
+            "    SELECT bl.bookId FROM book_labels AS bl " +
+            "      JOIN label_table AS lt ON lt.id = bl.labelId " +
+            "      WHERE lt.type = :type" +
+            ")")
+    @TypeConverters(Converters::class)
+    suspend fun getWithoutLabelBookIds(type: Label.Type): List<Long>
 
     @Query(" SELECT COUNT(*) FROM book_table " +
             " WHERE image_filename = '' OR image_filename IS NULL")
-    suspend fun getWithoutCoverBooksCount(): Int
+    suspend fun getWithoutCoverBookCount(): Int
 
     @Query(" SELECT id FROM book_table " +
             " WHERE image_filename = '' OR image_filename IS NULL")
@@ -657,6 +649,24 @@ interface BookDao {
     @Query("DELETE FROM label_table " +
            " WHERE id NOT IN (SELECT labelId FROM book_labels)")
     suspend fun deleteUnusedLabels(): Int
+
+    @Query("DELETE FROM label_table WHERE id = :labelId")
+    suspend fun deleteLabelById(labelId: Long): Int
+
+    @Query("DELETE FROM book_labels WHERE labelId = :labelId")
+    suspend fun deleteBookLabelsById(labelId: Long): Int
+
+    @Transaction
+    suspend fun deleteLabel(labelId: Long): Int {
+        return deleteBookLabelsById(labelId) + deleteLabelById(labelId)
+    }
+
+    @Query(" SELECT * FROM label_table " +
+            "  JOIN label_fts ON label_table.id = label_fts.rowid" +
+            " WHERE type = :type" +
+            "   AND label_fts MATCH :labelQuery")
+    @TypeConverters(Converters::class)
+    suspend fun searchLabels(type: Label.Type, labelQuery: String?): List<Label>
 
     companion object {
         const val SortByTitle = 1

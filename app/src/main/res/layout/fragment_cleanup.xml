@@ -1,147 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="5dp"
     android:layout_marginTop="10dp">
 
     <LinearLayout
+        android:id="@+id/idStatsContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:layoutDirection="ltr" >
-
-        <TextView
-            android:id="@+id/idBookHeader"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:padding="5dp"
-            android:layout_margin="5dp" />
-
-        <TextView
-            android:id="@+id/idDuplicateText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="18sp"
-            android:padding="5dp"
-            android:layout_margin="5dp"
-            android:drawableEnd="@drawable/ic_baseline_arrow_right_24"
-            tools:ignore="UseCompatTextViewDrawableXml" />
-
-
-        <View style="@style/BookDetailsRuler" />
-
-        <TextView
-            android:id="@+id/idWithoutCoverText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="18sp"
-            android:padding="5dp"
-            android:layout_margin="5dp"
-            android:drawableEnd="@drawable/ic_baseline_arrow_right_24"
-            tools:ignore="UseCompatTextViewDrawableXml" />
-
-
-        <View style="@style/BookDetailsRuler" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:padding="5dp"
-            android:layout_margin="5dp"
-            android:text="@string/labels_cleanup_header"/>
-
-        <TextView
-            android:id="@+id/idCleanupAuthors"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="18sp"
-            android:padding="5dp"
-            android:layout_margin="5dp"
-            android:drawableEnd="@drawable/ic_baseline_arrow_right_24"
-            tools:ignore="UseCompatTextViewDrawableXml" />
-
-
-        <View style="@style/BookDetailsRuler" />
-
-        <TextView
-            android:id="@+id/idCleanupGenres"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="18sp"
-            android:padding="5dp"
-            android:layout_margin="5dp"
-            android:drawableEnd="@drawable/ic_baseline_arrow_right_24"
-            tools:ignore="UseCompatTextViewDrawableXml" />
-
-
-        <View style="@style/BookDetailsRuler" />
-
-        <TextView
-            android:id="@+id/idCleanupPublishers"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="18sp"
-            android:padding="5dp"
-            android:layout_margin="5dp"
-            android:drawableEnd="@drawable/ic_baseline_arrow_right_24"
-            tools:ignore="UseCompatTextViewDrawableXml" />
-
-
-        <View style="@style/BookDetailsRuler" />
-
-        <TextView
-            android:id="@+id/idCleanupLanguages"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="18sp"
-            android:padding="5dp"
-            android:layout_margin="5dp"
-            android:drawableEnd="@drawable/ic_baseline_arrow_right_24"
-            tools:ignore="UseCompatTextViewDrawableXml" />
-
-
-        <View style="@style/BookDetailsRuler" />
-
-        <TextView
-            android:id="@+id/idCleanupLocations"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="18sp"
-            android:padding="5dp"
-            android:layout_margin="5dp"
-            android:drawableEnd="@drawable/ic_baseline_arrow_right_24"
-            tools:ignore="UseCompatTextViewDrawableXml" />
-
-
-        <View style="@style/BookDetailsRuler" />
-
-
-
-        <TextView
-            android:id="@+id/idStatsView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-
-        />
-
-
-
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>

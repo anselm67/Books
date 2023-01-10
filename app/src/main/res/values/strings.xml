@@ -98,12 +98,18 @@
     <string name="add_isbn_go_prompt">Go</string>
     <string name="duplicate_books_cleanup">%1$d books are potential duplicates</string>
     <string name="without_cover_books_cleanup">%1$d books without a cover image</string>
+    <string name="without_authors_cleanup">%1$d books without an author</string>
+    <string name="without_genres_cleanup">%1$d books without genres</string>
+    <string name="without_locations_cleanup">%1$d books without physical location</string>
+    <string name="without_languages_cleanup">%1$d books without a language tag</string>
+
     <string name="authors_cleanup">%1$d authors</string>
     <string name="genres_cleanup">%1$d genres</string>
     <string name="publishers_cleanup">%1$d publishers</string>
     <string name="languages_cleanup">%1$d languages</string>
     <string name="locations_cleanup">%1$d locations</string>
     <string name="labels_cleanup_header">Labels</string>
+
 
 
 </resources>

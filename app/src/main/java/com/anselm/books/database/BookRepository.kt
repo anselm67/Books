@@ -238,6 +238,29 @@ class BookRepository(private val dao: BookDao) {
     /**
      * Stats queries.
      */
+    suspend fun getDuplicateBookCount(): Int {
+        return dao.getDuplicateBookCount()
+    }
+
+    suspend fun getDuplicateBookIds(): List<Long> {
+        return dao.getDuplicateBookIds()
+    }
+
+    suspend fun getWithoutCoverBookCount(): Int {
+        return dao.getWithoutCoverBookCount()
+    }
+
+    suspend fun getWithoutCoverBookIds(): List<Long> {
+        return dao.getWithoutCoverBooksIds()
+    }
+
+    suspend fun getWithoutLabelBookCount(type: Label.Type): Int {
+        return dao.getWithoutLabelBookCount(type)
+    }
+
+    suspend fun getWithoutLabelBookIds(type: Label.Type): List<Long> {
+        return dao.getWithoutLabelBookIds(type)
+    }
     suspend fun getLabelTypeCounts(): List<LabelTypeCount> {
         return dao.getLabelTypeCounts()
     }
@@ -246,27 +269,24 @@ class BookRepository(private val dao: BookDao) {
         return dao.getLabels(type)
     }
 
-    suspend fun getDuplicateBooksCount(): Int {
-        return dao.getDuplicateBooksCount()
-    }
-
-    suspend fun getDuplicateBooksIds(): List<Long> {
-        return dao.getDuplicateBooksIds()
-    }
-
-    suspend fun getWithoutCoverBooksCount(): Int {
-        return dao.getWithoutCoverBooksCount()
-    }
-
-    suspend fun getWithoutCoverBookIds(): List<Long> {
-        return dao.getWithoutCoverBooksIds()
-    }
-
-    suspend fun getBooksWithoutLabelCount(type: Label.Type): Int {
-        return dao.getBooksWithoutLabelCount(type)
-    }
-
     suspend fun deleteUnusedLabels(): Int {
         return dao.deleteUnusedLabels()
+    }
+
+    suspend fun searchLabels(type: Label.Type, labelQuery: String?): List<Label> {
+        return if (labelQuery == null) {
+            dao.getLabels(type)
+        } else {
+            dao.searchLabels(type, labelQuery)
+        }
+    }
+
+    // Deletes a label and clears its cache entries.
+    // This should be synchronized with the lookup functions. But then it's unlikely anything
+    // happens within the context of the app.
+    suspend fun deleteLabel(label: Label) {
+        labelsByValue.remove(Pair(label.type, label.name))
+        labelsById.remove(label.id)
+        dao.deleteLabel(label.id)
     }
 }
