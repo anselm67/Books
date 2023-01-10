@@ -220,9 +220,9 @@ class OpenLibraryClient: SimpleClient() {
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
         onBook: (Book?) -> Unit
-    ) {
+    ): Call {
         val url = "$basedir/isbn/$isbn.json"
-        runRequest(url, onError, onBook) {
+        return runRequest(url, onError, onBook) {
             convert(it, onError, onBook)
         }
     }

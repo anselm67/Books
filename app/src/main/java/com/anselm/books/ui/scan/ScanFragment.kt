@@ -28,6 +28,7 @@ import com.anselm.books.databinding.RecyclerviewScanIsbnBinding
 import com.anselm.books.ui.widgets.BookFragment
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
+import okhttp3.Call
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -164,11 +165,13 @@ class ScanFragment: BookFragment() {
 }
 
 class LookupResult(
-    var loading: Boolean = true,
+    var call: Call? = null,
     var book: Book? = null,
     var exception: Exception? = null,
-    var errorMessage: String? = null
-)
+    var errorMessage: String? = null,
+) {
+    val loading get() = (call != null)
+}
 
 data class LookupStats(
     val lookupCount: AtomicInteger = AtomicInteger(0),
@@ -188,7 +191,7 @@ class IsbnArrayAdapter(
         val binding: RecyclerviewScanIsbnBinding,
     ): RecyclerView.ViewHolder(binding.root) {
 
-        fun updateStatus(loading: Boolean, checked: Boolean, error: Boolean) {
+        private fun updateStatus(loading: Boolean, checked: Boolean, error: Boolean) {
             binding.idLoadProgress.visibility = if (loading) View.VISIBLE else View.GONE
             binding.idCheckMark.visibility = if (checked) View.VISIBLE else View.GONE
             binding.idErrorMark.visibility = if (error) View.VISIBLE else View.GONE
@@ -261,6 +264,11 @@ class IsbnArrayAdapter(
 
     fun removeAt(position: Int) {
         check (position >= 0 && position < dataSource.size)
+        val (_, lookup) = dataSource[position]
+        if (lookup.call != null) {
+            lookup.call!!.cancel()
+            lookup.call = null
+        }
         dataSource.removeAt(position)
         notifyItemRemoved(position)
     }
@@ -271,10 +279,10 @@ class IsbnArrayAdapter(
         dataSource.add(0, Pair(isbn, lookup))
         notifyItemInserted(0)
         stats.lookupCount.incrementAndGet()
-        app.lookup(isbn, { msg, e ->
+        lookup.call = app.lookup(isbn, { msg, e ->
             Log.e(TAG, "Failed to lookup $isbn.", e)
+            lookup.call = null
             stats.errorCount.incrementAndGet()
-            lookup.loading = false
             lookup.exception = e
             lookup.errorMessage = msg
             app.postOnUiThread {
@@ -287,7 +295,7 @@ class IsbnArrayAdapter(
             } else {
                 stats.matchCount.incrementAndGet()
             }
-            lookup.loading = false
+            lookup.call = null
             lookup.book = book
             app.postOnUiThread {
                 notifyDataSetChanged()

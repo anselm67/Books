@@ -17,6 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import okhttp3.Call
 import java.io.File
 
 class BooksApplication : Application() {
@@ -108,20 +109,22 @@ class BooksApplication : Application() {
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
         onBook: (Book?) -> Unit,
-    ) {
+    ): Call? {
         when(prefs.getString("lookup_service", "Google")) {
-            "Google" -> glClient.lookup(isbn, onError, onBook)
-            "OpenLibrary" -> olClient.lookup(isbn, onError, onBook)
-            "Both" -> lookupBoth(isbn, onError, onBook)
+            "Google" -> return glClient.lookup(isbn, onError, onBook)
+            "OpenLibrary" -> return olClient.lookup(isbn, onError, onBook)
+            "Both" -> return lookupBoth(isbn, onError, onBook)
+            else -> check(true)
         }
+        return null
     }
 
     private fun lookupBoth(
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
         onBook: (Book?) -> Unit,
-    ) {
-        glClient.lookup(isbn, { _, _ ->
+    ): Call {
+        return glClient.lookup(isbn, { _, _ ->
             olClient.lookup(isbn, onError, onBook)
         }, { glBook ->
             if (glBook == null) {

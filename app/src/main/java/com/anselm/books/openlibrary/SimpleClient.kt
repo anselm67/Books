@@ -64,5 +64,5 @@ abstract class SimpleClient {
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
         onBook: (matches: Book?) -> Unit,
-    )
+    ): Call
 }
