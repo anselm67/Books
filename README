@@ -1,3 +1,7 @@
+BookBuddy - which you can look at via a proxy uses the following URLs to lookup ISBN:
+http://www.worldcat.org/webservices/catalog/content/isbn/9782957002610?wskey=REDACTED&maximumRecords=1&recordSchema=info:srw/schema/1/dc
+http://lx2.loc.gov:210/lcdb?version=1.1&operation=searchRetrieve&query=bath.isbn%3D9782957002610&maximumRecords=1&recordSchema=mods
+http://images.amazon.com/images/P/2957002612.01.THUMB.jpg
 
 Sorting data sources and switching accordingly:
 https://stackoverflow.com/questions/65643600/android-paging-3-library-how-to-change-list-with-new-param
