@@ -65,4 +65,8 @@ class BookAdapter (
         selectionListener.onSelectionChanged(selected.size)
         notifyItemChanged(position)
     }
+
+    fun getSelectedBookIds(): List<Long> {
+        return selected.map { it.id }
+    }
 }

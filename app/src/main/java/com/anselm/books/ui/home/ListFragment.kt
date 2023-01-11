@@ -38,10 +38,16 @@ open class ListFragment: BookFragment() {
     ): View {
         super.onCreateView(inflater, container, savedInstanceState)
         _binding = FragmentListBinding.inflate(inflater, container, false)
+
         binding.fabEditButton.isVisible = false
-
+        binding.fabEditButton.setOnClickListener{
+            val action = HomeFragmentDirections.toEditMultiDialogFragment(
+                adapter.getSelectedBookIds().toLongArray()
+            )
+            findNavController().navigate(action)
+        }
+        handleMenu(emptyList())
         bindAdapter()
-
         return binding.root
     }
 

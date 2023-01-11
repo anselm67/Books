@@ -1,15 +1,12 @@
 package com.anselm.books.ui.scan
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.content.pm.PackageManager
 import android.media.RingtoneManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -60,26 +57,11 @@ class ScanFragment: BookFragment() {
         }
 
         // Checks permissions and sets up the camera.
-        if (allPermissionsGranted()) {
+        if ( checkCameraPermission()) {
             startCamera()
-        } else {
-            val launcher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-                if ( it ) {
-                    startCamera()
-                } else {
-                    app.toast(R.string.request_camera_permission)
-                }
-            }
-            launcher.launch(Manifest.permission.CAMERA)
         }
         cameraExecutor = Executors.newSingleThreadExecutor()
         return binding.root
-    }
-
-    private fun allPermissionsGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            requireContext(), Manifest.permission.CAMERA
-        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun startCamera() {

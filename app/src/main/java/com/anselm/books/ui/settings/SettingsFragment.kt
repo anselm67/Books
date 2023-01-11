@@ -74,7 +74,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     menu.findItem(it).isVisible = false
                 }
             }
-
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return false
             }

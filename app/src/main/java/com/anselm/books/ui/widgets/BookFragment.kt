@@ -1,9 +1,14 @@
 package com.anselm.books.ui.widgets
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -29,6 +34,12 @@ open class BookFragment: Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         app = BooksApplication.app
+        cameraPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()) {
+            if ( ! it ) {
+                app.toast(R.string.request_camera_permission)
+            }
+        }
     }
 
     // For subclasses to finish any toolbar work.
@@ -58,4 +69,16 @@ open class BookFragment: Fragment() {
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
+    private lateinit var cameraPermissionLauncher: ActivityResultLauncher<String>
+
+    fun checkCameraPermission(): Boolean {
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+        ) {
+            return true
+        }
+        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        return false
+    }
 }

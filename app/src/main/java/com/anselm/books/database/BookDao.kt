@@ -17,7 +17,7 @@ interface BookDao {
     @Query("SELECT bt.* FROM book_table AS bt " +
             " LEFT JOIN book_labels AS lb ON lb.bookId = bt.id " +
             " WHERE bt.title = :title " +
-            "   AND (:authorId = 0) OR (lb.labelId = :authorId)")
+            "   AND ((:authorId = 0) OR (lb.labelId = :authorId))")
     suspend fun getDuplicates(title: String, authorId: Long): List<Book>
 
     @Update

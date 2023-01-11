@@ -3,10 +3,12 @@ package com.anselm.books.ui.edit
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 
 abstract class Editor(
-    open val fragment: EditFragment,
-    open val inflater: LayoutInflater
+    open val fragment: Fragment,
+    open val inflater: LayoutInflater,
+    open val editorStatusListener: EditorStatusListener? = null,
 ) {
 
     abstract fun setup(container: ViewGroup?): View?

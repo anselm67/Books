@@ -56,10 +56,10 @@ class HomeFragment : ListFragment() {
                 app.title = getString(R.string.book_count, totalCount)
             }
         }
-
         binding.fabScanButton.setOnClickListener {
             showBottomAddDialog()
         }
+
 
         changeQuery(bookViewModel.query)
 

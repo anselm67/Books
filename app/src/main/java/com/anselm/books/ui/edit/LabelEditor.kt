@@ -13,9 +13,10 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Filter
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.anselm.books.BooksApplication
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
 import com.anselm.books.TAG
 import com.anselm.books.database.BookDao
@@ -23,6 +24,7 @@ import com.anselm.books.database.Label
 import com.anselm.books.databinding.AutocompleteLabelLayoutBinding
 import com.anselm.books.databinding.EditMultiLabelLayoutBinding
 import com.anselm.books.databinding.EditSingleLabelLayoutBinding
+import com.anselm.books.hideKeyboard
 import com.anselm.books.ui.widgets.DnDList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -53,11 +55,11 @@ private class LabelArrayAdapter(
     inner class LabelFilter: Filter() {
 
         override fun performFiltering(constraint: CharSequence?): FilterResults {
-            val repository = BooksApplication.app.repository
+            val repository = app.repository
             val labelQuery = if (constraint?.isNotEmpty() == true) "$constraint*" else ""
             val results = FilterResults()
             runBlocking {
-                val histos = BooksApplication.app.repository.getHisto(
+                val histos = app.repository.getHisto(
                     type,
                     labelQuery,
                     sortBy = BookDao.SortByTitle,
@@ -89,14 +91,15 @@ private class LabelArrayAdapter(
 }
 
 private class LabelAutoComplete(
-    val fragment: EditFragment,
+    val fragment: Fragment,
+    val editorStatusListener: EditorStatusListener?,
     val autoComplete: AutoCompleteTextView,
     val type: Label.Type,
     val initialValue: Label? = null,
     val handleLabel: (Label) -> Unit,
     val onChange: ((String) -> Unit)? = null
 ) {
-    private val repository = BooksApplication.app.repository
+    private val repository = app.repository
     private val initialText = initialValue?.name ?: ""
 
     init {
@@ -130,7 +133,7 @@ private class LabelAutoComplete(
             }
             autoComplete.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
-                    fragment.scrollTo(autoComplete.parent as View)
+                    editorStatusListener?.scrollTo(autoComplete.parent as View)
                 }
             }
         }
@@ -151,13 +154,14 @@ private class LabelAutoComplete(
 }
 
 class MultiLabelEditor(
-    fragment: EditFragment,
+    fragment: Fragment,
     inflater: LayoutInflater,
+    editorStatusListener: EditorStatusListener?,
     val type: Label.Type,
     val labelId: Int,
     val getter: () -> List<Label>,
     val setter: (List<Label>) -> Unit
-) : Editor (fragment, inflater) {
+) : Editor (fragment, inflater, editorStatusListener) {
     private var _binding: EditMultiLabelLayoutBinding? = null
     private val editor get() = _binding!!
     private lateinit var dndlist: DnDList
@@ -173,20 +177,22 @@ class MultiLabelEditor(
             getter().toMutableList(),
             onChange = { newLabels ->
                 if (newLabels != getter()) {
-                    fragment.setChanged(editor.root, editor.idUndoEdit)
+                    editorStatusListener?.setChanged(editor.root, editor.idUndoEdit)
                 } else {
-                    fragment.setUnchanged(editor.root, editor.idUndoEdit)
+                    editorStatusListener?.setUnchanged(editor.root, editor.idUndoEdit)
                 }
             }
         )
 
         // Sets up the auto-complete for entering new labels.
-        LabelAutoComplete(fragment, editor.autoComplete, type,
+        LabelAutoComplete(
+            fragment, editorStatusListener,
+            editor.autoComplete, type,
             handleLabel = { addLabel(it) }
         )
         // Sets up the undo button.
         editor.idUndoEdit.setOnClickListener {
-            fragment.setUnchanged(editor.root, editor.idUndoEdit)
+            editorStatusListener?.setUnchanged(editor.root, editor.idUndoEdit)
             dndlist.setLabels(getter().toMutableList())
         }
         return editor.root
@@ -202,20 +208,22 @@ class MultiLabelEditor(
 
     private fun addLabel(label: Label) {
         if ( dndlist.addLabel(label) ) {
-            fragment.setChanged(editor.root, editor.idUndoEdit)
+            editorStatusListener?.setChanged(editor.root, editor.idUndoEdit)
         }
         editor.autoComplete.setText("")
+        app.hideKeyboard(editor.root)
     }
 }
 
 class SingleLabelEditor(
-    fragment: EditFragment,
+    fragment: Fragment,
     inflater: LayoutInflater,
+    editorStatusListener: EditorStatusListener?,
     val type: Label.Type,
     val labelId: Int,
     val getter: () -> Label?,
     val setter: (Label) -> Unit
-): Editor (fragment, inflater) {
+): Editor (fragment, inflater, editorStatusListener) {
     private var _binding: EditSingleLabelLayoutBinding? = null
     private val editor get() = _binding!!
     private var editLabel: Label? = null
@@ -223,18 +231,19 @@ class SingleLabelEditor(
 
     override fun setup(container: ViewGroup?): View {
         _binding = EditSingleLabelLayoutBinding.inflate(inflater, container, false)
-        editor.idEditLabel.text = fragment.getText(labelId)
+        editor.idEditLabel.text = fragment.getString(labelId)
 
         // Sets up the auto-complete for entering new labels.
-        LabelAutoComplete(fragment, editor.autoComplete, type, getter(),
+        LabelAutoComplete(fragment, editorStatusListener,
+            editor.autoComplete, type, getter(),
             handleLabel = { setLabel(it) },
             onChange = {
-                fragment.setChanged(editor.root, editor.idUndoEdit)
+                editorStatusListener?.setChanged(editor.root, editor.idUndoEdit)
             }
         )
         // Sets up the undo button.
         editor.idUndoEdit.setOnClickListener {
-            fragment.setUnchanged(editor.root, editor.idUndoEdit)
+            editorStatusListener?.setUnchanged(editor.root, editor.idUndoEdit)
             editor.autoComplete.setText(origText)
         }
         return editor.root
@@ -252,7 +261,8 @@ class SingleLabelEditor(
     private fun setLabel(label: Label) {
         if (label != getter()) {
             editLabel = label
-            fragment.setChanged(editor.root, editor.idUndoEdit)
+            editorStatusListener?.setChanged(editor.root, editor.idUndoEdit)
         }
+        app.hideKeyboard(editor.root)
     }
 }

@@ -4,15 +4,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.NumberPicker
+import androidx.fragment.app.Fragment
 import com.anselm.books.database.BookFields
 import com.anselm.books.databinding.EditYearLayoutBinding
 
 class YearEditor(
-    fragment: EditFragment,
+    fragment: Fragment,
     inflater: LayoutInflater,
+    editorStatusListener: EditorStatusListener?,
     val getter: () -> String,
     val setter: (String) -> Unit
-): Editor(fragment, inflater) {
+): Editor(fragment, inflater, editorStatusListener) {
     private var _binding: EditYearLayoutBinding? = null
     private val editor get() = _binding!!
 
@@ -22,7 +24,7 @@ class YearEditor(
                 + editor.yearPublished1Picker.value)
     }
 
-    fun setEditorValue(value: Int) {
+    private fun setEditorValue(value: Int) {
         if (value in BookFields.MIN_PUBLISHED_YEAR..BookFields.MAX_PUBLISHED_YEAR) {
             editor.yearPublished100Picker.value = value / 100
             editor.yearPublished10Picker.value = (value / 100) % 10
@@ -42,9 +44,9 @@ class YearEditor(
         val onValueChanged = NumberPicker.OnValueChangeListener { _, _, _ ->
             val newValue = getEditorValue()
             if (newValue != getter().toIntOrNull()) {
-                fragment.setChanged(editor.yearPublishedView, editor.idUndoEdit)
+                editorStatusListener?.setChanged(editor.yearPublishedView, editor.idUndoEdit)
             } else {
-                fragment.setUnchanged(editor.yearPublishedView, editor.idUndoEdit)
+                editorStatusListener?.setUnchanged(editor.yearPublishedView, editor.idUndoEdit)
             }
         }
         editor.yearPublished100Picker.setOnValueChangedListener(onValueChanged)
@@ -52,7 +54,7 @@ class YearEditor(
         editor.yearPublished1Picker.setOnValueChangedListener(onValueChanged)
         editor.idUndoEdit.setOnClickListener {
             setEditorValue(getter().toIntOrNull() ?: 0)
-            fragment.setUnchanged(editor.yearPublishedView, editor.idUndoEdit)
+            editorStatusListener?.setUnchanged(editor.yearPublishedView, editor.idUndoEdit)
         }
 
         return editor.root

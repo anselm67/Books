@@ -81,7 +81,7 @@
     <string name="no">No</string>
     <string name="delete_book_confirmation">Delete "%1$s"?</string>
     <string name="duplicate_book_confirmation">%1$s has %2$d duplicates. Save anyways?</string>
-    <string name="request_camera_permission">Scanning requires access to the camera .</string>
+    <string name="request_camera_permission">This feature requires access to the camera.</string>
     <string name="bind_camera_failed">Failed to turn camera on: %1$s</string>
     <string name="default_isbn_string">ISBN</string>
     <string name="no_match_found">No match found.</string>
@@ -117,5 +117,7 @@
 
     <string name="book_selected">Selected</string>
     <string name="book_selected_count">%1$d books selected</string>
+    <string name="edit_multiple_books">Updating %1$d books</string>
+    <string name="apply">Apply</string>
 
 </resources>

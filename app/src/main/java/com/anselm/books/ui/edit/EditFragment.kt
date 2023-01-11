@@ -1,8 +1,6 @@
 package com.anselm.books.ui.edit
 
-import android.Manifest
 import android.app.AlertDialog
-import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -12,8 +10,6 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageButton
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
@@ -43,21 +39,10 @@ class EditFragment: BookFragment() {
     private val coverImageEditor
         get() = (editors[0] as CoverImageEditor)
 
-    private lateinit var cameraPermissionLauncher: ActivityResultLauncher<String>
+    private val editorStatusListener = StatusListener(this)
 
     private fun getBorderDrawable(resourceId: Int): Drawable {
         return ResourcesCompat.getDrawable(resources, resourceId, null)!!
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        cameraPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestPermission()) {
-                if ( ! it ) {
-                    app.toast(R.string.request_camera_permission)
-                }
-        }
-
     }
 
     override fun onCreateView(
@@ -70,7 +55,7 @@ class EditFragment: BookFragment() {
         val repository = app.repository
 
         // We restart the list of editors from scratch, cause we might get restarted.
-        editors = mutableListOf(CoverImageEditor(this@EditFragment, inflater) {
+        editors = mutableListOf(CoverImageEditor(this, inflater, editorStatusListener) {
             app.imageRepository.getCoverUri(book)
         })
 
@@ -108,16 +93,6 @@ class EditFragment: BookFragment() {
             },
         ))
         return binding.root
-    }
-
-    fun checkCameraPermission(): Boolean {
-        if (ContextCompat.checkSelfPermission(
-            requireContext(),
-                Manifest.permission.CAMERA) == PERMISSION_GRANTED) {
-            return true
-        }
-        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-        return false
     }
 
     private fun deleteBook() {
@@ -174,38 +149,39 @@ class EditFragment: BookFragment() {
     private fun bind(inflater: LayoutInflater, book: Book) {
         // Creates and sets up an editor for every book property.
         editors.addAll(arrayListOf(
-            TextEditor(this, inflater, R.string.titleLabel,
+            TextEditor(this, inflater, editorStatusListener, R.string.titleLabel,
                 book::title.getter, book::title.setter) {
                 it.isNotEmpty()
             },
-            TextEditor(this, inflater, R.string.subtitleLabel,
+            TextEditor(this, inflater, editorStatusListener, R.string.subtitleLabel,
                 book::subtitle.getter, book::subtitle.setter),
-            MultiLabelEditor(this, inflater,
+            MultiLabelEditor(this, inflater, editorStatusListener,
                 Label.Type.Authors, R.string.authorLabel,
                 book::authors.getter, book::authors.setter),
-            SingleLabelEditor(this, inflater,
+            SingleLabelEditor(this, inflater, editorStatusListener,
                 Label.Type.Publisher, R.string.publisherLabel,
                 book::publisher.getter, book::publisher.setter),
-            MultiLabelEditor(this, inflater,
+            MultiLabelEditor(this, inflater, editorStatusListener,
                 Label.Type.Genres, R.string.genreLabel,
                 book::genres.getter, book::genres.setter),
-            SingleLabelEditor(this, inflater,
+            SingleLabelEditor(this, inflater, editorStatusListener,
                 Label.Type.Location, R.string.physicalLocationLabel,
                 book::location.getter, book::location.setter),
-            TextEditor(this, inflater, R.string.isbnLabel,
+            TextEditor(this, inflater, editorStatusListener, R.string.isbnLabel,
                 book::isbn.getter, book::isbn.setter) {
                 isValidEAN13(it)
             },
-            SingleLabelEditor(this, inflater,
+            SingleLabelEditor(this, inflater, editorStatusListener,
                 Label.Type.Language, R.string.languageLabel,
                 book::language.getter, book::language.setter),
-            TextEditor(this, inflater, R.string.numberOfPagesLabel,
+            TextEditor(this, inflater, editorStatusListener, R.string.numberOfPagesLabel,
                 book::numberOfPages.getter, book::numberOfPages.setter) {
                 isValidNumber(it)
             },
-            TextEditor(this, inflater, R.string.summaryLabel,
+            TextEditor(this, inflater, editorStatusListener, R.string.summaryLabel,
                 book::summary.getter, book::summary.setter),
-            YearEditor(this, inflater, book::yearPublished.getter, book::yearPublished.setter),
+            YearEditor(this, inflater, editorStatusListener,
+                book::yearPublished.getter, book::yearPublished.setter),
         ))
         editors.forEach {
             it.setup(binding.editView)?.let { view -> binding.editView.addView(view) }
@@ -313,6 +289,24 @@ class EditFragment: BookFragment() {
         return number.firstOrNull {
             ! it.isDigit()
         } == null
+    }
+}
+
+class StatusListener(private val delegate: EditFragment): EditorStatusListener() {
+    override fun setChanged(container: View, undoButton: ImageButton) {
+        delegate.setChanged(container, undoButton)
+    }
+    override fun setUnchanged(container: View, undoButton: ImageButton) {
+        delegate.setUnchanged(container, undoButton)
+    }
+    override fun setInvalid(container: View, undoButton: ImageButton) =
+        delegate.setInvalid(container, undoButton)
+
+    override fun scrollTo(view: View) {
+        delegate.scrollTo(view)
+    }
+    override fun checkCameraPermission(): Boolean {
+        return delegate.checkCameraPermission()
     }
 }
 

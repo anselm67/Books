@@ -8,20 +8,21 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.anselm.books.databinding.EditFieldLayoutBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-
 open class TextEditor(
-    fragment: EditFragment,
+    fragment: Fragment,
     inflater: LayoutInflater,
-    open val labelId: Int,
-    open val getter: () -> String,
-    open val setter: (String) -> Unit,
-    open val checker: ((String) -> Boolean)? = null
-): Editor(fragment, inflater) {
+    editorStatusListener: EditorStatusListener,
+    val labelId: Int,
+    val getter: () -> String,
+    val setter: (String) -> Unit,
+    val checker: ((String) -> Boolean)? = null
+): Editor(fragment, inflater, editorStatusListener) {
     private var _binding: EditFieldLayoutBinding? = null
     protected val editor get() = _binding!!
 
@@ -36,12 +37,12 @@ open class TextEditor(
 
                 override fun afterTextChanged(s: Editable?) {
                     val value = s.toString().trim()
-                    if (checker != null && ! checker!!.invoke(value)) {
-                        fragment.setInvalid(it, editor.idUndoEdit)
+                    if (checker != null && ! checker.invoke(value)) {
+                        editorStatusListener?.setInvalid(it, editor.idUndoEdit)
                     } else if (value != getter() ) {
-                        fragment.setChanged(it, editor.idUndoEdit)
+                        editorStatusListener?.setChanged(it, editor.idUndoEdit)
                     } else {
-                        fragment.setUnchanged(it, editor.idUndoEdit)
+                        editorStatusListener?.setUnchanged(it, editor.idUndoEdit)
                     }
                 }
             })
@@ -54,8 +55,8 @@ open class TextEditor(
         // Marks the field invalid immediately. This is for books that are being
         // manually inserted which have empty mandatory fields such as title.
         fragment.lifecycleScope.launch(Dispatchers.Main) {
-            if (checker != null && !checker!!.invoke(getter())) {
-                fragment.setInvalid(editor.idEditText, editor.idUndoEdit)
+            if (checker != null && !checker.invoke(getter())) {
+                editorStatusListener?.setInvalid(editor.idEditText, editor.idUndoEdit)
             }
         }
         return editor.root
@@ -97,7 +98,7 @@ open class TextEditor(
     override fun isValid(): Boolean {
         return if (checker != null) {
             val value = editor.idEditText.text.toString().trim()
-            checker!!.invoke(value)
+            checker.invoke(value)
         } else {
             true
         }

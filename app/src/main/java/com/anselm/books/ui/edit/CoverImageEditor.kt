@@ -17,6 +17,7 @@ import com.anselm.books.BuildConfig
 import com.anselm.books.R
 import com.anselm.books.database.Book
 import com.anselm.books.databinding.EditCoverImageLayoutBinding
+import com.anselm.books.ui.widgets.BookFragment
 import com.bumptech.glide.Glide
 import java.io.File
 import java.io.FileInputStream
@@ -27,10 +28,11 @@ import java.io.FileInputStream
  * way than a full exception. May be.
  */
 class CoverImageEditor(
-    fragment: EditFragment,
+    fragment: BookFragment,
     inflater: LayoutInflater,
+    editorStatusListener: EditorStatusListener?,
     private val getter: () -> Uri?,
-) : Editor(fragment, inflater) {
+) : Editor(fragment, inflater, editorStatusListener) {
     private var _binding: EditCoverImageLayoutBinding? = null
     private val editor get() = _binding!!
     private lateinit var coverCameraLauncher: ActivityResultLauncher<Uri>
@@ -72,7 +74,7 @@ class CoverImageEditor(
             cameraImageFile = null
             editCoverBitmap = null
             loadCoverImage(getter())
-            fragment.setUnchanged(editor.idCoverImage, editor.idUndoEdit)
+            editorStatusListener?.setUnchanged(editor.idCoverImage, editor.idUndoEdit)
         }
         loadCoverImage(getter())
         return editor.root
@@ -107,14 +109,14 @@ class CoverImageEditor(
                     true)
                 editCoverBitmap?.let { bitmap ->
                     loadCoverImage(bitmap)
-                    fragment.setChanged(editor.idCoverImage, editor.idUndoEdit)
+                    editorStatusListener?.setChanged(editor.idCoverImage, editor.idUndoEdit)
                 }
             }
         }
     }
 
     private fun launchCoverCamera() {
-        if ( ! fragment.checkCameraPermission() ) {
+        if (editorStatusListener?.checkCameraPermission() != true) {
             return
         }
         if (cameraImageFile == null) {
@@ -145,7 +147,7 @@ class CoverImageEditor(
             }
             editCoverBitmap?.let {
                 loadCoverImage(it)
-                fragment.setChanged(editor.idCoverImage, editor.idUndoEdit)
+                editorStatusListener?.setChanged(editor.idCoverImage, editor.idUndoEdit)
             }
         }
     }
