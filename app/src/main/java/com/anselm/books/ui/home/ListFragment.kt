@@ -80,7 +80,7 @@ open class ListFragment: BookFragment() {
      */
     private fun bindAdapter() {
         // Creates the new adapter and restarts the jobs.
-        adapter = BookAdapter { book -> adapterOnClick(book) }
+        adapter = BookAdapter { book -> onClick(book) }
         // Collects from the state and updates the progress bar accordingly.
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -99,7 +99,7 @@ open class ListFragment: BookFragment() {
         _binding = null
     }
 
-    private fun adapterOnClick(book: Book) {
+    private fun onClick(book: Book) {
         val repository = BooksApplication.app.repository
         viewLifecycleOwner.lifecycleScope.launch {
             val bookIds = repository.getIdsList(bookViewModel.query)
@@ -110,6 +110,5 @@ open class ListFragment: BookFragment() {
             findNavController().navigate(action)
         }
     }
-
 }
 

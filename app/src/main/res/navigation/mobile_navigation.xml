@@ -81,6 +81,9 @@
 
         <argument android:name="type"
             app:argType="com.anselm.books.database.Label$Type" />
+
+        <action android:id="@id/toSearchFragment"
+            app:destination="@id/nav_search" />
     </fragment>
 
 

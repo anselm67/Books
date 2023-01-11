@@ -69,6 +69,16 @@
                     android:drawableTint="?attr/colorOnPrimary"
                     tools:ignore="ButtonStyle" />
 
+                <Button
+                    android:id="@+id/idLanguageFilter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/language_filter"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:drawableTint="?attr/colorOnPrimary"
+                    tools:ignore="ButtonStyle" />
+
             </LinearLayout>
         </HorizontalScrollView>
 

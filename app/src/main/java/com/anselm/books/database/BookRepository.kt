@@ -13,6 +13,7 @@ class BookRepository(private val dao: BookDao) {
     }
 
     suspend fun getPagedList(query: Query, limit: Int, offset: Int): List<Book> {
+        check(query.filters.size <= 5)
         Log.d(TAG, "getPagedList [$offset, $limit] ${query.query}/${query.partial}," +
                 " filters: '${query.filters}'," +
                 " sort: ${query.sortBy}"
@@ -32,6 +33,7 @@ class BookRepository(private val dao: BookDao) {
     }
 
     suspend fun getPagedListCount(query: Query): Int {
+        check(query.filters.size <= 5)
         Log.d(TAG, "getPagedListCount ${query.query}/${query.partial}," +
                 " filters: '${query.filters}',"
         )
@@ -49,6 +51,7 @@ class BookRepository(private val dao: BookDao) {
     }
 
     suspend fun getIdsList(query: Query): List<Long> {
+        check(query.filters.size <= 5)
         return if ( query.query.isNullOrEmpty() ) {
             dao.getFilteredIdsList(
                 query.filters.map { it -> it.labelId },
@@ -79,6 +82,7 @@ class BookRepository(private val dao: BookDao) {
         sortBy: Int = BookDao.SortByCount,
         query: Query = Query.emptyQuery,
     ): List<Histo> {
+        check(query.filters.size <= 5)
         val histos = if ( query.query.isNullOrEmpty() ) {
             if (labelQuery.isNullOrEmpty()) {
                 dao.getFilteredHisto(

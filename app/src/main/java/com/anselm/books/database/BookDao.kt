@@ -80,6 +80,9 @@ interface BookDao {
             "    INTERSECT " +
             "      SELECT bookId FROM book_labels " +
             "          WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            "    INTERSECT " +
+            "      SELECT bookId FROM book_labels " +
+            "          WHERE :labelId5 = 0 OR labelId = :labelId5" +
             "   )) " +
             " ORDER BY " +
             "   CASE WHEN :param = 1 THEN book_table.title END ASC, " +
@@ -87,7 +90,7 @@ interface BookDao {
             "LIMIT :limit OFFSET :offset")
     suspend fun getTitlePagedList(
         query: String,
-        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long, labelId5: Long,
         param: Int, limit: Int, offset: Int
     ): List<Book>
 
@@ -96,19 +99,22 @@ interface BookDao {
     ): List<Book> {
         when (labelIds.size) {
             0 -> return getTitlePagedList(
-                query, 0L, 0L, 0L, 0L, param, limit, offset
+                query, 0L, 0L, 0L, 0L, 0L, param, limit, offset
             )
             1 -> return getTitlePagedList(
-                query, labelIds[0], 0L, 0L, 0L, param, limit, offset
+                query, labelIds[0], 0L, 0L, 0L, 0L, param, limit, offset
             )
             2 -> return getTitlePagedList(
-                query, labelIds[0], labelIds[1], 0L, 0L, param, limit, offset
+                query, labelIds[0], labelIds[1], 0L, 0L, 0L, param, limit, offset
             )
             3 -> return getTitlePagedList(
-                query, labelIds[0], labelIds[1], labelIds[2], 0L, param, limit, offset
+                query, labelIds[0], labelIds[1], labelIds[2], 0L, 0L, param, limit, offset
             )
             4 -> return getTitlePagedList(
-                query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], param, limit, offset
+                query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], 0L, param, limit, offset
+            )
+            5 -> return getTitlePagedList(
+                query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], labelIds[4], param, limit, offset
             )
             else -> assert(value = false)
         }
@@ -132,10 +138,13 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId5 = 0 OR labelId = :labelId5" +
             "))")
     suspend fun getTitlePagedListCount(
         query: String,
-        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long, labelId5: Long
     ): Int
 
     suspend fun getTitlePagedListCount(
@@ -143,19 +152,22 @@ interface BookDao {
     ): Int {
         when (labelIds.size) {
             0 -> return getTitlePagedListCount(
-                query, 0L, 0L, 0L, 0L,
+                query, 0L, 0L, 0L, 0L, 0L,
             )
             1 -> return getTitlePagedListCount(
-                query, labelIds[0], 0L, 0L, 0L,
+                query, labelIds[0], 0L, 0L, 0L, 0L,
             )
             2 -> return getTitlePagedListCount(
-                query, labelIds[0], labelIds[1], 0L, 0L,
+                query, labelIds[0], labelIds[1], 0L, 0L, 0L,
             )
             3 -> return getTitlePagedListCount(
-                query, labelIds[0], labelIds[1], labelIds[2], 0L,
+                query, labelIds[0], labelIds[1], labelIds[2], 0L, 0L,
             )
             4 -> return getTitlePagedListCount(
-                query, labelIds[0], labelIds[1], labelIds[2], labelIds[3],
+                query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], 0L,
+            )
+            5 -> return getTitlePagedListCount(
+                query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], labelIds[4],
             )
             else -> assert(value = false)
         }
@@ -178,13 +190,16 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId5 = 0 OR labelId = :labelId5" +
             ")" +
             " ORDER BY " +
             "   CASE WHEN :param = 1 THEN book_table.title END ASC, " +
             "   CASE WHEN :param = 2 THEN date_added END DESC " +
             "LIMIT :limit OFFSET :offset")
     suspend fun getFilteredPagedList(
-        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long, labelId5: Long,
         param: Int, limit: Int, offset: Int
     ): List<Book>
 
@@ -193,19 +208,22 @@ interface BookDao {
     ): List<Book> {
         when (labelIds.size) {
             0 -> return getFilteredPagedList(
-                0L, 0L, 0L, 0L, param, limit, offset
+                0L, 0L, 0L, 0L, 0L, param, limit, offset
             )
             1 -> return getFilteredPagedList(
-                labelIds[0], 0L, 0L, 0L, param, limit, offset
+                labelIds[0], 0L, 0L,0L,  0L, param, limit, offset
             )
             2 -> return getFilteredPagedList(
-                labelIds[0], labelIds[1], 0L, 0L, param, limit, offset
+                labelIds[0], labelIds[1],0L,  0L, 0L, param, limit, offset
             )
             3 -> return getFilteredPagedList(
-                labelIds[0], labelIds[1], labelIds[2], 0L, param, limit, offset
+                labelIds[0], labelIds[1], labelIds[2],0L,  0L, param, limit, offset
             )
             4 -> return getFilteredPagedList(
-                labelIds[0], labelIds[1], labelIds[2], labelIds[3], param, limit, offset
+                labelIds[0], labelIds[1], labelIds[2], labelIds[3],0L,  param, limit, offset
+            )
+            5 -> return getFilteredPagedList(
+                labelIds[0], labelIds[1], labelIds[2], labelIds[3], labelIds[4],  param, limit, offset
             )
             else -> assert(value = false)
         }
@@ -227,9 +245,12 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId5 = 0 OR labelId = :labelId5" +
             ")")
     suspend fun getFilteredPagedListCount(
-        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,labelId5: Long,
     ): Int
 
     suspend fun getFilteredPagedListCount(
@@ -237,19 +258,22 @@ interface BookDao {
     ): Int {
         when (labelIds.size) {
             0 -> return getFilteredPagedListCount(
-                0L, 0L, 0L, 0L,
+                0L, 0L, 0L, 0L, 0L,
             )
             1 -> return getFilteredPagedListCount(
-                labelIds[0], 0L, 0L, 0L,
+                labelIds[0], 0L, 0L, 0L, 0L,
             )
             2 -> return getFilteredPagedListCount(
-                labelIds[0], labelIds[1], 0L, 0L,
+                labelIds[0], labelIds[1], 0L, 0L, 0L,
             )
             3 -> return getFilteredPagedListCount(
-                labelIds[0], labelIds[1], labelIds[2], 0L,
+                labelIds[0], labelIds[1], labelIds[2], 0L, 0L,
             )
             4 -> return getFilteredPagedListCount(
-                labelIds[0], labelIds[1], labelIds[2], labelIds[3],
+                labelIds[0], labelIds[1], labelIds[2], labelIds[3], 0L,
+            )
+            5 -> return getFilteredPagedListCount(
+                labelIds[0], labelIds[1], labelIds[2], labelIds[3], labelIds[4],
             )
             else -> assert(value = false)
         }
@@ -276,13 +300,16 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId5 = 0 OR labelId = :labelId5" +
             "))" +
             " ORDER BY " +
             "   CASE WHEN :param = 1 THEN book_table.title END ASC, " +
             "   CASE WHEN :param = 2 THEN date_added END DESC ")
     suspend fun getTitleIdsList(
         query: String,
-        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long, labelId5: Long,
         param: Int,
     ): List<Long>
 
@@ -291,19 +318,22 @@ interface BookDao {
     ): List<Long> {
         when (labelIds.size) {
             0 -> return getTitleIdsList(
-                query, 0L, 0L, 0L, 0L, param,
+                query, 0L, 0L, 0L, 0L, 0L, param,
             )
             1 -> return getTitleIdsList(
-                query, labelIds[0], 0L, 0L, 0L, param,
+                query, labelIds[0], 0L, 0L, 0L, 0L, param,
             )
             2 -> return getTitleIdsList(
-                query, labelIds[0], labelIds[1], 0L, 0L, param,
+                query, labelIds[0], labelIds[1], 0L, 0L, 0L, param,
             )
             3 -> return getTitleIdsList(
-                query, labelIds[0], labelIds[1], labelIds[2], 0L, param,
+                query, labelIds[0], labelIds[1], labelIds[2], 0L, 0L, param,
             )
             4 -> return getTitleIdsList(
-                query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], param,
+                query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], 0L, param,
+            )
+            5 -> return getTitleIdsList(
+                query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], labelIds[4], param,
             )
             else -> assert(value = false)
         }
@@ -324,12 +354,15 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId5 = 0 OR labelId = :labelId5" +
             ") " +
             " ORDER BY " +
             "   CASE WHEN :param = 1 THEN book_table.title END ASC, " +
             "   CASE WHEN :param = 2 THEN date_added END DESC ")
     suspend fun getFilteredIdsList(
-        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long, labelId5: Long,
         param: Int,
     ): List<Long>
 
@@ -338,19 +371,22 @@ interface BookDao {
     ): List<Long> {
         when (labelIds.size) {
             0 -> return getFilteredIdsList(
-                0L, 0L, 0L, 0L, param,
+                0L, 0L, 0L, 0L, 0L, param,
             )
             1 -> return getFilteredIdsList(
-                labelIds[0], 0L, 0L, 0L, param,
+                labelIds[0], 0L, 0L, 0L, 0L, param,
             )
             2 -> return getFilteredIdsList(
-                labelIds[0], labelIds[1], 0L, 0L, param,
+                labelIds[0], labelIds[1], 0L, 0L, 0L, param,
             )
             3 -> return getFilteredIdsList(
-                labelIds[0], labelIds[1], labelIds[2], 0L, param,
+                labelIds[0], labelIds[1], labelIds[2], 0L, 0L, param,
             )
             4 -> return getFilteredIdsList(
-                labelIds[0], labelIds[1], labelIds[2], labelIds[3], param,
+                labelIds[0], labelIds[1], labelIds[2], labelIds[3], 0L, param,
+            )
+            5 -> return getFilteredIdsList(
+                labelIds[0], labelIds[1], labelIds[2], labelIds[3], labelIds[4], param,
             )
             else -> assert(value = false)
         }
@@ -381,6 +417,9 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId5 = 0 OR labelId = :labelId5" +
             "))" +
             " GROUP BY labelId " +
             " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
@@ -389,7 +428,7 @@ interface BookDao {
     suspend fun getTitleHisto(
         type: Label.Type,
         query: String,
-        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long, labelId5: Long,
         param: Int,
     ): List<Histo>
 
@@ -399,19 +438,22 @@ interface BookDao {
     ): List<Histo> {
         when (labelIds.size) {
             0 -> return getTitleHisto(
-                type, query, 0L, 0L, 0L, 0L, param,
+                type, query, 0L, 0L, 0L, 0L, 0L, param,
             )
             1 -> return getTitleHisto(
-                type, query, labelIds[0], 0L, 0L, 0L, param,
+                type, query, labelIds[0], 0L, 0L, 0L, 0L, param,
             )
             2 -> return getTitleHisto(
-                type, query, labelIds[0], labelIds[1], 0L, 0L, param,
+                type, query, labelIds[0], labelIds[1], 0L, 0L, 0L, param,
             )
             3 -> return getTitleHisto(
-                type, query, labelIds[0], labelIds[1], labelIds[2], 0L, param,
+                type, query, labelIds[0], labelIds[1], labelIds[2], 0L, 0L, param,
             )
             4 -> return getTitleHisto(
-                type, query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], param,
+                type, query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], 0L, param,
+            )
+            5 -> return getTitleHisto(
+                type, query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], labelIds[4], param,
             )
             else -> assert(value = false)
         }
@@ -441,6 +483,9 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId5 = 0 OR labelId = :labelId5" +
             "))" +
             " GROUP BY labelId "+
             " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
@@ -449,7 +494,7 @@ interface BookDao {
     suspend fun searchTitleHisto(
         type: Label.Type,
         labelQuery: String, query: String,
-        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long, labelId5: Long,
         param: Int,
     ): List<Histo>
 
@@ -461,19 +506,22 @@ interface BookDao {
     ): List<Histo> {
         when (labelIds.size) {
             0 -> return searchTitleHisto(
-                type, labelQuery, query, 0L, 0L, 0L, 0L, param,
+                type, labelQuery, query, 0L, 0L, 0L, 0L, 0L, param,
             )
             1 -> return searchTitleHisto(
-                type, labelQuery, query, labelIds[0], 0L, 0L, 0L, param,
+                type, labelQuery, query, labelIds[0], 0L, 0L, 0L, 0L, param,
             )
             2 -> return searchTitleHisto(
-                type, labelQuery, query, labelIds[0], labelIds[1], 0L, 0L, param,
+                type, labelQuery, query, labelIds[0], labelIds[1], 0L, 0L, 0L, param,
             )
             3 -> return searchTitleHisto(
-                type, labelQuery, query, labelIds[0], labelIds[1], labelIds[2], 0L, param,
+                type, labelQuery, query, labelIds[0], labelIds[1], labelIds[2], 0L, 0L, param,
             )
             4 -> return searchTitleHisto(
-                type, labelQuery, query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], param,
+                type, labelQuery, query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], 0L, param,
+            )
+            5 -> return searchTitleHisto(
+                type, labelQuery, query, labelIds[0], labelIds[1], labelIds[2], labelIds[3], labelIds[4], param,
             )
             else -> assert(value = false)
         }
@@ -499,6 +547,9 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId5 = 0 OR labelId = :labelId5" +
             "))" +
             " GROUP BY labelId " +
             " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
@@ -506,7 +557,7 @@ interface BookDao {
     @TypeConverters(Converters::class)
     suspend fun getFilteredHisto(
         type: Label.Type,
-        labelId1: Long, labelId2: Long,labelId3: Long,labelId4: Long,
+        labelId1: Long, labelId2: Long,labelId3: Long, labelId4: Long, labelId5: Long,
         param: Int,
     ): List<Histo>
 
@@ -515,19 +566,22 @@ interface BookDao {
     ): List<Histo> {
         when (labelIds.size) {
             0 -> return getFilteredHisto(
-                type, 0L, 0L, 0L, 0L, param,
+                type, 0L, 0L, 0L, 0L, 0L, param,
             )
             1 -> return getFilteredHisto(
-                type, labelIds[0], 0L, 0L, 0L, param,
+                type, labelIds[0], 0L, 0L, 0L, 0L, param,
             )
             2 -> return getFilteredHisto(
-                type, labelIds[0], labelIds[1], 0L, 0L, param,
+                type, labelIds[0], labelIds[1], 0L, 0L, 0L, param,
             )
             3 -> return getFilteredHisto(
-                type, labelIds[0], labelIds[1], labelIds[2], 0L, param,
+                type, labelIds[0], labelIds[1], labelIds[2], 0L, 0L, param,
             )
             4 -> return getFilteredHisto(
-                type, labelIds[0], labelIds[1], labelIds[2], labelIds[3], param,
+                type, labelIds[0], labelIds[1], labelIds[2], labelIds[3], 0L, param,
+            )
+            5 -> return getFilteredHisto(
+                type, labelIds[0], labelIds[1], labelIds[2], labelIds[3], labelIds[4], param,
             )
             else -> assert(value = false)
         }
@@ -553,6 +607,9 @@ interface BookDao {
             " INTERSECT " +
             "   SELECT bookId FROM book_labels " +
             "       WHERE :labelId4 = 0 OR labelId = :labelId4" +
+            " INTERSECT " +
+            "   SELECT bookId FROM book_labels " +
+            "       WHERE :labelId5 = 0 OR labelId = :labelId5" +
             ") " +
             " GROUP BY labelId " +
             " ORDER BY CASE WHEN :param = 3 THEN count END DESC, " +
@@ -561,7 +618,7 @@ interface BookDao {
     suspend fun searchFilteredHisto(
         type: Label.Type,
         labelQuery: String,
-        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long,
+        labelId1: Long, labelId2: Long, labelId3: Long, labelId4: Long, labelId5: Long,
         param: Int,
     ): List<Histo>
 
@@ -573,19 +630,22 @@ interface BookDao {
     ): List<Histo> {
         when (labelIds.size) {
             0 -> return searchFilteredHisto(
-                type, labelQuery, 0L, 0L, 0L, 0L, param,
+                type, labelQuery, 0L, 0L, 0L, 0L, 0L, param,
             )
             1 -> return searchFilteredHisto(
-                type, labelQuery, labelIds[0], 0L, 0L, 0L, param,
+                type, labelQuery, labelIds[0], 0L, 0L, 0L, 0L, param,
             )
             2 -> return searchFilteredHisto(
-                type, labelQuery, labelIds[0], labelIds[1], 0L, 0L, param,
+                type, labelQuery, labelIds[0], labelIds[1], 0L, 0L, 0L, param,
             )
             3 -> return searchFilteredHisto(
-                type, labelQuery, labelIds[0], labelIds[1], labelIds[2], 0L, param,
+                type, labelQuery, labelIds[0], labelIds[1], labelIds[2], 0L, 0L, param,
             )
             4 -> return searchFilteredHisto(
-                type, labelQuery, labelIds[0], labelIds[1], labelIds[2], labelIds[3], param,
+                type, labelQuery, labelIds[0], labelIds[1], labelIds[2], labelIds[3], 0L, param,
+            )
+            5 -> return searchFilteredHisto(
+                type, labelQuery, labelIds[0], labelIds[1], labelIds[2], labelIds[3], labelIds[4], param,
             )
             else -> assert(value = false)
         }

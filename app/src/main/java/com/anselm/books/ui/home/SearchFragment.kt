@@ -117,7 +117,12 @@ class SearchFragment : ListFragment() {
             Filter(Label.Type.Authors,
                 binding.idAuthorFilter,
                 bookViewModel.query.firstFilter(Label.Type.Authors),
-                R.string.authorLabel))
+                R.string.authorLabel),
+            Filter(Label.Type.Language,
+                binding.idLanguageFilter,
+                bookViewModel.query.firstFilter(Label.Type.Language),
+                R.string.languageLabel),
+        )
         val repository = BooksApplication.app.repository
         viewLifecycleOwner.lifecycleScope.launch {
             for (f in filters) {

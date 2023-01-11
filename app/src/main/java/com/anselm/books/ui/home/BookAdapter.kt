@@ -7,20 +7,33 @@ import androidx.recyclerview.widget.DiffUtil
 import com.anselm.books.database.Book
 import com.anselm.books.databinding.RecyclerviewBookItemBinding
 
-class BookAdapter (private val onClick: (Book) -> Unit)
-    : PagingDataAdapter<Book, BookViewHolder>(BooksComparator())
+class BookAdapter (
+    private val onClick: (Book) -> Unit,
+) : PagingDataAdapter<Book, BookViewHolder>(BooksComparator())
 {
+    private val selected: MutableSet<Book> = emptySet<Book>().toMutableSet()
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder =
-        BookViewHolder(RecyclerviewBookItemBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false,
-        ), onClick)
+        BookViewHolder(
+            RecyclerviewBookItemBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false,
+            ), { // onClick
+                if ( selected.size > 0 ) {
+                    select(it)
+                } else {
+                    getItem(it)?.let { onClick(it) }
+                }
+            }
+        ) { // Long click handler for selection.
+            select(it)
+        }
 
     override fun onBindViewHolder(holder: BookViewHolder, position: Int) {
-        val current = getItem(position)
-        if (current != null) {
-            holder.bind(current)
+        val book = getItem(position)
+        if (book != null) {
+            holder.bind(book, selected.contains(book))
         } else {
             holder.hide()
         }
@@ -34,5 +47,15 @@ class BookAdapter (private val onClick: (Book) -> Unit)
         override fun areContentsTheSame(oldItem: Book, newItem: Book): Boolean {
             return oldItem == newItem
         }
+    }
+
+    private fun select(position: Int) {
+        val book = getItem(position) ?: return
+        if (selected.contains(book)) {
+            selected.remove(book)
+        } else {
+            selected.add(book)
+        }
+        notifyItemChanged(position)
     }
 }

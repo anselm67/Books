@@ -27,6 +27,22 @@
             card_view:layout_constraintStart_toStartOf="parent"
             card_view:layout_constraintTop_toTopOf="parent" />
 
+        <ImageView
+            android:id="@+id/idCheckMark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:src="@drawable/ic_baseline_check_24"
+            app:tint="#44FF44"
+            app:layout_constraintEnd_toEndOf="@id/coverImageView"
+            app:layout_constraintStart_toStartOf="@id/coverImageView"
+            app:layout_constraintTop_toTopOf="@id/coverImageView"
+            app:layout_constraintBottom_toBottomOf="@id/coverImageView"
+
+            android:visibility="gone"
+            android:contentDescription="@string/book_selected"
+            />
+
         <TextView
             android:id="@+id/titleView"
             android:scrollHorizontally="true"

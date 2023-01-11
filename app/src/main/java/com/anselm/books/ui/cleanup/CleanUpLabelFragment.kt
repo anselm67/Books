@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
 import com.anselm.books.database.Label
+import com.anselm.books.database.Query
 import com.anselm.books.databinding.FragmentCleanupLabelBinding
 import com.anselm.books.databinding.RecyclerviewLabelCleanupItemBinding
 import com.anselm.books.ui.widgets.BookFragment
@@ -41,7 +43,12 @@ class CleanUpLabelFragment: BookFragment() {
         type = safeArgs.type
 
         viewLifecycleOwner.lifecycleScope.launch {
-            adapter = LabelCleanupArrayAdapter(app.repository.getLabels(type).toMutableList())
+            adapter = LabelCleanupArrayAdapter(app.repository.getLabels(type).toMutableList()) {
+                val action = CleanUpLabelFragmentDirections.toSearchFragment(
+                    Query().apply { filters = Query.asFilter(it) }
+                )
+                findNavController().navigate(action)
+            }
             ItemTouchHelper(CleanUpLabelItemTouchHelper(this@CleanUpLabelFragment))
                 .attachToRecyclerView(binding.idLabelRecyclerView)
             binding.idLabelRecyclerView.adapter = adapter
@@ -99,7 +106,8 @@ class CleanUpLabelFragment: BookFragment() {
 }
 
 class LabelCleanupArrayAdapter(
-    val labels: MutableList<Label>
+    val labels: MutableList<Label>,
+    val onClick: (Label) -> Unit,
 ): RecyclerView.Adapter<LabelCleanupArrayAdapter.ViewHolder>() {
 
     inner class ViewHolder(
@@ -108,6 +116,9 @@ class LabelCleanupArrayAdapter(
 
         fun bind(label: Label) {
             binding.idLabelText.text = label.name
+            binding.root.setOnClickListener {
+                onClick.invoke(label)
+            }
         }
 
         fun onTarget() {

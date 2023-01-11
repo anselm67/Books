@@ -11,14 +11,16 @@ import com.bumptech.glide.Glide
 
 class BookViewHolder(
     private val binding: RecyclerviewBookItemBinding,
-    private val onClick: (book: Book) -> Unit
+    private val onClick: (position: Int) -> Unit,
+    private val onLongClick: (position: Int) -> Unit,
 ): RecyclerView.ViewHolder(binding.root) {
-    fun bind(book: Book) {
+    fun bind(book: Book, selected: Boolean) {
         show()
         val app = BooksApplication.app
         val uri = app.imageRepository.getCoverUri(book)
         binding.titleView.text = book.title
         binding.authorView.text = book.authors.joinToString { it.name }
+        binding.idCheckMark.visibility = if (selected) View.VISIBLE else View.GONE
         if (uri != null) {
             Glide.with(app.applicationContext)
                 .load(uri)
@@ -31,8 +33,12 @@ class BookViewHolder(
                 .centerCrop()
                 .into(binding.coverImageView)
         }
-        binding.root.setOnClickListener { _: View ->
-            book.let { this.onClick(it) }
+        binding.root.setOnClickListener {
+            onClick(this.bindingAdapterPosition)
+        }
+        binding.root.setOnLongClickListener {
+            onLongClick(this.bindingAdapterPosition)
+            true
         }
     }
 
