@@ -15,7 +15,7 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anselm.books.BookViewModel
-import com.anselm.books.BooksApplication
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Query
@@ -136,7 +136,7 @@ open class ListFragment: BookFragment() {
     }
 
     private fun onClick(book: Book) {
-        val repository = BooksApplication.app.repository
+        val repository = app.repository
         viewLifecycleOwner.lifecycleScope.launch {
             val bookIds = repository.getIdsList(bookViewModel.query)
             val position = bookIds.indexOf(book.id)

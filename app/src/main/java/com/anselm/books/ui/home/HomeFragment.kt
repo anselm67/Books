@@ -10,6 +10,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
 import com.anselm.books.TAG
 import com.anselm.books.database.BookDao

@@ -10,4 +10,13 @@
         <item>Open Library</item>
         <item>Merge Both</item>
     </string-array>
+
+    <string-array name="sortOrderIdentifiers">
+        <item>LastAdded</item>
+        <item>Alphabetical</item>
+    </string-array>
+    <string-array name="sortOrderNames">
+        <item>Last Added</item>
+        <item>Alphabetical (title, author)</item>
+    </string-array>
 </resources>

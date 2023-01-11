@@ -76,6 +76,19 @@
             card_view:layout_constraintStart_toEndOf="@id/coverImageView"
             card_view:layout_constraintTop_toBottomOf="@id/titleView" />
 
+        <TextView
+            android:id="@+id/dateAddedView"
+            android:maxLines="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/coverImageView"
+            app:layout_constraintBottom_toBottomOf="parent"
+            />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <View android:id="@+id/idRuler"

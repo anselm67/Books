@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import com.anselm.books.database.Book
+import com.anselm.books.database.BookDao
 import com.anselm.books.database.BookDatabase
 import com.anselm.books.database.BookRepository
 import com.anselm.books.openlibrary.GoogleBooksClient
@@ -48,6 +49,14 @@ class BooksApplication : Application() {
 
     val prefs: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(applicationContext)
+    }
+
+    val defaultSortOrder: Int get() {
+        return when (prefs.getString("sort_order", "DateAdded")) {
+            "DateAdded" -> BookDao.SortByDateAdded
+            "Alphabetical" -> BookDao.SortByTitle
+            else -> BookDao.SortByDateAdded
+        }
     }
 
     val database by lazy {

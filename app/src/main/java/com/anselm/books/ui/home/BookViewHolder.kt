@@ -20,6 +20,9 @@ class BookViewHolder(
         val uri = app.imageRepository.getCoverUri(book)
         binding.titleView.text = book.title
         binding.authorView.text = book.authors.joinToString { it.name }
+        if (book.dateAdded != "") {
+            binding.dateAddedView.text = app.getString(R.string.date_added_embedded, book.dateAdded)
+        }
         binding.idCheckMark.visibility = if (selected) View.VISIBLE else View.GONE
         if (uri != null) {
             Glide.with(app.applicationContext)

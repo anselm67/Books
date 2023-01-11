@@ -1,6 +1,7 @@
 package com.anselm.books.database
 
 import android.os.Parcelable
+import com.anselm.books.BooksApplication.Companion.app
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -8,7 +9,7 @@ data class Query(
     var query: String? = null,
     var partial: Boolean = false,
     var filters: MutableList<Filter> = mutableListOf(),
-    var sortBy: Int = BookDao.SortByTitle,
+    var sortBy: Int = app.defaultSortOrder,
 ) : Parcelable {
 
     @Parcelize

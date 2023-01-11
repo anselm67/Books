@@ -12,11 +12,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
-import com.anselm.books.BooksApplication
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
 
 open class BookFragment: Fragment() {
-    protected lateinit var app: BooksApplication
 
     companion object {
         // SettingsFragment can't inherit from BookFragment and it needs that list, sorry.
@@ -33,7 +32,6 @@ open class BookFragment: Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        app = BooksApplication.app
         cameraPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestPermission()) {
             if ( ! it ) {

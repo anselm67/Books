@@ -127,7 +127,11 @@ class ScanFragment: BookFragment() {
     }
 
     private fun saveAllMatches() {
+        // Is there any work to do?
         val books = adapter.getAllBooks()
+        if (books.isEmpty())
+            return
+        // Lets run with it.
         app.applicationScope.launch {
             books.forEach {
                 app.repository.save(it)

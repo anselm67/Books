@@ -37,7 +37,7 @@
             android:defaultValue="Both"
             android:entries="@array/serviceNames"
             android:entryValues="@array/serviceIdentifiers"
-            android:title="Lookup Service"
+            android:title="@string/lookup_service_preference_prompt"
             app:useSimpleSummaryProvider="true"/>
 
 
@@ -45,6 +45,13 @@
 
     <PreferenceCategory app:title="@string/preference_category_display">
 
+        <DropDownPreference
+            app:key="sort_order"
+            android:defaultValue="LastAdded"
+            android:entries="@array/sortOrderNames"
+            android:entryValues="@array/sortOrderIdentifiers"
+            android:title="@string/sort_order_preference_prompt"
+            app:useSimpleSummaryProvider="true"/>
 
         <CheckBoxPreference
             app:key="display_book_id"

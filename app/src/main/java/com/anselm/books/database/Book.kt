@@ -28,7 +28,7 @@ object BookFields {
     const val MAX_PUBLISHED_YEAR = 2100
 }
 
-private val DATE_FORMAT = SimpleDateFormat("EEE, MMM d yyy - hh:mm aaa", Locale.US)
+private val DATE_FORMAT = SimpleDateFormat("EEE, MMM d yyy", Locale.US)
 
 @Entity(
     tableName = "book_table",
