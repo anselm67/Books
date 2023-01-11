@@ -1,3 +1,8 @@
+Backup
+https://developer.android.com/guide/topics/data/testingbackup
+https://developer.android.com/guide/topics/data/autobackup#IncludingFiles
+
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/idEditLabel"
         android:layout_width="36dp"
