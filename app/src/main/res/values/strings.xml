@@ -116,5 +116,6 @@
     <string name="delete_label_prompt">Delete label "%1$s"?</string>
 
     <string name="book_selected">Selected</string>
+    <string name="book_selected_count">%1$d books selected</string>
 
 </resources>

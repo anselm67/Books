@@ -21,6 +21,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class HomeFragment : ListFragment() {
+    private var totalCount: Int = 0
+
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
@@ -29,7 +31,8 @@ class HomeFragment : ListFragment() {
         val root = super.onCreateView(inflater, container, savedInstanceState)
         binding.idSearchFilters.isVisible = false
         binding.idCountView.isVisible = false
-        binding.fab.isVisible = true
+        binding.fabScanButton.isVisible = true
+        binding.fabEditButton.isVisible = false
 
         // Handles the menu items we care about.
         handleMenu(listOf(
@@ -49,17 +52,27 @@ class HomeFragment : ListFragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                app.title = getString(R.string.book_count, app.repository.getTotalCount())
+                totalCount = app.repository.getTotalCount()
+                app.title = getString(R.string.book_count, totalCount)
             }
         }
 
-        binding.fab.setOnClickListener {
+        binding.fabScanButton.setOnClickListener {
             showBottomAddDialog()
         }
 
         changeQuery(bookViewModel.query)
 
         return root
+    }
+
+    override fun onSelectionChanged(selectedCount: Int) {
+        super.onSelectionChanged(selectedCount)
+        if (selectedCount > 0) {
+            app.title = getString(R.string.book_selected_count, selectedCount)
+        } else {
+            app.title = getString(R.string.book_count, totalCount)
+        }
     }
 
     private fun showBottomAddDialog() {

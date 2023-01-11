@@ -26,6 +26,7 @@ class SearchFragment : ListFragment() {
     private lateinit var filterDrawable: Drawable
     // Button's Drawable to use when a filter value is selected, to clear it out.
     private lateinit var clearFilterDrawable: Drawable
+    private var totalCount: Int = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,7 +40,7 @@ class SearchFragment : ListFragment() {
         // Displays filters in this view, that's the whole point.
         binding.idSearchFilters.isVisible = true
         binding.idCountView.isVisible = true
-        binding.fab.isVisible = false
+        binding.fabScanButton.isVisible = false
 
         // Caches the drawable for the filter buttons.
         filterDrawable = ContextCompat.getDrawable(
@@ -68,6 +69,24 @@ class SearchFragment : ListFragment() {
         refreshUi()
 
         return root
+    }
+
+    override fun onSelectionStart() {
+        binding.fabScanButton.isVisible = false
+        binding.fabEditButton.isVisible = true
+    }
+
+    override fun onSelectionEnd() {
+        binding.fabScanButton.isVisible = false
+        binding.fabEditButton.isVisible = false
+    }
+
+    override fun onSelectionChanged(selectedCount: Int) {
+        if (selectedCount == 0) {
+            binding.idCountView.text = getString(R.string.item_count_format, totalCount)
+        } else {
+            binding.idCountView.text = getString(R.string.book_selected_count, selectedCount)
+        }
     }
 
     fun changeQueryAndUpdateUI(query: Query) {
@@ -144,8 +163,8 @@ class SearchFragment : ListFragment() {
                 }
             }
             // Refreshes the book count.
-            val count = repository.getPagedListCount(bookViewModel.query)
-            binding.idCountView.text = getString(R.string.item_count_format, count)
+            totalCount = repository.getPagedListCount(bookViewModel.query)
+            binding.idCountView.text = getString(R.string.item_count_format, totalCount)
         }
     }
 

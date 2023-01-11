@@ -9,6 +9,7 @@ import com.anselm.books.databinding.RecyclerviewBookItemBinding
 
 class BookAdapter (
     private val onClick: (Book) -> Unit,
+    private val selectionListener: SelectionListener,
 ) : PagingDataAdapter<Book, BookViewHolder>(BooksComparator())
 {
     private val selected: MutableSet<Book> = emptySet<Book>().toMutableSet()
@@ -56,6 +57,12 @@ class BookAdapter (
         } else {
             selected.add(book)
         }
+        if (selected.size == 1) {
+            selectionListener.onSelectionStart()
+        } else if (selected.size == 0) {
+            selectionListener.onSelectionStop()
+        }
+        selectionListener.onSelectionChanged(selected.size)
         notifyItemChanged(position)
     }
 }

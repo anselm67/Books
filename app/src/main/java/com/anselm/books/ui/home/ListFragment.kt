@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -37,6 +38,7 @@ open class ListFragment: BookFragment() {
     ): View {
         super.onCreateView(inflater, container, savedInstanceState)
         _binding = FragmentListBinding.inflate(inflater, container, false)
+        binding.fabEditButton.isVisible = false
 
         bindAdapter()
 
@@ -80,7 +82,23 @@ open class ListFragment: BookFragment() {
      */
     private fun bindAdapter() {
         // Creates the new adapter and restarts the jobs.
-        adapter = BookAdapter { book -> onClick(book) }
+        adapter = BookAdapter(
+            { book -> onClick(book) },
+            object: SelectionListener() {
+                override fun onSelectionStart() {
+                    this@ListFragment.onSelectionStart()
+                }
+
+                override fun onSelectionStop() {
+                    this@ListFragment.onSelectionEnd()
+                }
+
+                override fun onSelectionChanged(selectedCount: Int) {
+                    this@ListFragment.onSelectionChanged(selectedCount)
+                }
+            }
+        )
+
         // Collects from the state and updates the progress bar accordingly.
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -93,6 +111,18 @@ open class ListFragment: BookFragment() {
         binding.list.adapter = adapter
         binding.list.layoutManager = LinearLayoutManager(binding.list.context)
     }
+
+    open fun onSelectionStart() {
+        binding.fabScanButton.isVisible = false
+        binding.fabEditButton.isVisible = true
+    }
+
+    open fun onSelectionEnd() {
+        binding.fabScanButton.isVisible = true
+        binding.fabEditButton.isVisible = false
+    }
+
+    open fun onSelectionChanged(selectedCount: Int) { }
 
     override fun onDestroyView() {
         super.onDestroyView()
