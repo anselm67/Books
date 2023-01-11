@@ -1,6 +1,8 @@
 package com.anselm.books.ui.edit
 
+import android.Manifest
 import android.app.AlertDialog
+import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -10,6 +12,8 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageButton
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
@@ -39,8 +43,21 @@ class EditFragment: BookFragment() {
     private val coverImageEditor
         get() = (editors[0] as CoverImageEditor)
 
+    private lateinit var cameraPermissionLauncher: ActivityResultLauncher<String>
+
     private fun getBorderDrawable(resourceId: Int): Drawable {
         return ResourcesCompat.getDrawable(resources, resourceId, null)!!
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        cameraPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()) {
+                if ( ! it ) {
+                    app.toast(R.string.request_camera_permission)
+                }
+        }
+
     }
 
     override fun onCreateView(
@@ -91,6 +108,16 @@ class EditFragment: BookFragment() {
             },
         ))
         return binding.root
+    }
+
+    fun checkCameraPermission(): Boolean {
+        if (ContextCompat.checkSelfPermission(
+            requireContext(),
+                Manifest.permission.CAMERA) == PERMISSION_GRANTED) {
+            return true
+        }
+        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        return false
     }
 
     private fun deleteBook() {

@@ -114,6 +114,9 @@ class CoverImageEditor(
     }
 
     private fun launchCoverCamera() {
+        if ( ! fragment.checkCameraPermission() ) {
+            return
+        }
         if (cameraImageFile == null) {
             cameraImageFile = File.createTempFile("cover_edit", ".png", app.cacheDir).apply {
                 createNewFile()
