@@ -6,10 +6,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import com.anselm.books.BookViewModel
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
 import com.anselm.books.TAG
@@ -61,6 +63,8 @@ class HomeFragment : ListFragment() {
         binding.fabScanButton.setOnClickListener {
             showBottomAddDialog()
         }
+        val model: BookViewModel by viewModels { BookViewModel.Factory }
+        _bookViewModel = model
         changeQuery(bookViewModel.query)
         return root
     }

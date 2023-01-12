@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
@@ -64,9 +65,12 @@ class SearchFragment : ListFragment() {
         )
 
         // We start with a fresh query, initialized with our arguments.
-        if (safeArgs.query != null) {
+        val model: BookViewModel by viewModels { BookViewModel.Factory }
+        if (_bookViewModel == null && safeArgs.query != null) {
+            _bookViewModel = model
             changeQuery(safeArgs.query!!)
         } else {
+            _bookViewModel = model
             changeQuery(bookViewModel.query)
         }
 

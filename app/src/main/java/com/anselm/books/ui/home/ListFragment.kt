@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -30,7 +29,8 @@ import kotlinx.coroutines.launch
 open class ListFragment: BookFragment() {
     private var _binding: FragmentListBinding? = null
     protected val binding get() = _binding!!
-    protected val bookViewModel: BookViewModel by viewModels { BookViewModel.Factory }
+    protected var _bookViewModel: BookViewModel? = null
+    protected val bookViewModel get() = _bookViewModel!!
     private lateinit var adapter: BookAdapter
 
     override fun onCreateView(
