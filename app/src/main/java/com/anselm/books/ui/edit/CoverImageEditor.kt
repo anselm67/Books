@@ -174,7 +174,7 @@ class CoverImageEditor(
         if (uri != null) {
             Glide.with(app.applicationContext)
                 .load(uri).centerCrop()
-                .placeholder(R.mipmap.ic_book_cover)
+                .placeholder(R.drawable.broken_image_icon)
                 .into(editor.idCoverImage)
         } else {
             Glide.with(app.applicationContext)

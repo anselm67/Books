@@ -207,7 +207,7 @@ class DetailsFragment : BookFragment() {
         if (uri != null) {
             Glide.with(app.applicationContext)
                 .load(uri).centerCrop()
-                .placeholder(R.mipmap.ic_book_cover)
+                .placeholder(R.drawable.broken_image_icon)
                 .into(coverImageView)
         } else {
             Glide.with(app.applicationContext)

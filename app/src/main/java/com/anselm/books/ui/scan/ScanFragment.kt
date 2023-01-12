@@ -201,7 +201,7 @@ class IsbnArrayAdapter(
                 if (uri != null) {
                     Glide.with(app.applicationContext)
                         .load(uri)
-                        .placeholder(R.mipmap.ic_book_cover)
+                        .placeholder(R.drawable.broken_image_icon)
                         .centerCrop()
                         .into(binding.idCoverImage)
                 } else {
