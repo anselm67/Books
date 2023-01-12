@@ -123,4 +123,6 @@
     <string name="sort_order_preference_prompt">Default Sort Order</string>
 
     <string name="date_added_embedded">Added on %1$s.</string>
+    <string name="preference_enable_shortcut_to_edit">Enable shortcut to edit in lists.</string>
+
 </resources>

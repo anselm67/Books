@@ -94,18 +94,23 @@ open class ListFragment: BookFragment() {
      * changing sort order. It tries to resync the pre/post lists and ends up in hell.
      */
     private fun bindAdapter() {
+        val onEditClick: ((Book) -> Unit)?
+            = if (app.prefs.getBoolean("enable_shortcut_to_edit", true)) {
+                { book -> onEditClick(book) }
+            } else {
+                null
+            }
         // Creates the new adapter and restarts the jobs.
         adapter = BookAdapter(
             { book -> onClick(book) },
+            onEditClick,
             object: SelectionListener() {
                 override fun onSelectionStart() {
                     this@ListFragment.onSelectionStart()
                 }
-
                 override fun onSelectionStop() {
                     this@ListFragment.onSelectionStop()
                 }
-
                 override fun onSelectionChanged(selectedCount: Int) {
                     this@ListFragment.onSelectionChanged(selectedCount)
                 }
@@ -162,6 +167,11 @@ open class ListFragment: BookFragment() {
             )
             findNavController().navigate(action)
         }
+    }
+
+    private fun onEditClick(book: Book) {
+        val action = HomeFragmentDirections.toEditFragment(book.id)
+        findNavController().navigate(action)
     }
 }
 

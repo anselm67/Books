@@ -13,6 +13,7 @@ class BookViewHolder(
     private val binding: RecyclerviewBookItemBinding,
     private val onClick: (position: Int) -> Unit,
     private val onLongClick: (position: Int) -> Unit,
+    private val onEditClick: ((position: Int) -> Unit)? = null,
 ): RecyclerView.ViewHolder(binding.root) {
     fun bind(book: Book, selected: Boolean) {
         show()
@@ -24,6 +25,13 @@ class BookViewHolder(
             binding.dateAddedView.text = app.getString(R.string.date_added_embedded, book.dateAdded)
         }
         binding.idCheckMark.visibility = if (selected) View.VISIBLE else View.GONE
+        if (onEditClick != null) {
+            binding.idEditBook.setOnClickListener {
+                onEditClick.invoke(this.bindingAdapterPosition)
+            }
+        } else {
+            binding.idEditBook.isVisible = false
+        }
         if (uri != null) {
             Glide.with(app.applicationContext)
                 .load(uri)

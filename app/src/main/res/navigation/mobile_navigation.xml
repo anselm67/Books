@@ -27,7 +27,6 @@
         <action
             android:id="@+id/toScanFragment"
             app:destination="@id/nav_scan" />
-
         <action android:id="@+id/toEditMultiDialogFragment"
             app:destination="@id/nav_edit_multi" />
     </fragment>
@@ -48,7 +47,9 @@
         <action
             android:id="@+id/toSearchDialogFragment"
             app:destination="@id/search_dialog_fragment" />
-
+        <action
+            android:id="@+id/toEditFragment"
+            app:destination="@id/nav_edit" />
         <action android:id="@+id/toEditMultiDialogFragment"
             app:destination="@id/nav_edit_multi" />
     </fragment>

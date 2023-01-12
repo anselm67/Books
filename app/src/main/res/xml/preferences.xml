@@ -54,6 +54,11 @@
             app:useSimpleSummaryProvider="true"/>
 
         <CheckBoxPreference
+            app:key="enable_shortcut_to_edit"
+            app:title="@string/preference_enable_shortcut_to_edit"
+            android:defaultValue="true"/>
+
+        <CheckBoxPreference
             app:key="display_book_id"
             app:title="@string/preference_display_book_id"
             android:defaultValue="false"/>
