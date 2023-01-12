@@ -14,6 +14,8 @@ class BookAdapter (
 ) : PagingDataAdapter<Book, BookViewHolder>(BooksComparator())
 {
     private val selected: MutableSet<Book> = emptySet<Book>().toMutableSet()
+    var allSelected = false
+        private set
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder =
         BookViewHolder(
@@ -35,7 +37,7 @@ class BookAdapter (
     override fun onBindViewHolder(holder: BookViewHolder, position: Int) {
         val book = getItem(position)
         if (book != null) {
-            holder.bind(book, selected.contains(book))
+            holder.bind(book, selected.contains(book) || allSelected)
         } else {
             holder.hide()
         }
@@ -67,7 +69,22 @@ class BookAdapter (
         notifyItemChanged(position)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    fun selectAll() {
+        if ( allSelected ) {
+            return
+        }
+        allSelected = true
+        // Invoke the listeners as needed:
+        if (selected.isEmpty()) {
+            selectionListener.onSelectionStart()
+        }
+        selectionListener.onSelectionChanged(ALL)
+        notifyDataSetChanged()
+    }
+
     fun getSelectedBookIds(): List<Long> {
+        check( ! allSelected )
         return selected.map { it.id }
     }
 
@@ -75,9 +92,14 @@ class BookAdapter (
     fun cancelSelection() {
         if (selected.size > 0) {
             selected.clear()
+            allSelected = false
             selectionListener.onSelectionStop()
             selectionListener.onSelectionChanged(0)
             notifyDataSetChanged()
         }
+    }
+
+    companion object {
+        const val ALL = -1
     }
 }

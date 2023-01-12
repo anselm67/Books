@@ -43,12 +43,17 @@ open class ListFragment: BookFragment() {
 
         binding.fabEditButton.isVisible = false
         binding.fabEditButton.setOnClickListener{
-            val action = HomeFragmentDirections.toEditMultiDialogFragment(
-                adapter.getSelectedBookIds().toLongArray()
-            )
-            findNavController().navigate(action)
+            viewLifecycleOwner.lifecycleScope.launch {
+                val bookIds = if (adapter.allSelected) {
+                    app.repository.getIdsList(bookViewModel.query).toLongArray()
+                } else {
+                    adapter.getSelectedBookIds().toLongArray()
+                }
+                val action = HomeFragmentDirections.toEditMultiDialogFragment(bookIds)
+                findNavController().navigate(action)
+            }
         }
-        handleMenu(emptyList())
+        handleMenu()
         bindAdapter()
         return binding.root
     }
@@ -120,21 +125,24 @@ open class ListFragment: BookFragment() {
         binding.list.layoutManager = LinearLayoutManager(binding.list.context)
     }
 
-    private var menuItemHandlers: List<MenuItemHandler> = emptyList()
+    private var menuItemHandlers: Array<out MenuItemHandler> = emptyArray()
     open fun onSelectionStart() {
         binding.fabScanButton.isVisible = false
         binding.fabEditButton.isVisible = true
-        menuItemHandlers = handleMenu(listOf(
+        menuItemHandlers = handleMenu(
+            MenuItemHandler(R.id.idSelectAll, {
+                adapter.selectAll()
+            }),
             MenuItemHandler(R.id.idCancelView, {
                 adapter.cancelSelection()
             })
-        ))
+        )
     }
 
     open fun onSelectionStop() {
         binding.fabScanButton.isVisible = true
         binding.fabEditButton.isVisible = false
-        handleMenu(menuItemHandlers)
+        handleMenu(*menuItemHandlers)
     }
 
     open fun onSelectionChanged(selectedCount: Int) { }

@@ -37,7 +37,7 @@ class HomeFragment : ListFragment() {
         binding.fabEditButton.isVisible = false
 
         // Handles the menu items we care about.
-        handleMenu(listOf(
+        handleMenu(
             MenuItemHandler(R.id.idGotoSearchView, {
                 val action = HomeFragmentDirections.toSearchFragment(
                     Query(sortBy = bookViewModel.query.sortBy)
@@ -50,7 +50,7 @@ class HomeFragment : ListFragment() {
             MenuItemHandler(R.id.idSortByTitle, {
                 changeSortOrder(BookDao.SortByTitle)
             })
-        ))
+        )
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -61,16 +61,15 @@ class HomeFragment : ListFragment() {
         binding.fabScanButton.setOnClickListener {
             showBottomAddDialog()
         }
-
-
         changeQuery(bookViewModel.query)
-
         return root
     }
 
     override fun onSelectionChanged(selectedCount: Int) {
         super.onSelectionChanged(selectedCount)
-        if (selectedCount > 0) {
+        if (selectedCount == BookAdapter.ALL) {
+            app.title = getString(R.string.book_selected_count, totalCount)
+        } else if (selectedCount > 0) {
             app.title = getString(R.string.book_selected_count, selectedCount)
         } else {
             app.title = getString(R.string.book_count, totalCount)

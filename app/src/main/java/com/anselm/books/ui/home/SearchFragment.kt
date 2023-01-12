@@ -51,7 +51,7 @@ class SearchFragment : ListFragment() {
             requireContext(), R.drawable.ic_baseline_clear_24)!!
 
         // Customizes the toolbar menu.
-        handleMenu(listOf(
+        handleMenu(
             MenuItemHandler(R.id.idSortByDateAdded, {
                 changeSortOrder(BookDao.SortByDateAdded)
             }),
@@ -61,7 +61,7 @@ class SearchFragment : ListFragment() {
             MenuItemHandler(R.id.idSearchView, null) {
                 bindSearch(it)
             }
-        ))
+        )
 
         // We start with a fresh query, initialized with our arguments.
         if (safeArgs.query != null) {
@@ -90,7 +90,9 @@ class SearchFragment : ListFragment() {
 
     override fun onSelectionChanged(selectedCount: Int) {
         super.onSelectionChanged(selectedCount)
-        if (selectedCount > 0) {
+        if (selectedCount == BookAdapter.ALL) {
+            app.title = getString(R.string.book_selected_count, totalCount)
+        } else if (selectedCount > 0) {
             app.title = getString(R.string.book_selected_count, selectedCount)
         } else {
             app.title = getString(R.string.book_count, totalCount)

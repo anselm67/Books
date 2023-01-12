@@ -54,7 +54,7 @@ class DetailsFragment : BookFragment() {
                 binding.bind(inflater, book)
 
                 // We have to wait for the book to setup the menu.
-                handleMenu(listOf(
+                handleMenu(
                     MenuItemHandler(R.id.idEditBook, {
                         val action = DetailsFragmentDirections.toEditFragment(bookId)
                         navController.navigate(action)
@@ -66,7 +66,7 @@ class DetailsFragment : BookFragment() {
                             .setNegativeButton(R.string.no) { _, _ -> }
                             .show()
                     }),
-                ))
+                )
 
             } else {
                 navController.popBackStack()

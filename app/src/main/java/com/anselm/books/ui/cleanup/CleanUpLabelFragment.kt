@@ -71,7 +71,7 @@ class CleanUpLabelFragment: BookFragment() {
                 }
             }
         })
-        super.handleMenu(emptyList())
+        super.handleMenu()
         return binding.root
     }
 

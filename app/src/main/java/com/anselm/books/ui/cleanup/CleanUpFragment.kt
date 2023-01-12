@@ -37,7 +37,7 @@ class CleanUpFragment: BookFragment() {
             labelSection(inflater, binding.idStatsContainer)
         }
 
-        super.handleMenu(emptyList())
+        super.handleMenu()
         return binding.root
     }
 
@@ -50,44 +50,62 @@ class CleanUpFragment: BookFragment() {
         ))
         // Duplicate books.
         var count = app.repository.getDuplicateBookCount()
-        container.addView(bookItem(
-            inflater,
-            container,
-            getString(R.string.duplicate_books_cleanup, count)) {
-            app.repository.getDuplicateBookIds()
-        })
+        if (count > 0) {
+            container.addView(bookItem(
+                inflater,
+                container,
+                getString(R.string.duplicate_books_cleanup, count)
+            ) {
+                app.repository.getDuplicateBookIds()
+            })
+        }
         // Books without cover images.
         count = app.repository.getWithoutCoverBookCount()
-        container.addView(bookItem(
-            inflater, container,
-            getString(R.string.without_cover_books_cleanup, count)) {
-               app.repository.getWithoutCoverBookIds()
-        })
+        if (count > 0) {
+            container.addView(bookItem(
+                inflater, container,
+                getString(R.string.without_cover_books_cleanup, count)
+            ) {
+                app.repository.getWithoutCoverBookIds()
+            })
+        }
         // Books without certain label type.
         count = app.repository.getWithoutLabelBookCount(Label.Type.Authors)
-        container.addView(bookItem(
-            inflater, container,
-            getString(R.string.without_authors_cleanup, count)) {
-            app.repository.getWithoutLabelBookIds(Label.Type.Authors)
-        })
+        if (count > 0) {
+            container.addView(bookItem(
+                inflater, container,
+                getString(R.string.without_authors_cleanup, count)
+            ) {
+                app.repository.getWithoutLabelBookIds(Label.Type.Authors)
+            })
+        }
         count = app.repository.getWithoutLabelBookCount(Label.Type.Genres)
-        container.addView(bookItem(
-            inflater, container,
-            getString(R.string.without_genres_cleanup, count)) {
-            app.repository.getWithoutLabelBookIds(Label.Type.Genres)
-        })
+        if (count > 0) {
+            container.addView(bookItem(
+                inflater, container,
+                getString(R.string.without_genres_cleanup, count)
+            ) {
+                app.repository.getWithoutLabelBookIds(Label.Type.Genres)
+            })
+        }
         count = app.repository.getWithoutLabelBookCount(Label.Type.Location)
-        container.addView(bookItem(
-            inflater, container,
-            getString(R.string.without_locations_cleanup, count)) {
-            app.repository.getWithoutLabelBookIds(Label.Type.Location)
-        })
+        if (count > 0) {
+            container.addView(bookItem(
+                inflater, container,
+                getString(R.string.without_locations_cleanup, count)
+            ) {
+                app.repository.getWithoutLabelBookIds(Label.Type.Location)
+            })
+        }
         count = app.repository.getWithoutLabelBookCount(Label.Type.Language)
-        container.addView(bookItem(
-            inflater, container,
-            getString(R.string.without_languages_cleanup, count)) {
-            app.repository.getWithoutLabelBookIds(Label.Type.Language)
-        })
+        if (count > 0) {
+            container.addView(bookItem(
+                inflater, container,
+                getString(R.string.without_languages_cleanup, count)
+            ) {
+                app.repository.getWithoutLabelBookIds(Label.Type.Language)
+            })
+        }
     }
 
     private suspend fun labelSection(inflater: LayoutInflater, container: ViewGroup) {

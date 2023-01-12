@@ -35,12 +35,12 @@ open class BookFragment: Fragment() {
     }
 
     private var menuProvider: MenuProvider? = null
-    private var listOfHandlers: List<MenuItemHandler> = emptyList()
+    private var listOfHandlers: Array<out MenuItemHandler> = emptyArray()
     /*
      * Displays and installs the provided menu items, returns the current settings sp they can be
      * restored if needed.
      */
-    protected fun handleMenu(items: List<MenuItemHandler>): List<MenuItemHandler> {
+    protected fun handleMenu(vararg items: MenuItemHandler): Array<out MenuItemHandler> {
         val activity = requireActivity()
         val returnValue = listOfHandlers
         if (menuProvider != null) {
@@ -51,7 +51,7 @@ open class BookFragment: Fragment() {
         menuProvider = object: MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 // Everything is invisible ...
-                menu.forEach { it.isVisible = false }
+                menu.forEach { it.isVisible = (it.itemId== R.id.idCheckMark) }
                 // Unless requested by the fragment.
                 items.forEach { handler ->
                     menu.findItem(handler.menuId)?.let {

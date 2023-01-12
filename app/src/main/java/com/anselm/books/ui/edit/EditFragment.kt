@@ -82,7 +82,7 @@ class EditFragment: BookFragment() {
         invalidBorder = getBorderDrawable(R.drawable.textview_border_invalid)
         changedBorder = getBorderDrawable(R.drawable.textview_border_changed)
 
-        handleMenu(listOf(
+        handleMenu(
             MenuItemHandler(R.id.idSaveBook, {
                 checkChanges()
             }),
@@ -93,7 +93,7 @@ class EditFragment: BookFragment() {
                     .setNegativeButton(R.string.no) { _, _ -> }
                     .show()
             }),
-        ))
+        )
         return binding.root
     }
 
