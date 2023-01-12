@@ -16,11 +16,13 @@ import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anselm.books.BookViewModel
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.R
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Query
 import com.anselm.books.databinding.FragmentListBinding
 import com.anselm.books.ui.widgets.BookFragment
+import com.anselm.books.ui.widgets.MenuItemHandler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -96,7 +98,7 @@ open class ListFragment: BookFragment() {
                 }
 
                 override fun onSelectionStop() {
-                    this@ListFragment.onSelectionEnd()
+                    this@ListFragment.onSelectionStop()
                 }
 
                 override fun onSelectionChanged(selectedCount: Int) {
@@ -118,14 +120,21 @@ open class ListFragment: BookFragment() {
         binding.list.layoutManager = LinearLayoutManager(binding.list.context)
     }
 
+    private var menuItemHandlers: List<MenuItemHandler> = emptyList()
     open fun onSelectionStart() {
         binding.fabScanButton.isVisible = false
         binding.fabEditButton.isVisible = true
+        menuItemHandlers = handleMenu(listOf(
+            MenuItemHandler(R.id.idCancelView, {
+                adapter.cancelSelection()
+            })
+        ))
     }
 
-    open fun onSelectionEnd() {
+    open fun onSelectionStop() {
         binding.fabScanButton.isVisible = true
         binding.fabEditButton.isVisible = false
+        handleMenu(menuItemHandlers)
     }
 
     open fun onSelectionChanged(selectedCount: Int) { }

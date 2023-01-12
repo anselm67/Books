@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
+import androidx.core.view.forEach
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -16,7 +17,6 @@ import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
 import com.anselm.books.database.Label
 import com.anselm.books.databinding.BottomSheetMultiEditDialogBinding
-import com.anselm.books.ui.widgets.BookFragment
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
 
@@ -90,8 +90,8 @@ class EditMultiDialogFragment: BottomSheetDialogFragment() {
     private fun handleMenu(menuHost: MenuHost) {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                BookFragment.allItemIds.forEach {
-                    menu.findItem(it).isVisible = false
+                menu.forEach {
+                    it.isVisible = false
                 }
             }
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {

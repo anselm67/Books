@@ -16,9 +16,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.anselm.books.*
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.database.BookDao
 import com.anselm.books.database.Label
 import com.anselm.books.database.Query
+import com.anselm.books.ui.widgets.MenuItemHandler
 import kotlinx.coroutines.launch
 
 class SearchFragment : ListFragment() {
@@ -50,11 +52,14 @@ class SearchFragment : ListFragment() {
 
         // Customizes the toolbar menu.
         handleMenu(listOf(
-            Pair(R.id.idSortByDateAdded) {
+            MenuItemHandler(R.id.idSortByDateAdded, {
                 changeSortOrder(BookDao.SortByDateAdded)
-            },
-            Pair(R.id.idSortByTitle) {
+            }),
+            MenuItemHandler(R.id.idSortByTitle, {
                 changeSortOrder(BookDao.SortByTitle)
+            }),
+            MenuItemHandler(R.id.idSearchView, null) {
+                bindSearch(it)
             }
         ))
 
@@ -72,30 +77,29 @@ class SearchFragment : ListFragment() {
     }
 
     override fun onSelectionStart() {
+        super.onSelectionStart()
         binding.fabScanButton.isVisible = false
         binding.fabEditButton.isVisible = true
     }
 
-    override fun onSelectionEnd() {
+    override fun onSelectionStop() {
+        super.onSelectionStop()
         binding.fabScanButton.isVisible = false
         binding.fabEditButton.isVisible = false
     }
 
     override fun onSelectionChanged(selectedCount: Int) {
-        if (selectedCount == 0) {
-            binding.idCountView.text = getString(R.string.item_count_format, totalCount)
+        super.onSelectionChanged(selectedCount)
+        if (selectedCount > 0) {
+            app.title = getString(R.string.book_selected_count, selectedCount)
         } else {
-            binding.idCountView.text = getString(R.string.book_selected_count, selectedCount)
+            app.title = getString(R.string.book_count, totalCount)
         }
     }
 
     fun changeQueryAndUpdateUI(query: Query) {
         super.changeQuery(query)
         refreshUi()
-    }
-
-    override fun onCreateMenu(menu: Menu) {
-        bindSearch(menu)
     }
 
     private fun clearFilter(type: Label.Type) {
@@ -142,7 +146,7 @@ class SearchFragment : ListFragment() {
                 bookViewModel.query.firstFilter(Label.Type.Language),
                 R.string.languageLabel),
         )
-        val repository = BooksApplication.app.repository
+        val repository = app.repository
         viewLifecycleOwner.lifecycleScope.launch {
             for (f in filters) {
                 if (f.filter != null) {
@@ -168,15 +172,14 @@ class SearchFragment : ListFragment() {
         }
     }
 
-    private fun bindSearch(menu: Menu) {
+    private fun bindSearch(item: MenuItem) {
         // Handles the search view:
-        val item = menu.findItem(R.id.idSearchView)
-        item.isVisible = true
 
         // Expands the menu item.
         // As this pushes an event to the backstack, we need to pop it automatically so that
         // when back is pressed it backs out to HomeFragment rather than just collapsing
         // the SearchView.
+
         item.expandActionView()
         item.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
             override fun onMenuItemActionExpand(item: MenuItem): Boolean  = true

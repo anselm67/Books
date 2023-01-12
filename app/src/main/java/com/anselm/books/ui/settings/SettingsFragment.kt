@@ -13,13 +13,13 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
+import androidx.core.view.forEach
 import androidx.lifecycle.Lifecycle
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.anselm.books.BooksApplication
 import com.anselm.books.R
 import com.anselm.books.TAG
-import com.anselm.books.ui.widgets.BookFragment
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
@@ -70,8 +70,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private fun handleMenu(menuHost: MenuHost) {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                BookFragment.allItemIds.forEach {
-                    menu.findItem(it).isVisible = false
+                menu.forEach {
+                    it.isVisible = false
                 }
             }
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {

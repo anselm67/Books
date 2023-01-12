@@ -23,6 +23,7 @@ import com.anselm.books.database.Book
 import com.anselm.books.database.Label
 import com.anselm.books.databinding.FragmentEditBinding
 import com.anselm.books.ui.widgets.BookFragment
+import com.anselm.books.ui.widgets.MenuItemHandler
 import kotlinx.coroutines.launch
 import java.lang.Integer.max
 
@@ -82,16 +83,16 @@ class EditFragment: BookFragment() {
         changedBorder = getBorderDrawable(R.drawable.textview_border_changed)
 
         handleMenu(listOf(
-            Pair(R.id.idSaveBook) {
+            MenuItemHandler(R.id.idSaveBook, {
                 checkChanges()
-            },
-            Pair(R.id.idDeleteBook) {
+            }),
+            MenuItemHandler(R.id.idDeleteBook, {
                 val builder = AlertDialog.Builder(requireActivity())
                 builder.setMessage(getString(R.string.delete_book_confirmation, book.title))
                     .setPositiveButton(R.string.yes) { _, _ -> deleteBook() }
                     .setNegativeButton(R.string.no) { _, _ -> }
                     .show()
-            },
+            }),
         ))
         return binding.root
     }

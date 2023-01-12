@@ -1,5 +1,6 @@
 package com.anselm.books.ui.home
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
@@ -68,5 +69,15 @@ class BookAdapter (
 
     fun getSelectedBookIds(): List<Long> {
         return selected.map { it.id }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun cancelSelection() {
+        if (selected.size > 0) {
+            selected.clear()
+            selectionListener.onSelectionStop()
+            selectionListener.onSelectionChanged(0)
+            notifyDataSetChanged()
+        }
     }
 }

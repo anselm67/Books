@@ -17,6 +17,7 @@ import com.anselm.books.database.BookDao
 import com.anselm.books.database.Query
 import com.anselm.books.databinding.BottomAddDialogBinding
 import com.anselm.books.hideKeyboard
+import com.anselm.books.ui.widgets.MenuItemHandler
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,18 +38,18 @@ class HomeFragment : ListFragment() {
 
         // Handles the menu items we care about.
         handleMenu(listOf(
-            Pair(R.id.idGotoSearchView) {
+            MenuItemHandler(R.id.idGotoSearchView, {
                 val action = HomeFragmentDirections.toSearchFragment(
                     Query(sortBy = bookViewModel.query.sortBy)
                 )
                 findNavController().navigate(action)
-            },
-            Pair(R.id.idSortByDateAdded) {
+            }),
+            MenuItemHandler(R.id.idSortByDateAdded, {
                 changeSortOrder(BookDao.SortByDateAdded)
-            },
-            Pair(R.id.idSortByTitle) {
+            }),
+            MenuItemHandler(R.id.idSortByTitle, {
                 changeSortOrder(BookDao.SortByTitle)
-            }
+            })
         ))
 
         viewLifecycleOwner.lifecycleScope.launch {

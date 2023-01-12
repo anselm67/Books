@@ -25,6 +25,7 @@ import com.anselm.books.databinding.DetailsMultiLabelLayoutBinding
 import com.anselm.books.databinding.FragmentDetailsBinding
 import com.anselm.books.databinding.RecyclerviewDetailsLabelItemBinding
 import com.anselm.books.ui.widgets.BookFragment
+import com.anselm.books.ui.widgets.MenuItemHandler
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
@@ -54,17 +55,17 @@ class DetailsFragment : BookFragment() {
 
                 // We have to wait for the book to setup the menu.
                 handleMenu(listOf(
-                    Pair(R.id.idEditBook) {
+                    MenuItemHandler(R.id.idEditBook, {
                         val action = DetailsFragmentDirections.toEditFragment(bookId)
                         navController.navigate(action)
-                    },
-                    Pair(R.id.idDeleteBook) {
+                    }),
+                    MenuItemHandler(R.id.idDeleteBook, {
                         val builder = AlertDialog.Builder(requireActivity())
                         builder.setMessage(getString(R.string.delete_book_confirmation, book.title))
                             .setPositiveButton(R.string.yes) { _, _ -> deleteBook(book) }
                             .setNegativeButton(R.string.no) { _, _ -> }
                             .show()
-                    },
+                    }),
                 ))
 
             } else {

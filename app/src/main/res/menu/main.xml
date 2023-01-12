@@ -40,10 +40,18 @@
         app:showAsAction="ifRoom|withText" />
 
     <item
+        android:id="@+id/idCancelView"
+        android:icon="@drawable/ic_baseline_cancel_48"
+        android:iconTint="@color/white"
+        android:title="@string/cancel"
+        app:showAsAction="ifRoom|withText" />
+
+    <item
         android:id="@+id/idSearchView"
         android:icon="@drawable/ic_baseline_search_24"
         android:title="@string/search_title"
         app:showAsAction="collapseActionView"
         app:actionViewClass="android.widget.SearchView" />
+
 
 </menu>

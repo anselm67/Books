@@ -10,25 +10,19 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.MenuProvider
+import androidx.core.view.forEach
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
 
-open class BookFragment: Fragment() {
+data class MenuItemHandler(
+    val menuId: Int,
+    val handler: (() -> Unit)? = null,
+    val prepare: ((MenuItem) -> Unit)? = null
+)
 
-    companion object {
-        // SettingsFragment can't inherit from BookFragment and it needs that list, sorry.
-        val allItemIds = arrayOf(
-            R.id.idSortByDateAdded,
-            R.id.idSortByTitle,
-            R.id.idGotoSearchView,
-            R.id.idEditBook,
-            R.id.idSaveBook,
-            R.id.idSearchView,
-            R.id.idDeleteBook,
-        )
-    }
+open class BookFragment: Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,31 +34,45 @@ open class BookFragment: Fragment() {
         }
     }
 
-    // For subclasses to finish any toolbar work.
-    protected open fun onCreateMenu(menu: Menu) { }
-
-    protected fun handleMenu(items: List<Pair<Int, () -> Unit>>) {
-        requireActivity().addMenuProvider(object: MenuProvider {
+    private var menuProvider: MenuProvider? = null
+    private var listOfHandlers: List<MenuItemHandler> = emptyList()
+    /*
+     * Displays and installs the provided menu items, returns the current settings sp they can be
+     * restored if needed.
+     */
+    protected fun handleMenu(items: List<MenuItemHandler>): List<MenuItemHandler> {
+        val activity = requireActivity()
+        val returnValue = listOfHandlers
+        if (menuProvider != null) {
+            activity.removeMenuProvider(menuProvider!!)
+            menuProvider = null
+        }
+        listOfHandlers = items
+        menuProvider = object: MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 // Everything is invisible ...
-                allItemIds.forEach { menu.findItem(it)?.isVisible = false}
+                menu.forEach { it.isVisible = false }
                 // Unless requested by the fragment.
-                items.forEach {
-                    menu.findItem(it.first)?.isVisible = true
+                items.forEach { handler ->
+                    menu.findItem(handler.menuId)?.let {
+                        handler.prepare?.invoke(it)
+                        it.isVisible = true
+                    }
                 }
-                onCreateMenu(menu)
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                val found = items.firstOrNull { menuItem.itemId == it.first }
+                val found = items.firstOrNull { menuItem.itemId == it.menuId }
                 return if (found != null) {
-                    found.second()
+                    found.handler?.invoke()
                     true
                 } else {
                     false
                 }
             }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+        }
+        activity.addMenuProvider(menuProvider!!, viewLifecycleOwner, Lifecycle.State.RESUMED)
+        return returnValue
     }
 
     private lateinit var cameraPermissionLauncher: ActivityResultLauncher<String>
@@ -78,5 +86,10 @@ open class BookFragment: Fragment() {
         }
         cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         return false
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        menuProvider = null
     }
 }
