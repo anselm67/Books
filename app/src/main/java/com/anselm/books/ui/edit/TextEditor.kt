@@ -110,7 +110,7 @@ open class TextEditor(
     }
 
     override fun extractValue(from: Book) {
-        val thisValue = editor.idEditText.text.trim()
+        val thisValue = editor.idEditText.text.trim().toString()
         val fromValue = getter(from)
         if (fromValue.isNotEmpty() && thisValue != fromValue) {
             app.postOnUiThread {
