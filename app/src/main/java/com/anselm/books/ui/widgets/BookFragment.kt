@@ -17,9 +17,9 @@ data class MenuItemHandler(
 )
 
 open class BookFragment: Fragment() {
-
     private var menuProvider: MenuProvider? = null
     private var listOfHandlers: Array<out MenuItemHandler> = emptyArray()
+
     /*
      * Displays and installs the provided menu items, returns the current settings sp they can be
      * restored if needed.

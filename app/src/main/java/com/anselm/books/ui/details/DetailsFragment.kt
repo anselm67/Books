@@ -55,10 +55,6 @@ class DetailsFragment : BookFragment() {
 
                 // We have to wait for the book to setup the menu.
                 handleMenu(
-                    MenuItemHandler(R.id.idEditBook, {
-                        val action = DetailsFragmentDirections.toEditFragment(bookId)
-                        navController.navigate(action)
-                    }),
                     MenuItemHandler(R.id.idDeleteBook, {
                         val builder = AlertDialog.Builder(requireActivity())
                         builder.setMessage(getString(R.string.delete_book_confirmation, book.title))
@@ -71,6 +67,11 @@ class DetailsFragment : BookFragment() {
             } else {
                 navController.popBackStack()
             }
+        }
+
+        binding.fabEditButton.setOnClickListener {
+            val action = DetailsFragmentDirections.toEditFragment(bookId)
+            navController.navigate(action)
         }
 
         return binding.root

@@ -86,9 +86,6 @@ class EditFragment: BookFragment() {
         }
 
         handleMenu(
-            MenuItemHandler(R.id.idSaveBook, {
-                checkChanges()
-            }),
             MenuItemHandler(R.id.idDeleteBook, {
                 AlertDialog.Builder(requireActivity())
                     .setMessage(getString(R.string.delete_book_confirmation, book.title))
@@ -98,6 +95,9 @@ class EditFragment: BookFragment() {
             }),
         )
 
+        binding.fabSaveButton.setOnClickListener {
+            checkChanges()
+        }
         return binding.root
     }
 
