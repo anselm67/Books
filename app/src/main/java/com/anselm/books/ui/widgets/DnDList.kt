@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.database.Label
 import com.anselm.books.databinding.RecyclerviewEditLabelItemBinding
 
@@ -61,13 +62,29 @@ private class LabelArrayAdapter(
         dataSource[to] = fromLocation
         differ.submitList(dataSource)
         onChange?.invoke(dataSource)
+        app.postOnUiThread { notifyItemMoved(from, to) }
+
     }
 
     fun delete(position: Int) {
         dataSource.removeAt(position)
         differ.submitList(dataSource)
-        notifyItemRemoved(position)
+        app.postOnUiThread { notifyItemRemoved(position) }
         onChange?.invoke(dataSource)
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun replaceData(newLabels: List<Label>) {
+        dataSource.clear()
+        dataSource.addAll(newLabels)
+        differ.submitList(dataSource)
+        app.postOnUiThread { notifyDataSetChanged() }
+    }
+
+    fun add(label: Label) {
+        dataSource.add(label)
+        differ.submitList(dataSource)
+        app.postOnUiThread { notifyItemInserted(dataSource.size - 1) }
     }
 }
 
@@ -90,7 +107,6 @@ class DnDList(
                 val from = viewHolder.bindingAdapterPosition
                 val to = target.bindingAdapterPosition
                 adapter.moveItem(from, to)
-                adapter.notifyItemMoved(from, to)
                 return true
             }
 
@@ -123,10 +139,9 @@ class DnDList(
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun setLabels(labels: MutableList<Label>) {
+    fun setLabels(labels: List<Label>) {
         val adapter = (list.adapter as LabelArrayAdapter)
-        adapter.dataSource = labels
-        adapter.notifyDataSetChanged()
+        adapter.replaceData(labels)
     }
 
     fun getLabels(): List<Label> {
@@ -137,21 +152,10 @@ class DnDList(
         val labels = (list.adapter as LabelArrayAdapter).dataSource
         return if ( ! labels.contains(label) ) {
             val adapter = (list.adapter as LabelArrayAdapter)
-            labels.add(label)
-            adapter.notifyItemInserted(labels.size - 1)
+            adapter.add(label)
             true
         } else {
             false
-        }
-    }
-
-    fun setLabel(label: Label): Boolean {
-        val labels = (list.adapter as LabelArrayAdapter).dataSource
-        return if (labels == listOf(label)) {
-            false
-        } else {
-            setLabels(mutableListOf(label))
-            true
         }
     }
 }

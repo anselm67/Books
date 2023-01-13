@@ -10,18 +10,22 @@ import android.view.ViewGroup
 import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.anselm.books.database.Book
 import com.anselm.books.databinding.EditFieldLayoutBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.KProperty1
 
 open class TextEditor(
     fragment: Fragment,
     inflater: LayoutInflater,
+    book: Book,
     val labelId: Int,
-    val getter: () -> String,
-    val setter: (String) -> Unit,
+    val getter: KProperty1.Getter<Book, String>,
+    val setter: KMutableProperty1.Setter<Book, String>,
     val checker: ((String) -> Boolean)? = null
-): Editor(fragment, inflater) {
+): Editor(fragment, inflater, book) {
     private var _binding: EditFieldLayoutBinding? = null
     protected val editor get() = _binding!!
 
@@ -30,7 +34,7 @@ open class TextEditor(
         _binding = EditFieldLayoutBinding.inflate(inflater, container, false)
         editor.idEditLabel.text = fragment.getText(labelId)
         editor.idEditText.let {
-            it.setText(getter())
+            it.setText(getter(book))
             it.addTextChangedListener(object: TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { }
@@ -39,7 +43,7 @@ open class TextEditor(
                     val value = s.toString().trim()
                     if (checker != null && ! checker.invoke(value)) {
                         setInvalid(it, editor.idUndoEdit)
-                    } else if (value != getter() ) {
+                    } else if (value != getter(book) ) {
                         setChanged(it, editor.idUndoEdit)
                     } else {
                         setUnchanged(it, editor.idUndoEdit)
@@ -50,12 +54,12 @@ open class TextEditor(
             setupScrollEnableListener(it)
         }
         editor.idUndoEdit.setOnClickListener {
-            editor.idEditText.setText(getter())
+            editor.idEditText.setText(getter(book))
         }
         // Marks the field invalid immediately. This is for books that are being
         // manually inserted which have empty mandatory fields such as title.
         fragment.lifecycleScope.launch(Dispatchers.Main) {
-            if (checker != null && !checker.invoke(getter())) {
+            if (checker != null && !checker.invoke(getter(book))) {
                 setInvalid(editor.idEditText, editor.idUndoEdit)
             }
         }
@@ -88,11 +92,11 @@ open class TextEditor(
 
     override fun isChanged(): Boolean {
         val value = editor.idEditText.text.toString().trim()
-        return value != getter()
+        return value != getter(book)
     }
 
     override fun saveChange() {
-        setter(editor.idEditText.text.toString().trim())
+        setter(book, editor.idEditText.text.toString().trim())
     }
 
     override fun isValid(): Boolean {
@@ -101,6 +105,15 @@ open class TextEditor(
             checker.invoke(value)
         } else {
             true
+        }
+    }
+
+    override fun extractValue(from: Book) {
+        val thisValue = editor.idEditText.text.trim()
+        val fromValue = getter(from)
+        if (fromValue.isNotEmpty() && thisValue != fromValue) {
+            editor.idEditText.setText(fromValue)
+            setChanged(editor.idEditText, editor.idUndoEdit)
         }
     }
 }

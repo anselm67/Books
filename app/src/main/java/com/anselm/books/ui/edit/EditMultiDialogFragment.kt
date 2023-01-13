@@ -15,6 +15,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
+import com.anselm.books.database.Book
 import com.anselm.books.database.Label
 import com.anselm.books.databinding.BottomSheetMultiEditDialogBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -69,18 +70,18 @@ class EditMultiDialogFragment: BottomSheetDialogFragment() {
         app.loading(true)
         app.applicationScope.launch {
             bookIds.map { bookId ->
-                val book = app.repository.load(bookId, true) ?: return@launch
-                if (genres.isNotEmpty())
-                    book.genres = genres
-                if (authors.isNotEmpty())
-                    book.authors = authors
-                if (publisher != null)
-                    book.publisher = publisher
-                if (language != null)
-                    book.language = language
-                if (location != null)
-                    book.location = location
-                app.repository.save(book, false)
+                val target = app.repository.load(bookId, true) ?: return@launch
+                if (book.genres.isNotEmpty())
+                    target.genres = book.genres
+                if (book.authors.isNotEmpty())
+                    target.authors = book.authors
+                if (book.publisher != null)
+                    target.publisher = book.publisher
+                if (book.language != null)
+                    target.language = book.language
+                if (book.location != null)
+                    target.location = book.location
+                app.repository.save(target, false)
             }
             app.loading(false)
             app.postOnUiThread { findNavController().popBackStack() }
@@ -101,29 +102,26 @@ class EditMultiDialogFragment: BottomSheetDialogFragment() {
     }
 
 
-    var authors: List<Label> = mutableListOf()
-    var genres: List<Label> = mutableListOf()
-    var language: Label? = null
-    var publisher: Label? =null
-    var location: Label? =null
+    // This is just a holder for the values we want to collect.
+    private val book = Book()
 
     private fun bind(inflater: LayoutInflater) {
         editors.addAll(arrayListOf(
-            MultiLabelEditor(this, inflater,
+            MultiLabelEditor(this, inflater, book,
                 Label.Type.Authors, R.string.authorLabel,
-                this::authors.getter, this::authors.setter),
-            MultiLabelEditor(this, inflater,
+                Book::authors.getter, Book::authors.setter),
+            MultiLabelEditor(this, inflater, book,
                 Label.Type.Genres, R.string.genreLabel,
-                this::genres.getter, this::genres.setter),
-            SingleLabelEditor(this, inflater,
+                Book::genres.getter, Book::genres.setter),
+            SingleLabelEditor(this, inflater, book,
                 Label.Type.Publisher, R.string.publisherLabel,
-                this::publisher.getter, this::publisher.setter),
-            SingleLabelEditor(this, inflater,
+                Book::publisher.getter, Book::publisher.setter),
+            SingleLabelEditor(this, inflater, book,
                 Label.Type.Language, R.string.languageLabel,
-                this::language.getter, this::language.setter),
-            SingleLabelEditor(this, inflater,
+                Book::language.getter, Book::language.setter),
+            SingleLabelEditor(this, inflater, book,
                 Label.Type.Location, R.string.physicalLocationLabel,
-                this::location.getter, this::location.setter),
+                Book::location.getter, Book::location.setter),
         ))
         editors.forEach {
             it.setup(binding.idEditorContainer)?.let {

@@ -91,7 +91,7 @@
     <string name="scan_stat_message">%1$d lookups: %2$d matches (%3$d didn\'t match and %4$d failed)</string>
     <string name="scan_books_added">Added %1$d books to your library.</string>
     <string name="done">Done</string>
-    <string name="preference_display_book_id">Display last modified date?</string>
+    <string name="preference_display_book_id">Display SQL book id?</string>
     <string name="preference_display_last_modified">Display last modified date?</string>
     <string name="preference_category_lookup_service">Lookup service</string>
     <string name="preference_category_display">Display</string>
@@ -125,5 +125,6 @@
     <string name="date_added_embedded">Added on %1$s.</string>
     <string name="preference_enable_shortcut_to_edit">Enable shortcut to edit in lists?</string>
     <string name="discard_changes_prompt">Discard changes?</string>
+    <string name="edit_no_book_error">An error occurred, no book to edit.</string>
 
 </resources>

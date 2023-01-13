@@ -3,6 +3,7 @@ package com.anselm.books.ui.edit
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
@@ -20,6 +21,8 @@ import com.anselm.books.database.Book
 import com.anselm.books.databinding.EditCoverImageLayoutBinding
 import com.anselm.books.ui.widgets.BookFragment
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import java.io.File
 import java.io.FileInputStream
 
@@ -31,8 +34,8 @@ import java.io.FileInputStream
 class CoverImageEditor(
     fragment: BookFragment,
     inflater: LayoutInflater,
-    private val getter: () -> Uri?,
-) : Editor(fragment, inflater) {
+    book: Book,
+) : Editor(fragment, inflater, book) {
     private var _binding: EditCoverImageLayoutBinding? = null
     private val editor get() = _binding!!
     private lateinit var coverCameraLauncher: ActivityResultLauncher<Uri>
@@ -40,6 +43,7 @@ class CoverImageEditor(
 
     private var cameraImageFile: File? = null
     private var editCoverBitmap: Bitmap? = null
+    private var editCoverImgUrl: String? = null
 
     // http://sylvana.net/jpegcrop/exif_orientation.html
     private val exifAngles = mapOf<Int, Float>(
@@ -74,10 +78,11 @@ class CoverImageEditor(
         editor.idUndoEdit.setOnClickListener {
             cameraImageFile = null
             editCoverBitmap = null
-            loadCoverImage(getter())
+            editCoverImgUrl = null
+            loadCoverImage(app.imageRepository.getCoverUri(book))
             setUnchanged(editor.idCoverImage, editor.idUndoEdit)
         }
-        loadCoverImage(getter())
+        loadCoverImage(app.imageRepository.getCoverUri(book))
         return editor.root
     }
 
@@ -87,6 +92,24 @@ class CoverImageEditor(
         check(editCoverBitmap != null)
         // We do nothing, that's intended: we'll save our changes right before
         // the book itself is saved.
+    }
+
+    override fun extractValue(from: Book) {
+        if (from.imgUrl.isEmpty() || book.imgUrl == from.imgUrl) {
+            return
+        }
+        // We're going to suggest this image.
+        Glide.with(app.applicationContext)
+            .asBitmap()
+            .load(from.imgUrl)
+            .into(object: CustomTarget<Bitmap>() {
+                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                    editCoverBitmap = resource
+                    editCoverImgUrl = from.imgUrl
+                    loadCoverImage(resource)
+                }
+                override fun onLoadCleared(placeholder: Drawable?) { }
+            })
     }
 
     private fun setupCoverCameraLauncher() {
@@ -110,7 +133,6 @@ class CoverImageEditor(
                     true)
                 editCoverBitmap?.let { bitmap ->
                     loadCoverImage(bitmap)
-                    setChanged(editor.idCoverImage, editor.idUndoEdit)
                 }
             }
         }
@@ -141,14 +163,12 @@ class CoverImageEditor(
             }
             app.contentResolver.openFileDescriptor(uri, "r").use { it?.let {
                     FileInputStream(it.fileDescriptor).use { inputStream ->
-                        // FIXME Resize bitmap
                         editCoverBitmap = BitmapFactory.decodeStream(inputStream)
                     }
                 }
             }
             editCoverBitmap?.let {
                 loadCoverImage(it)
-                setChanged(editor.idCoverImage, editor.idUndoEdit)
             }
         }
     }
@@ -162,13 +182,17 @@ class CoverImageEditor(
     suspend fun saveCoverImage(book: Book) {
         if (editCoverBitmap != null) {
             book.imageFilename = app.imageRepository.convertAndSave(book, editCoverBitmap!!)
+            book.imgUrl = editCoverImgUrl ?: ""
         }
     }
 
     private fun loadCoverImage(bitmap: Bitmap) {
-        Glide.with(app.applicationContext)
-            .load(bitmap).centerCrop()
-            .into(editor.idCoverImage)
+        app.postOnUiThread {
+            setChanged(editor.idCoverImage, editor.idUndoEdit)
+            Glide.with(app.applicationContext)
+                .load(bitmap).centerCrop()
+                .into(editor.idCoverImage)
+        }
     }
 
     private fun loadCoverImage(uri: Uri?) {
