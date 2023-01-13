@@ -41,7 +41,6 @@ class EditFragment: BookFragment() {
             this,
             object: OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    Log.d(TAG, "handleOnBackPressed !!!")
                     if ( this@EditFragment.isChanged() ) {
                         AlertDialog.Builder(requireActivity())
                             .setMessage(getString(R.string.discard_changes_prompt))
