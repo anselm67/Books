@@ -1,12 +1,9 @@
 package com.anselm.books.ui.edit
 
 import android.view.View
-import android.widget.ImageButton
 
+// FIXME Get rid of it: ue parent.parent for scroll and move perm to main activity.
 abstract class EditorStatusListener {
-    abstract fun setChanged(container: View, undoButton: ImageButton)
-    abstract fun setUnchanged(container: View, undoButton: ImageButton)
-    abstract fun setInvalid(container: View, undoButton: ImageButton)
     abstract fun scrollTo(view: View)
     abstract fun checkCameraPermission(): Boolean
 }

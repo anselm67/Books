@@ -91,9 +91,9 @@
 
         <ImageView
             android:id="@+id/idEditBook"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="3dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="10dp"
             android:src="@drawable/ic_baseline_mode_edit_24"
             app:tint="#6200EE"
             android:contentDescription="@string/book_edit"

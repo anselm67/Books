@@ -167,6 +167,7 @@ class MultiLabelEditor(
     private lateinit var dndlist: DnDList
 
     override fun setup(container: ViewGroup?): View {
+        super.setup(container)
         _binding = EditMultiLabelLayoutBinding.inflate(inflater, container, false)
         editor.idEditLabel.text = fragment.getText(labelId)
         editor.labels.layoutManager = LinearLayoutManager(editor.labels.context)
@@ -177,9 +178,9 @@ class MultiLabelEditor(
             getter().toMutableList(),
             onChange = { newLabels ->
                 if (newLabels != getter()) {
-                    editorStatusListener?.setChanged(editor.root, editor.idUndoEdit)
+                    setChanged(editor.root, editor.idUndoEdit)
                 } else {
-                    editorStatusListener?.setUnchanged(editor.root, editor.idUndoEdit)
+                    setUnchanged(editor.root, editor.idUndoEdit)
                 }
             }
         )
@@ -192,7 +193,7 @@ class MultiLabelEditor(
         )
         // Sets up the undo button.
         editor.idUndoEdit.setOnClickListener {
-            editorStatusListener?.setUnchanged(editor.root, editor.idUndoEdit)
+            setUnchanged(editor.root, editor.idUndoEdit)
             dndlist.setLabels(getter().toMutableList())
         }
         return editor.root
@@ -208,7 +209,7 @@ class MultiLabelEditor(
 
     private fun addLabel(label: Label) {
         if ( dndlist.addLabel(label) ) {
-            editorStatusListener?.setChanged(editor.root, editor.idUndoEdit)
+            setChanged(editor.root, editor.idUndoEdit)
         }
         editor.autoComplete.setText("")
         app.hideKeyboard(editor.root)
@@ -230,6 +231,7 @@ class SingleLabelEditor(
     private val origText = if (getter() == null) "" else getter()!!.name
 
     override fun setup(container: ViewGroup?): View {
+        super.setup(container)
         _binding = EditSingleLabelLayoutBinding.inflate(inflater, container, false)
         editor.idEditLabel.text = fragment.getString(labelId)
 
@@ -238,12 +240,12 @@ class SingleLabelEditor(
             editor.autoComplete, type, getter(),
             handleLabel = { setLabel(it) },
             onChange = {
-                editorStatusListener?.setChanged(editor.root, editor.idUndoEdit)
+                setChanged(editor.root, editor.idUndoEdit)
             }
         )
         // Sets up the undo button.
         editor.idUndoEdit.setOnClickListener {
-            editorStatusListener?.setUnchanged(editor.root, editor.idUndoEdit)
+            setUnchanged(editor.root, editor.idUndoEdit)
             editor.autoComplete.setText(origText)
         }
         return editor.root
@@ -261,7 +263,7 @@ class SingleLabelEditor(
     private fun setLabel(label: Label) {
         if (label != getter()) {
             editLabel = label
-            editorStatusListener?.setChanged(editor.root, editor.idUndoEdit)
+            setChanged(editor.root, editor.idUndoEdit)
         }
         app.hideKeyboard(editor.root)
     }

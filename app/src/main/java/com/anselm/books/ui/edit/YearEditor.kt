@@ -27,12 +27,13 @@ class YearEditor(
     private fun setEditorValue(value: Int) {
         if (value in BookFields.MIN_PUBLISHED_YEAR..BookFields.MAX_PUBLISHED_YEAR) {
             editor.yearPublished100Picker.value = value / 100
-            editor.yearPublished10Picker.value = (value / 100) % 10
+            editor.yearPublished10Picker.value = (value / 10) % 10
             editor.yearPublished1Picker.value = value % 10
         }
     }
 
     override fun setup(container: ViewGroup?): View {
+        super.setup(container)
         _binding = EditYearLayoutBinding.inflate(inflater, container, false)
         editor.yearPublished100Picker.minValue = BookFields.MIN_PUBLISHED_YEAR / 100
         editor.yearPublished100Picker.maxValue = BookFields.MAX_PUBLISHED_YEAR / 100
@@ -44,9 +45,9 @@ class YearEditor(
         val onValueChanged = NumberPicker.OnValueChangeListener { _, _, _ ->
             val newValue = getEditorValue()
             if (newValue != getter().toIntOrNull()) {
-                editorStatusListener?.setChanged(editor.yearPublishedView, editor.idUndoEdit)
+                setChanged(editor.yearPublishedView, editor.idUndoEdit)
             } else {
-                editorStatusListener?.setUnchanged(editor.yearPublishedView, editor.idUndoEdit)
+                setUnchanged(editor.yearPublishedView, editor.idUndoEdit)
             }
         }
         editor.yearPublished100Picker.setOnValueChangedListener(onValueChanged)
@@ -54,7 +55,7 @@ class YearEditor(
         editor.yearPublished1Picker.setOnValueChangedListener(onValueChanged)
         editor.idUndoEdit.setOnClickListener {
             setEditorValue(getter().toIntOrNull() ?: 0)
-            editorStatusListener?.setUnchanged(editor.yearPublishedView, editor.idUndoEdit)
+            setUnchanged(editor.yearPublishedView, editor.idUndoEdit)
         }
 
         return editor.root

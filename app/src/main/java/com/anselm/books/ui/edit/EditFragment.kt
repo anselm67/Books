@@ -1,17 +1,13 @@
 package com.anselm.books.ui.edit
 
 import android.app.AlertDialog
-import android.graphics.drawable.Drawable
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.GONE
-import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.widget.ImageButton
-import androidx.core.content.ContextCompat
-import androidx.core.content.res.ResourcesCompat
+import androidx.activity.OnBackPressedCallback
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -33,18 +29,34 @@ class EditFragment: BookFragment() {
     private lateinit var book: Book
     val binding get() = _binding!!
 
-    private var validBorder: Drawable? = null
-    private var invalidBorder: Drawable? = null
-    private var changedBorder: Drawable? = null
-
     private var editors: MutableList<Editor> = emptyList<Editor>().toMutableList()
     private val coverImageEditor
         get() = (editors[0] as CoverImageEditor)
 
     private val editorStatusListener = StatusListener(this)
 
-    private fun getBorderDrawable(resourceId: Int): Drawable {
-        return ResourcesCompat.getDrawable(resources, resourceId, null)!!
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        requireActivity().onBackPressedDispatcher.addCallback(
+            this,
+            object: OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    Log.d(TAG, "handleOnBackPressed !!!")
+                    if ( this@EditFragment.isChanged() ) {
+                        AlertDialog.Builder(requireActivity())
+                            .setMessage(getString(R.string.discard_changes_prompt))
+                            .setPositiveButton(R.string.yes) { _, _ ->
+                                isEnabled = false
+                                requireActivity().onBackPressedDispatcher.onBackPressed()
+                            }
+                            .setNegativeButton(R.string.no) { _, _ -> }
+                            .show()
+                    } else {
+                        isEnabled = false
+                        requireActivity().onBackPressedDispatcher.onBackPressed()
+                    }
+                }
+            })
     }
 
     override fun onCreateView(
@@ -77,23 +89,19 @@ class EditFragment: BookFragment() {
             Log.d(TAG, "No books to edit.")
         }
 
-        // Caches the borders corresponding to the various states of individual field editors.
-        validBorder = getBorderDrawable(R.drawable.textview_border)
-        invalidBorder = getBorderDrawable(R.drawable.textview_border_invalid)
-        changedBorder = getBorderDrawable(R.drawable.textview_border_changed)
-
         handleMenu(
             MenuItemHandler(R.id.idSaveBook, {
                 checkChanges()
             }),
             MenuItemHandler(R.id.idDeleteBook, {
-                val builder = AlertDialog.Builder(requireActivity())
-                builder.setMessage(getString(R.string.delete_book_confirmation, book.title))
+                AlertDialog.Builder(requireActivity())
+                    .setMessage(getString(R.string.delete_book_confirmation, book.title))
                     .setPositiveButton(R.string.yes) { _, _ -> deleteBook() }
                     .setNegativeButton(R.string.no) { _, _ -> }
                     .show()
             }),
         )
+
         return binding.root
     }
 
@@ -111,30 +119,6 @@ class EditFragment: BookFragment() {
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
-    }
-
-    fun setChanged(editor: View, undoButton: ImageButton) {
-        editor.background = changedBorder
-        undoButton.visibility = VISIBLE
-        undoButton.setColorFilter(
-            ContextCompat.getColor(requireContext(), R.color.editorValueChanged)
-        )
-    }
-
-    fun setInvalid(editor: View, undoButton: ImageButton) {
-        editor.background = invalidBorder
-        undoButton.visibility = VISIBLE
-        undoButton.setColorFilter(
-            ContextCompat.getColor(requireContext(), R.color.editorValueInvalid)
-        )
-    }
-
-    fun setUnchanged(editor: View, undoButton: ImageButton) {
-        editor.background = validBorder
-        undoButton.visibility = GONE
-        undoButton.setColorFilter(
-            ContextCompat.getColor(requireContext(), R.color.editorValueUnchanged)
-        )
     }
 
     fun scrollTo(view: View) {
@@ -190,7 +174,11 @@ class EditFragment: BookFragment() {
         }
     }
 
-    private fun saveEditorChanges(): Boolean {
+    private fun isChanged(): Boolean {
+        return editors.firstOrNull { it.isChanged() } != null
+    }
+
+    private fun saveChanges(): Boolean {
         var changed = false
         editors.forEach {
             if (it.isChanged()) {
@@ -220,7 +208,7 @@ class EditFragment: BookFragment() {
             return
         }
         // Inserts or saves only when valid.
-        if (saveEditorChanges() || book.id <= 0) {
+        if (saveChanges() || book.id <= 0) {
             checkForDuplicates()
         } else {
             // Nothing to save, head back.
@@ -295,15 +283,6 @@ class EditFragment: BookFragment() {
 }
 
 class StatusListener(private val delegate: EditFragment): EditorStatusListener() {
-    override fun setChanged(container: View, undoButton: ImageButton) {
-        delegate.setChanged(container, undoButton)
-    }
-    override fun setUnchanged(container: View, undoButton: ImageButton) {
-        delegate.setUnchanged(container, undoButton)
-    }
-    override fun setInvalid(container: View, undoButton: ImageButton) =
-        delegate.setInvalid(container, undoButton)
-
     override fun scrollTo(view: View) {
         delegate.scrollTo(view)
     }

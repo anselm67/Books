@@ -63,6 +63,7 @@ class CoverImageEditor(
     }
 
     override fun setup(container: ViewGroup?): View {
+        super.setup(container)
         _binding = EditCoverImageLayoutBinding.inflate(inflater, container, false)
         editor.idCameraPickerButton.setOnClickListener {
             launchCoverCamera()
@@ -74,7 +75,7 @@ class CoverImageEditor(
             cameraImageFile = null
             editCoverBitmap = null
             loadCoverImage(getter())
-            editorStatusListener?.setUnchanged(editor.idCoverImage, editor.idUndoEdit)
+            setUnchanged(editor.idCoverImage, editor.idUndoEdit)
         }
         loadCoverImage(getter())
         return editor.root
@@ -109,7 +110,7 @@ class CoverImageEditor(
                     true)
                 editCoverBitmap?.let { bitmap ->
                     loadCoverImage(bitmap)
-                    editorStatusListener?.setChanged(editor.idCoverImage, editor.idUndoEdit)
+                    setChanged(editor.idCoverImage, editor.idUndoEdit)
                 }
             }
         }
@@ -147,7 +148,7 @@ class CoverImageEditor(
             }
             editCoverBitmap?.let {
                 loadCoverImage(it)
-                editorStatusListener?.setChanged(editor.idCoverImage, editor.idUndoEdit)
+                setChanged(editor.idCoverImage, editor.idUndoEdit)
             }
         }
     }

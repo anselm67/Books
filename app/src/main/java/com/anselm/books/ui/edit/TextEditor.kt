@@ -27,6 +27,7 @@ open class TextEditor(
     protected val editor get() = _binding!!
 
     override fun setup(container: ViewGroup?): View {
+        super.setup(container)
         _binding = EditFieldLayoutBinding.inflate(inflater, container, false)
         editor.idEditLabel.text = fragment.getText(labelId)
         editor.idEditText.let {
@@ -38,11 +39,11 @@ open class TextEditor(
                 override fun afterTextChanged(s: Editable?) {
                     val value = s.toString().trim()
                     if (checker != null && ! checker.invoke(value)) {
-                        editorStatusListener?.setInvalid(it, editor.idUndoEdit)
+                        setInvalid(it, editor.idUndoEdit)
                     } else if (value != getter() ) {
-                        editorStatusListener?.setChanged(it, editor.idUndoEdit)
+                        setChanged(it, editor.idUndoEdit)
                     } else {
-                        editorStatusListener?.setUnchanged(it, editor.idUndoEdit)
+                        setUnchanged(it, editor.idUndoEdit)
                     }
                 }
             })
@@ -56,7 +57,7 @@ open class TextEditor(
         // manually inserted which have empty mandatory fields such as title.
         fragment.lifecycleScope.launch(Dispatchers.Main) {
             if (checker != null && !checker.invoke(getter())) {
-                editorStatusListener?.setInvalid(editor.idEditText, editor.idUndoEdit)
+                setInvalid(editor.idEditText, editor.idUndoEdit)
             }
         }
         return editor.root

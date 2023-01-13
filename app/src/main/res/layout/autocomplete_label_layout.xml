@@ -5,20 +5,18 @@
     android:layout_height="match_parent"
     android:orientation="horizontal"
     android:layoutDirection="ltr"
-    android:padding="5dp">
+    android:paddingStart="5dp"
+    android:paddingEnd="5dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/ic_outline_label_24"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
-        android:backgroundTint="#555555" />
 
     <TextView
         android:id="@+id/autoCompleteText"
         android:textSize="18sp"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:drawableStart="@drawable/ic_outline_label_24"
+        android:drawablePadding="10dp"/>
 
 </LinearLayout>
