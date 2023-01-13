@@ -14,6 +14,7 @@ import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.BuildConfig
+import com.anselm.books.MainActivity
 import com.anselm.books.R
 import com.anselm.books.database.Book
 import com.anselm.books.databinding.EditCoverImageLayoutBinding
@@ -30,9 +31,8 @@ import java.io.FileInputStream
 class CoverImageEditor(
     fragment: BookFragment,
     inflater: LayoutInflater,
-    editorStatusListener: EditorStatusListener?,
     private val getter: () -> Uri?,
-) : Editor(fragment, inflater, editorStatusListener) {
+) : Editor(fragment, inflater) {
     private var _binding: EditCoverImageLayoutBinding? = null
     private val editor get() = _binding!!
     private lateinit var coverCameraLauncher: ActivityResultLauncher<Uri>
@@ -117,7 +117,7 @@ class CoverImageEditor(
     }
 
     private fun launchCoverCamera() {
-        if (editorStatusListener?.checkCameraPermission() != true) {
+        if ( ! (fragment.requireActivity() as MainActivity).checkCameraPermission()) {
             return
         }
         if (cameraImageFile == null) {

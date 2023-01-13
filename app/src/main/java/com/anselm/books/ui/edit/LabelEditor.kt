@@ -12,7 +12,9 @@ import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Filter
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -92,7 +94,6 @@ private class LabelArrayAdapter(
 
 private class LabelAutoComplete(
     val fragment: Fragment,
-    val editorStatusListener: EditorStatusListener?,
     val autoComplete: AutoCompleteTextView,
     val type: Label.Type,
     val initialValue: Label? = null,
@@ -133,7 +134,11 @@ private class LabelAutoComplete(
             }
             autoComplete.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
-                    editorStatusListener?.scrollTo(autoComplete.parent as View)
+                    val view = (autoComplete.parent as View)
+                    val container = (view.parent as LinearLayout).parent
+                    if (container != null && container is NestedScrollView) {
+                        container.smoothScrollTo(0, Integer.max(0, view.top - 25))
+                    }
                 }
             }
         }
@@ -156,12 +161,11 @@ private class LabelAutoComplete(
 class MultiLabelEditor(
     fragment: Fragment,
     inflater: LayoutInflater,
-    editorStatusListener: EditorStatusListener?,
     val type: Label.Type,
     val labelId: Int,
     val getter: () -> List<Label>,
     val setter: (List<Label>) -> Unit
-) : Editor (fragment, inflater, editorStatusListener) {
+) : Editor (fragment, inflater) {
     private var _binding: EditMultiLabelLayoutBinding? = null
     private val editor get() = _binding!!
     private lateinit var dndlist: DnDList
@@ -187,7 +191,7 @@ class MultiLabelEditor(
 
         // Sets up the auto-complete for entering new labels.
         LabelAutoComplete(
-            fragment, editorStatusListener,
+            fragment,
             editor.autoComplete, type,
             handleLabel = { addLabel(it) }
         )
@@ -219,12 +223,11 @@ class MultiLabelEditor(
 class SingleLabelEditor(
     fragment: Fragment,
     inflater: LayoutInflater,
-    editorStatusListener: EditorStatusListener?,
     val type: Label.Type,
     val labelId: Int,
     val getter: () -> Label?,
     val setter: (Label) -> Unit
-): Editor (fragment, inflater, editorStatusListener) {
+): Editor (fragment, inflater) {
     private var _binding: EditSingleLabelLayoutBinding? = null
     private val editor get() = _binding!!
     private var editLabel: Label? = null
@@ -236,7 +239,8 @@ class SingleLabelEditor(
         editor.idEditLabel.text = fragment.getString(labelId)
 
         // Sets up the auto-complete for entering new labels.
-        LabelAutoComplete(fragment, editorStatusListener,
+        LabelAutoComplete(
+            fragment,
             editor.autoComplete, type, getter(),
             handleLabel = { setLabel(it) },
             onChange = {

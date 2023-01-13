@@ -1,7 +1,11 @@
 package com.anselm.books
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Menu
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
@@ -11,12 +15,14 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.anselm.books.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private val topLevelDestinationIds = setOf(R.id.nav_home)
+    private lateinit var cameraPermissionLauncher: ActivityResultLauncher<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +40,14 @@ class MainActivity : AppCompatActivity() {
         appBarConfiguration = AppBarConfiguration(topLevelDestinationIds, drawerLayout)
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        // Sets up the camera permission launcher just in case.
+        cameraPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()) {
+            if ( ! it ) {
+                BooksApplication.app.toast(R.string.request_camera_permission)
+            }
+        }
 
         BooksApplication.app.enableProgressBar(findViewById(R.id.progress_bar))
         BooksApplication.app.enableTitle { title: String ->
@@ -61,4 +75,16 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         BooksApplication.app.disableProgressBar()
     }
+
+    fun checkCameraPermission(): Boolean {
+        if (ContextCompat.checkSelfPermission(
+                applicationContext,
+                Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+        ) {
+            return true
+        }
+        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        return false
+    }
+
 }

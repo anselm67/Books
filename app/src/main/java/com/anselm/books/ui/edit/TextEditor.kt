@@ -17,12 +17,11 @@ import kotlinx.coroutines.launch
 open class TextEditor(
     fragment: Fragment,
     inflater: LayoutInflater,
-    editorStatusListener: EditorStatusListener,
     val labelId: Int,
     val getter: () -> String,
     val setter: (String) -> Unit,
     val checker: ((String) -> Boolean)? = null
-): Editor(fragment, inflater, editorStatusListener) {
+): Editor(fragment, inflater) {
     private var _binding: EditFieldLayoutBinding? = null
     protected val editor get() = _binding!!
 

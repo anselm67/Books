@@ -14,7 +14,6 @@ import com.anselm.books.R
 abstract class Editor(
     open val fragment: Fragment,
     open val inflater: LayoutInflater,
-    open val editorStatusListener: EditorStatusListener? = null,
 ) {
     private val context by lazy { fragment.requireContext() }
     private var validBorder: Drawable? = null

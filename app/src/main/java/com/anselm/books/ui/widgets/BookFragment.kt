@@ -1,19 +1,13 @@
 package com.anselm.books.ui.widgets
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.core.view.MenuProvider
 import androidx.core.view.forEach
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
-import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.MainActivity
 import com.anselm.books.R
 
 data class MenuItemHandler(
@@ -23,16 +17,6 @@ data class MenuItemHandler(
 )
 
 open class BookFragment: Fragment() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        cameraPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestPermission()) {
-            if ( ! it ) {
-                app.toast(R.string.request_camera_permission)
-            }
-        }
-    }
 
     private var menuProvider: MenuProvider? = null
     private var listOfHandlers: Array<out MenuItemHandler> = emptyArray()
@@ -75,21 +59,12 @@ open class BookFragment: Fragment() {
         return returnValue
     }
 
-    private lateinit var cameraPermissionLauncher: ActivityResultLauncher<String>
-
-    fun checkCameraPermission(): Boolean {
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-        ) {
-            return true
-        }
-        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-        return false
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         menuProvider = null
+    }
+
+    fun checkCameraPermission(): Boolean {
+        return ((requireActivity() as MainActivity).checkCameraPermission())
     }
 }

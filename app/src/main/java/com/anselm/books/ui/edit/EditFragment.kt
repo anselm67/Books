@@ -21,7 +21,6 @@ import com.anselm.books.databinding.FragmentEditBinding
 import com.anselm.books.ui.widgets.BookFragment
 import com.anselm.books.ui.widgets.MenuItemHandler
 import kotlinx.coroutines.launch
-import java.lang.Integer.max
 
 
 class EditFragment: BookFragment() {
@@ -32,8 +31,6 @@ class EditFragment: BookFragment() {
     private var editors: MutableList<Editor> = emptyList<Editor>().toMutableList()
     private val coverImageEditor
         get() = (editors[0] as CoverImageEditor)
-
-    private val editorStatusListener = StatusListener(this)
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -68,7 +65,7 @@ class EditFragment: BookFragment() {
         val repository = app.repository
 
         // We restart the list of editors from scratch, cause we might get restarted.
-        editors = mutableListOf(CoverImageEditor(this, inflater, editorStatusListener) {
+        editors = mutableListOf(CoverImageEditor(this, inflater) {
             app.imageRepository.getCoverUri(book)
         })
 
@@ -120,11 +117,6 @@ class EditFragment: BookFragment() {
         _binding = null
     }
 
-    fun scrollTo(view: View) {
-        // Adds a tad so that the editor's label comes to view.
-        binding.idScrollView.smoothScrollTo(0, max(0, view.top - 25))
-    }
-
     /**
      * Creates and binds all field editors; Adds them all to the [editors] list.
      * Keep in mind that at this point, editors already contains the CoverImageEditor which
@@ -134,38 +126,38 @@ class EditFragment: BookFragment() {
     private fun bind(inflater: LayoutInflater, book: Book) {
         // Creates and sets up an editor for every book property.
         editors.addAll(arrayListOf(
-            TextEditor(this, inflater, editorStatusListener, R.string.titleLabel,
+            TextEditor(this, inflater, R.string.titleLabel,
                 book::title.getter, book::title.setter) {
                 it.isNotEmpty()
             },
-            TextEditor(this, inflater, editorStatusListener, R.string.subtitleLabel,
+            TextEditor(this, inflater, R.string.subtitleLabel,
                 book::subtitle.getter, book::subtitle.setter),
-            MultiLabelEditor(this, inflater, editorStatusListener,
+            MultiLabelEditor(this, inflater,
                 Label.Type.Authors, R.string.authorLabel,
                 book::authors.getter, book::authors.setter),
-            SingleLabelEditor(this, inflater, editorStatusListener,
+            SingleLabelEditor(this, inflater,
                 Label.Type.Publisher, R.string.publisherLabel,
                 book::publisher.getter, book::publisher.setter),
-            MultiLabelEditor(this, inflater, editorStatusListener,
+            MultiLabelEditor(this, inflater,
                 Label.Type.Genres, R.string.genreLabel,
                 book::genres.getter, book::genres.setter),
-            SingleLabelEditor(this, inflater, editorStatusListener,
+            SingleLabelEditor(this, inflater,
                 Label.Type.Location, R.string.physicalLocationLabel,
                 book::location.getter, book::location.setter),
-            TextEditor(this, inflater, editorStatusListener, R.string.isbnLabel,
+            TextEditor(this, inflater, R.string.isbnLabel,
                 book::isbn.getter, book::isbn.setter) {
                 isValidEAN13(it)
             },
-            SingleLabelEditor(this, inflater, editorStatusListener,
+            SingleLabelEditor(this, inflater,
                 Label.Type.Language, R.string.languageLabel,
                 book::language.getter, book::language.setter),
-            TextEditor(this, inflater, editorStatusListener, R.string.numberOfPagesLabel,
+            TextEditor(this, inflater, R.string.numberOfPagesLabel,
                 book::numberOfPages.getter, book::numberOfPages.setter) {
                 isValidNumber(it)
             },
-            TextEditor(this, inflater, editorStatusListener, R.string.summaryLabel,
+            TextEditor(this, inflater, R.string.summaryLabel,
                 book::summary.getter, book::summary.setter),
-            YearEditor(this, inflater, editorStatusListener,
+            YearEditor(this, inflater,
                 book::yearPublished.getter, book::yearPublished.setter),
         ))
         editors.forEach {
@@ -278,15 +270,6 @@ class EditFragment: BookFragment() {
         return number.firstOrNull {
             ! it.isDigit()
         } == null
-    }
-}
-
-class StatusListener(private val delegate: EditFragment): EditorStatusListener() {
-    override fun scrollTo(view: View) {
-        delegate.scrollTo(view)
-    }
-    override fun checkCameraPermission(): Boolean {
-        return delegate.checkCameraPermission()
     }
 }
 

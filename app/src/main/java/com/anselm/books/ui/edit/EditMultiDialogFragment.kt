@@ -109,19 +109,19 @@ class EditMultiDialogFragment: BottomSheetDialogFragment() {
 
     private fun bind(inflater: LayoutInflater) {
         editors.addAll(arrayListOf(
-            MultiLabelEditor(this, inflater, null,
+            MultiLabelEditor(this, inflater,
                 Label.Type.Authors, R.string.authorLabel,
                 this::authors.getter, this::authors.setter),
-            MultiLabelEditor(this, inflater, null,
+            MultiLabelEditor(this, inflater,
                 Label.Type.Genres, R.string.genreLabel,
                 this::genres.getter, this::genres.setter),
-            SingleLabelEditor(this, inflater, null,
+            SingleLabelEditor(this, inflater,
                 Label.Type.Publisher, R.string.publisherLabel,
                 this::publisher.getter, this::publisher.setter),
-            SingleLabelEditor(this, inflater, null,
+            SingleLabelEditor(this, inflater,
                 Label.Type.Language, R.string.languageLabel,
                 this::language.getter, this::language.setter),
-            SingleLabelEditor(this, inflater, null,
+            SingleLabelEditor(this, inflater,
                 Label.Type.Location, R.string.physicalLocationLabel,
                 this::location.getter, this::location.setter),
         ))

@@ -11,10 +11,9 @@ import com.anselm.books.databinding.EditYearLayoutBinding
 class YearEditor(
     fragment: Fragment,
     inflater: LayoutInflater,
-    editorStatusListener: EditorStatusListener?,
     val getter: () -> String,
     val setter: (String) -> Unit
-): Editor(fragment, inflater, editorStatusListener) {
+): Editor(fragment, inflater) {
     private var _binding: EditYearLayoutBinding? = null
     private val editor get() = _binding!!
 
