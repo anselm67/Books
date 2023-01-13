@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.NumberPicker
 import androidx.fragment.app.Fragment
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.database.Book
 import com.anselm.books.database.BookFields
 import com.anselm.books.databinding.EditYearLayoutBinding
@@ -81,8 +82,10 @@ class YearEditor(
         val thisValue = getEditorValue()
         val fromValue = getter(from).toIntOrNull()
         if (fromValue != null && fromValue != thisValue) {
-            setEditorValue(fromValue)
-            setChanged(editor.yearPublishedView, editor.idUndoEdit)
+            app.postOnUiThread {
+                setEditorValue(fromValue)
+                setChanged(editor.yearPublishedView, editor.idUndoEdit)
+            }
         }
     }
 }

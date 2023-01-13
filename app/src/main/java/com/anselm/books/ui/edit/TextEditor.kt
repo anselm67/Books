@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.database.Book
 import com.anselm.books.databinding.EditFieldLayoutBinding
 import kotlinx.coroutines.Dispatchers
@@ -112,8 +113,10 @@ open class TextEditor(
         val thisValue = editor.idEditText.text.trim()
         val fromValue = getter(from)
         if (fromValue.isNotEmpty() && thisValue != fromValue) {
-            editor.idEditText.setText(fromValue)
-            setChanged(editor.idEditText, editor.idUndoEdit)
+            app.postOnUiThread {
+                editor.idEditText.setText(fromValue)
+                setChanged(editor.idEditText, editor.idUndoEdit)
+            }
         }
     }
 }

@@ -220,7 +220,7 @@ class MultiLabelEditor(
         val fromValue = getter(from)
         if (fromValue.isNotEmpty() && thisValue != fromValue) {
             dndlist.setLabels(fromValue)
-            setChanged(editor.root, editor.idUndoEdit)
+            app.postOnUiThread { setChanged(editor.root, editor.idUndoEdit) }
         }
     }
 
@@ -282,8 +282,10 @@ class SingleLabelEditor(
         val thisValue = getter(book)
         val fromValue = getter(from)
         if (fromValue != null && thisValue != fromValue) {
-            editor.autoComplete.setText(fromValue.name, false)
-            setLabel(fromValue)
+            app.postOnUiThread {
+                editor.autoComplete.setText(fromValue.name, false)
+                setLabel(fromValue)
+            }
         }
     }
 
