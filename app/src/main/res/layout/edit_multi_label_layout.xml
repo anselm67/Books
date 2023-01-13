@@ -25,6 +25,8 @@
         android:layout_marginEnd="5dp"
         android:layout_marginStart="5dp"
 
+        android:popupBackground="@drawable/textview_border_solid"
+
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
