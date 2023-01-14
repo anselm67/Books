@@ -115,7 +115,11 @@ open class TextEditor(
         if (fromValue.isNotEmpty() && thisValue != fromValue) {
             app.postOnUiThread {
                 editor.idEditText.setText(fromValue)
-                setChanged(editor.idEditText, editor.idUndoEdit)
+                if (fromValue != getter(book)) {
+                    setChanged(editor.idEditText, editor.idUndoEdit)
+                } else {
+                    setUnchanged(editor.root, editor.idUndoEdit)
+                }
             }
         }
     }

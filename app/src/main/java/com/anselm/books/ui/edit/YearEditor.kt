@@ -84,7 +84,11 @@ class YearEditor(
         if (fromValue != null && fromValue != thisValue) {
             app.postOnUiThread {
                 setEditorValue(fromValue)
-                setChanged(editor.yearPublishedView, editor.idUndoEdit)
+                if (getter(from) != getter(book)) {
+                    setChanged(editor.yearPublishedView, editor.idUndoEdit)
+                } else {
+                    setUnchanged(editor.yearPublishedView, editor.idUndoEdit)
+                }
             }
         }
     }

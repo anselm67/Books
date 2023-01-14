@@ -220,7 +220,13 @@ class MultiLabelEditor(
         val fromValue = getter(from)
         if (fromValue.isNotEmpty() && thisValue != fromValue) {
             dndlist.setLabels(fromValue)
-            app.postOnUiThread { setChanged(editor.root, editor.idUndoEdit) }
+            app.postOnUiThread {
+                if (fromValue != getter(book)) {
+                    setChanged(editor.root, editor.idUndoEdit)
+                } else {
+                    setUnchanged(editor.root, editor.idUndoEdit)
+                }
+            }
         }
     }
 
@@ -292,7 +298,11 @@ class SingleLabelEditor(
     private fun setLabel(label: Label) {
         if (label != getter(book)) {
             editLabel = label
-            setChanged(editor.root, editor.idUndoEdit)
+            if (label != getter(book)) {
+                setChanged(editor.root, editor.idUndoEdit)
+            } else {
+                setUnchanged(editor.root, editor.idUndoEdit)
+            }
         }
         app.hideKeyboard(editor.root)
     }
