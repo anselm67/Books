@@ -15,12 +15,12 @@ import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.BuildConfig
+import com.anselm.books.GlideApp
 import com.anselm.books.MainActivity
 import com.anselm.books.R
 import com.anselm.books.database.Book
 import com.anselm.books.databinding.EditCoverImageLayoutBinding
 import com.anselm.books.ui.widgets.BookFragment
-import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import java.io.File
@@ -99,7 +99,7 @@ class CoverImageEditor(
             return
         }
         // We're going to suggest this image.
-        Glide.with(app.applicationContext)
+        GlideApp.with(app.applicationContext)
             .asBitmap()
             .load(from.imgUrl)
             .into(object: CustomTarget<Bitmap>() {
@@ -189,7 +189,7 @@ class CoverImageEditor(
     private fun loadCoverImage(bitmap: Bitmap) {
         app.postOnUiThread {
             setChanged(editor.idCoverImage, editor.idUndoEdit)
-            Glide.with(app.applicationContext)
+            GlideApp.with(app.applicationContext)
                 .load(bitmap).centerCrop()
                 .into(editor.idCoverImage)
         }
@@ -197,12 +197,12 @@ class CoverImageEditor(
 
     private fun loadCoverImage(uri: Uri?) {
         if (uri != null) {
-            Glide.with(app.applicationContext)
+            GlideApp.with(app.applicationContext)
                 .load(uri).centerCrop()
                 .placeholder(R.drawable.broken_image_icon)
                 .into(editor.idCoverImage)
         } else {
-            Glide.with(app.applicationContext)
+            GlideApp.with(app.applicationContext)
                 .load(R.mipmap.ic_book_cover)
                 .into(editor.idCoverImage)
         }

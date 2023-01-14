@@ -12,6 +12,7 @@ import com.anselm.books.database.Book
 import com.anselm.books.database.BookDao
 import com.anselm.books.database.BookDatabase
 import com.anselm.books.database.BookRepository
+import com.anselm.books.openlibrary.AmazonImageClient
 import com.anselm.books.openlibrary.GoogleBooksClient
 import com.anselm.books.openlibrary.OclcClient
 import com.anselm.books.openlibrary.OpenLibraryClient
@@ -116,12 +117,14 @@ class BooksApplication : Application() {
     private val olClient = OpenLibraryClient()
     private val glClient = GoogleBooksClient()
     private val oclcClient = OclcClient()
+    private val amClient = AmazonImageClient()
 
     fun lookup(
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book?) -> Unit,
+        onBookOrig: (Book?) -> Unit,
     ): Call? {
+        val onBook = { book: Book? -> lookupAmazonIfNeeded(isbn, book, onBookOrig) }
         when(prefs.getString("lookup_service", "Google")) {
             "Google" -> return glClient.lookup(isbn, onError, onBook)
             "OpenLibrary" -> return olClient.lookup(isbn, onError, onBook)
@@ -130,6 +133,19 @@ class BooksApplication : Application() {
             else -> check(true)
         }
         return null
+    }
+
+    private fun lookupAmazonIfNeeded(isbn: String, book: Book?, onBook: (Book?) -> Unit) {
+        // Preserves the ISBN in case welost it.
+        if (book != null && book.isbn.isEmpty()) {
+            book.isbn = isbn
+        }
+        // Fetches the cover from Amazon if none was found yet.
+        if (book != null && book.imageFilename.isEmpty() && book.imgUrl.isEmpty() /* && prefs */) {
+            amClient.cover(book, onBook)
+        } else {
+            onBook(book)
+        }
     }
 
     private fun lookupBoth(
@@ -176,8 +192,6 @@ class BooksApplication : Application() {
         val expected = if (checksum == 0) '0' else ('0' + 10 - checksum)
         return expected == isbn[12]
     }
-
-
 
     companion object {
         @SuppressLint("StaticFieldLeak")

@@ -18,9 +18,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.anselm.books.BooksApplication
+import com.anselm.books.GlideApp
 import com.anselm.books.R
 import com.anselm.books.TAG
-import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
 class SettingsFragment : PreferenceFragmentCompat() {
@@ -43,7 +43,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             Preference.OnPreferenceClickListener {
                 Log.i(TAG, "Clear glide cache directory.")
                 BooksApplication.app.applicationScope.launch {
-                    Glide.get(requireContext()).clearDiskCache()
+                    GlideApp.get(requireContext()).clearDiskCache()
                 }
                 BooksApplication.app.toast(R.string.glide_cache_cleared)
                 true

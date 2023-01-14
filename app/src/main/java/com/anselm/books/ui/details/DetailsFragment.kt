@@ -15,6 +15,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.BooksApplication
+import com.anselm.books.GlideApp
 import com.anselm.books.R
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
@@ -26,7 +27,6 @@ import com.anselm.books.databinding.FragmentDetailsBinding
 import com.anselm.books.databinding.RecyclerviewDetailsLabelItemBinding
 import com.anselm.books.ui.widgets.BookFragment
 import com.anselm.books.ui.widgets.MenuItemHandler
-import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
 class DetailsFragment : BookFragment() {
@@ -206,12 +206,12 @@ class DetailsFragment : BookFragment() {
         titleView.text = book.title
         subtitleView.text = book.subtitle
         if (uri != null) {
-            Glide.with(app.applicationContext)
+            GlideApp.with(app.applicationContext)
                 .load(uri).centerCrop()
                 .placeholder(R.drawable.broken_image_icon)
                 .into(coverImageView)
         } else {
-            Glide.with(app.applicationContext)
+            GlideApp.with(app.applicationContext)
                 .load(R.mipmap.ic_book_cover)
                 .into(coverImageView)
         }

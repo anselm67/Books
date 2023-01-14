@@ -88,7 +88,7 @@ class GoogleBooksClient: JsonClient() {
                 // FIXME For now first match only.
                 break
             } catch (e: Exception) {
-                val msg =  "Error while parsing item $i."
+                val msg =  "Error while parsing item at position $i."
                 Log.e(TAG, msg, e)
                 onError(msg, e)
             }

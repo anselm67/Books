@@ -5,9 +5,9 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.database.Book
 import com.anselm.books.BooksApplication
+import com.anselm.books.GlideApp
 import com.anselm.books.R
 import com.anselm.books.databinding.RecyclerviewBookItemBinding
-import com.bumptech.glide.Glide
 
 class BookViewHolder(
     private val binding: RecyclerviewBookItemBinding,
@@ -33,13 +33,13 @@ class BookViewHolder(
             binding.idEditBook.isVisible = false
         }
         if (uri != null) {
-            Glide.with(app.applicationContext)
+            GlideApp.with(app.applicationContext)
                 .load(uri)
                 .placeholder(R.drawable.broken_image_icon)
                 .centerCrop()
                 .into(binding.coverImageView)
         } else {
-            Glide.with(app.applicationContext)
+            GlideApp.with(app.applicationContext)
                 .load(R.mipmap.ic_book_cover)
                 .centerCrop()
                 .into(binding.coverImageView)

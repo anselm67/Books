@@ -17,13 +17,13 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.GlideApp
 import com.anselm.books.R
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.databinding.FragmentScanBinding
 import com.anselm.books.databinding.RecyclerviewScanIsbnBinding
 import com.anselm.books.ui.widgets.BookFragment
-import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 import okhttp3.Call
 import java.util.concurrent.ExecutorService
@@ -199,13 +199,13 @@ class IsbnArrayAdapter(
                 binding.idAuthorText.text = result.book!!.authors.joinToString { it.name }
                 val uri = app.imageRepository.getCoverUri(result.book!!)
                 if (uri != null) {
-                    Glide.with(app.applicationContext)
+                    GlideApp.with(app.applicationContext)
                         .load(uri)
                         .placeholder(R.drawable.broken_image_icon)
                         .centerCrop()
                         .into(binding.idCoverImage)
                 } else {
-                    Glide.with(app.applicationContext)
+                    GlideApp.with(app.applicationContext)
                         .load(R.mipmap.ic_book_cover)
                         .centerCrop()
                         .into(binding.idCoverImage)
@@ -215,7 +215,7 @@ class IsbnArrayAdapter(
                 binding.idCheckMark.visibility = View.VISIBLE
             } else {
                 // Clears the image in case this holder was used by a match before.
-                Glide.with(app.applicationContext)
+                GlideApp.with(app.applicationContext)
                     .load(R.mipmap.ic_book_cover)
                     .centerCrop()
                     .into(binding.idCoverImage)

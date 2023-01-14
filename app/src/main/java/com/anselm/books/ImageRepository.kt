@@ -6,7 +6,6 @@ import android.net.Uri
 import androidx.core.net.toUri
 import androidx.heifwriter.HeifWriter
 import com.anselm.books.database.Book
-import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -53,7 +52,7 @@ class ImageRepository(
         withContext(Dispatchers.IO) {
             // We ignore errors, cause quite frankly we don't know what to do anyways.
             // We'' have some other chances to fetch the cover, e.g. through data cleansing.
-            val bitmap = Glide.with(context)
+            val bitmap = GlideApp.with(context)
                 .asBitmap()
                 .load(book.imgUrl) // sample image
                 .submit()

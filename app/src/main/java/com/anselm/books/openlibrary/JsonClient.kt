@@ -28,7 +28,7 @@ abstract class JsonClient: SimpleClient() {
                 onBook(null)
             } else {
                 // A real error.
-                onError("$url: HTTP Request failed, status $resp", null)
+                onError("$url: HTTP request failed, status $resp", null)
             }
         }
     }

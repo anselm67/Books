@@ -29,7 +29,7 @@ ext {
     picassoVersion = "2.71828"
     preferencesVersion="1.2.0"
     navigationVersion = "2.5.3"
-    glideVersion = '4.12.0'
+    glideVersion = '4.14.2'
     reflectVersion = '1.7.22'
     okHttpVersion = '4.10.0'
     camerax_version = "1.2.0"
