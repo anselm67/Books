@@ -12,7 +12,7 @@ import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoField
 import java.time.temporal.TemporalAccessor
 
-class OpenLibraryClient: SimpleClient() {
+class OpenLibraryClient: JsonClient() {
     private val basedir = "https://openlibrary.org"
 
     private fun firstOrEmpty(obj: JSONObject, key: String): String {

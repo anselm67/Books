@@ -7,7 +7,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONObject
-import org.json.JSONTokener
 import java.io.IOException
 
 abstract class SimpleClient {
@@ -25,7 +24,7 @@ abstract class SimpleClient {
         url: String,
         onError: (message: String, e: Exception?) -> Unit,
         onBook: (Book?) -> Unit,
-        onSuccess: (JSONObject) -> Unit
+        onSuccess: ((JSONObject) -> Unit)? = null,
     ): Call {
         val req = Request.Builder().url(url).build()
         val call = client.newCall(req)
@@ -36,29 +35,24 @@ abstract class SimpleClient {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                response.use { resp ->
-                    if (resp.isSuccessful) {
-                        val tok = JSONTokener(resp.body!!.string())
-                        val obj = tok.nextValue()
-                        if (obj !is JSONObject) {
-                            onError("$url: parse failed got a ${obj.javaClass.name}.", null)
-                        } else {
-                            onSuccess(obj)
-                        }
-                    } else {
-                        if (resp.code == 404) {
-                            //That's a no-match.
-                            onBook(null)
-                        } else {
-                            // A real error.
-                            onError("$url: HTTP Request failed, status $resp", null)
-                        }
+                response.use {
+                    try {
+                        handleResponse(it, onError, onBook, onSuccess)
+                    } catch (e: Exception) {
+                        onError("$url: failed to handleResponse.", e)
                     }
                 }
             }
         })
         return call
     }
+
+    abstract fun handleResponse(
+        resp: Response,
+        onError: (message: String, e: Exception?) -> Unit,
+        onBook: (Book?) -> Unit,
+        onSuccess: ((JSONObject) -> Unit)?
+    )
 
     abstract fun lookup(
         isbn: String,

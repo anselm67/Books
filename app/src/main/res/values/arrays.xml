@@ -3,12 +3,14 @@
     <string-array name="serviceIdentifiers">
         <item>Google</item>
         <item>OpenLibrary</item>
+        <item>Worldcat</item>
         <item>Both</item>
     </string-array>
     <string-array name="serviceNames">
         <item>Google Books</item>
         <item>Open Library</item>
-        <item>Merge Both</item>
+        <item>Worldcat</item>
+        <item>Merge GoogleBooks and OpenLibrary</item>
     </string-array>
 
     <string-array name="sortOrderIdentifiers">

@@ -10,7 +10,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 
-class GoogleBooksClient: SimpleClient() {
+class GoogleBooksClient: JsonClient() {
     val repository by lazy { app.repository }
 
     private fun extractIsbn(obj: JSONObject): String {

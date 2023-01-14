@@ -13,6 +13,7 @@ import com.anselm.books.database.BookDao
 import com.anselm.books.database.BookDatabase
 import com.anselm.books.database.BookRepository
 import com.anselm.books.openlibrary.GoogleBooksClient
+import com.anselm.books.openlibrary.OclcClient
 import com.anselm.books.openlibrary.OpenLibraryClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -114,6 +115,8 @@ class BooksApplication : Application() {
 
     private val olClient = OpenLibraryClient()
     private val glClient = GoogleBooksClient()
+    private val oclcClient = OclcClient()
+
     fun lookup(
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
@@ -122,6 +125,7 @@ class BooksApplication : Application() {
         when(prefs.getString("lookup_service", "Google")) {
             "Google" -> return glClient.lookup(isbn, onError, onBook)
             "OpenLibrary" -> return olClient.lookup(isbn, onError, onBook)
+            "Worldcat" -> return oclcClient.lookup(isbn, onError, onBook)
             "Both" -> return lookupBoth(isbn, onError, onBook)
             else -> check(true)
         }
@@ -153,6 +157,27 @@ class BooksApplication : Application() {
             }
         })
     }
+
+    private fun digit(c: Char): Int {
+        return c.digitToInt()
+    }
+
+    fun isValidEAN13(isbn: String): Boolean {
+        // Quick checks: empty is fine.
+        if (isbn.isEmpty()) {
+            return true
+        } else if (isbn.length != 13) {
+            return false
+        }
+        // Computes the expected checksum / last digit.
+        val sum1 = arrayListOf(0, 2, 4, 6, 8, 10).sumOf { it -> digit(isbn[it]) }
+        val sum2 = 3 * arrayListOf(1, 3, 5, 7, 9, 11).sumOf { it -> digit(isbn[it]) }
+        val checksum = (sum1 + sum2) % 10
+        val expected = if (checksum == 0) '0' else ('0' + 10 - checksum)
+        return expected == isbn[12]
+    }
+
+
 
     companion object {
         @SuppressLint("StaticFieldLeak")
