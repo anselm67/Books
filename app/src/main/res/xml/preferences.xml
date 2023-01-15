@@ -34,7 +34,8 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/preference_category_lookup_service">
+    <PreferenceCategory app:key="lookup_service_preferences"
+        app:title="@string/preference_category_lookup_service">
 
         <DropDownPreference
             app:key="lookup_service"
@@ -44,6 +45,15 @@
             android:title="@string/lookup_service_preference_prompt"
             app:useSimpleSummaryProvider="true"/>
 
+        <CheckBoxPreference
+            app:key="lookup_use_last_location"
+            android:title="@string/lookup_use_last_location_prompt" />
+        <EditTextPreference
+            app:key="lookup_use_last_location_value" android:defaultValue="" />
+
+        <CheckBoxPreference
+            app:key="lookup_use_only_existing_genres"
+            android:title="@string/lookup_use_only_existing_genres_prompt" />
 
     </PreferenceCategory>
 

@@ -72,7 +72,10 @@ class BooksApplication : Application() {
     }
 
     val repository by lazy {
-        BookRepository(database.bookDao())
+        val repository = BookRepository(database.bookDao())
+        // Initializes the last location preference handling.
+        LastLocationPreference(repository)
+        repository
     }
 
     val importExport by lazy {
@@ -167,8 +170,7 @@ class BooksApplication : Application() {
     ): String {
         val tag = nextTag()
         val onBook = { book: Book? -> lookupAmazonIfNeeded(tag, isbn, book, onBookOrig) }
-        val serviceId = prefs.getString("lookup_service", "Google")
-        when(serviceId) {
+        when(val serviceId = prefs.getString("lookup_service", "Google")) {
             "Google" -> glClient.lookup(tag, isbn, onError, onBook)
             "OpenLibrary" -> olClient.lookup(tag, isbn, onError, onBook)
             "Worldcat" -> oclcClient.lookup(tag, isbn, onError, onBook)

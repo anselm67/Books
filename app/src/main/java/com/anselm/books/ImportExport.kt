@@ -44,6 +44,10 @@ class ImportExport(private val repository: BookRepository,
         (0 until books.length()).forEach { i ->
             val obj = books.getJSONObject(i)
             try {
+                /*
+                 * Note how this doesn't go through the repository, and therefore doesn't go
+                 * through its listeners - such as lastLocation - which is intended.
+                 */
                 val book = Book(obj)
                 repository.save(book)
                 count++

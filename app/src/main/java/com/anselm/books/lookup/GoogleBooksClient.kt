@@ -5,7 +5,6 @@ import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
-import org.json.JSONArray
 import org.json.JSONObject
 
 
@@ -37,14 +36,6 @@ class GoogleBooksClient: JsonClient() {
         return if (num == 0) "" else num.toString()
     }
 
-    private inline fun <reified T: Any> arrayToList(a: JSONArray?): List<T> {
-        return if (a == null) {
-            emptyList()
-        } else {
-            (0 until a.length()).map { (a.get(it) as T) }
-        }
-    }
-
     private fun convert(obj: JSONObject): Book {
         val book = app.repository.newBook()
         val volumeInfo = obj.optJSONObject("volumeInfo")
@@ -62,8 +53,13 @@ class GoogleBooksClient: JsonClient() {
         // Label-fields:
         book.authors = arrayToList<String>(volumeInfo.optJSONArray("authors"))
             .map { repository.labelB(Label.Type.Authors, it) }
-        book.genres = arrayToList<String>(volumeInfo.optJSONArray("categories"))
-            .map { repository.labelB(Label.Type.Genres, it) }
+        if ( app.prefs.getBoolean("lookup_use_only_existing_genres", false)) {
+            book.genres = arrayToList<String>(volumeInfo.optJSONArray("categories"))
+                .mapNotNull { repository.labelIfExistsB(Label.Type.Genres, it) }
+        } else {
+            book.genres = arrayToList<String>(volumeInfo.optJSONArray("categories"))
+                .map { repository.labelB(Label.Type.Genres, it) }
+        }
         return book
     }
 

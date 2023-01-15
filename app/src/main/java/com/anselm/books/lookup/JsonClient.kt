@@ -2,10 +2,20 @@ package com.anselm.books.lookup
 
 import com.anselm.books.database.Book
 import okhttp3.Response
+import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 
 abstract class JsonClient: SimpleClient() {
+
+    protected inline fun <reified T: Any> arrayToList(a: JSONArray?): List<T> {
+        return if (a == null) {
+            emptyList()
+        } else {
+            (0 until a.length()).map { (a.get(it) as T) }
+        }
+    }
+
 
     override fun handleResponse(
         resp: Response,

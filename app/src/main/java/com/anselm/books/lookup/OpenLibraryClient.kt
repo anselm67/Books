@@ -156,9 +156,12 @@ class OpenLibraryClient: JsonClient() {
         onBook: (Book?) -> Unit
     ) {
         book.summary = getDescription(work)
-        val genres = asStringArray(work, "subjects")
-        if (genres.isNotEmpty()) {
-            book.genres = genres.map { it -> app.repository.labelB(Label.Type.Genres, it) }
+        if ( app.prefs.getBoolean("lookup_use_only_existing_genres", false)) {
+            book.genres = arrayToList<String>(work.optJSONArray("subjects"))
+                .mapNotNull { app.repository.labelIfExistsB(Label.Type.Genres, it) }
+        } else {
+            book.genres = arrayToList<String>(work.optJSONArray("subjects"))
+                .map { app.repository.labelB(Label.Type.Genres, it) }
         }
         if (book.subtitle == "") {
             book.subtitle = work.optString("subtitle", "")

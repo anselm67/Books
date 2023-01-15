@@ -6,7 +6,18 @@ import com.anselm.books.TAG
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-class BookRepository(private val dao: BookDao) {
+class BookRepository(
+    private val dao: BookDao
+) {
+    private val listeners = emptyList<BookRepositoryListener>().toMutableList()
+
+    fun addBookListener(listener: BookRepositoryListener) {
+        listeners.add(listener)
+    }
+
+    fun removeBookListener(listener: BookRepositoryListener) {
+        listeners.remove(listener)
+    }
 
     suspend fun getTotalCount(): Int {
         return dao.getTotalCount()
@@ -73,6 +84,7 @@ class BookRepository(private val dao: BookDao) {
     }
 
     suspend fun deleteBook(book: Book) {
+        listeners.forEach { it.onBookDeleted(book) }
         dao.deleteBook(book)
     }
 
@@ -138,9 +150,11 @@ class BookRepository(private val dao: BookDao) {
             if (book.rawDateAdded <= 0) {
                 book.rawDateAdded = timestamp
             }
+            listeners.forEach { it.onBookInserted(book) }
             bookId = dao.insert(book)
         } else {
             book.rawLastModified = timestamp
+            listeners.forEach { it.onBookUpdated(book) }
             dao.update(book)
         }
         if (book.labelsChanged) {
@@ -178,7 +192,9 @@ class BookRepository(private val dao: BookDao) {
      * This might set some default values for some fields based on preferences.
      */
     fun newBook(): Book {
-        return Book()
+        val book = Book()
+        listeners.forEach { it.onBookCreated(book) }
+        return book
     }
 
     /**
@@ -215,6 +231,18 @@ class BookRepository(private val dao: BookDao) {
         var label: Label
         runBlocking {
             label = label(type, name)
+        }
+        return label
+    }
+
+    private suspend fun labelIfExists(type: Label.Type, name: String): Label? {
+        return dao.label(type, name)
+    }
+
+    fun labelIfExistsB(type: Label.Type, name: String): Label? {
+        var label: Label?
+        runBlocking {
+            label = labelIfExists(type, name)
         }
         return label
     }

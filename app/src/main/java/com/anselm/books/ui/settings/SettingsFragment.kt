@@ -15,7 +15,11 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.forEach
 import androidx.lifecycle.Lifecycle
+import androidx.preference.CheckBoxPreference
+import androidx.preference.EditTextPreference
 import androidx.preference.Preference
+import androidx.preference.Preference.OnPreferenceChangeListener
+import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import com.anselm.books.BooksApplication
 import com.anselm.books.BooksApplication.Companion.app
@@ -65,6 +69,21 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     }
                     .setNegativeButton(R.string.no) { _, _ -> }
                     .show()
+                true
+            }
+
+        // Handles the "last location" preference using the hidden "lookup_use_last_location_value"
+        // preference.
+        val locationCheckBox = findPreference<CheckBoxPreference>("lookup_use_last_location")!!
+        val locationValue = findPreference<EditTextPreference>("lookup_use_last_location_value")!!
+        findPreference<PreferenceCategory>("lookup_service_preferences")
+            ?.removePreference(locationValue)
+        locationCheckBox.summary = locationValue.text
+        locationCheckBox.onPreferenceChangeListener =
+            OnPreferenceChangeListener { _, newValue ->
+                if (!(newValue as Boolean)) {
+                    locationCheckBox.summary = ""
+                }
                 true
             }
     }

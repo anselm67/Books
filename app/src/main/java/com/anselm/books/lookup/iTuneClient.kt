@@ -38,11 +38,12 @@ class iTuneClient: JsonClient() {
         if (artistName.isNotEmpty()) {
             book.authors = listOf(app.repository.labelB(Label.Type.Authors, artistName))
         }
-        val genreNames = item.optJSONArray("genres")
-        if (genreNames != null && genreNames.length() > 0) {
-            book.genres = (0 until genreNames.length()).map {
-                app.repository.labelB(Label.Type.Genres, genreNames.getString(it))
-            }
+        if ( app.prefs.getBoolean("lookup_use_only_existing_genres", false)) {
+            book.genres = arrayToList<String>(item.optJSONArray("genres"))
+                .mapNotNull { app.repository.labelIfExistsB(Label.Type.Genres, it) }
+        } else {
+            book.genres = arrayToList<String>(item.optJSONArray("genres"))
+                .map { app.repository.labelB(Label.Type.Genres, it) }
         }
         val artWorkUrl = item.optString("artworkUrl100", "")
         if (artWorkUrl.isNotEmpty()) {
