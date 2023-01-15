@@ -207,8 +207,8 @@ class DetailsFragment : BookFragment() {
         subtitleView.text = book.subtitle
         if (uri != null) {
             GlideApp.with(app.applicationContext)
-                .load(uri).centerCrop()
-                .placeholder(R.drawable.broken_image_icon)
+                .load(uri)
+                .placeholder(R.mipmap.broken_cover_icon_foreground)
                 .into(coverImageView)
         } else {
             GlideApp.with(app.applicationContext)

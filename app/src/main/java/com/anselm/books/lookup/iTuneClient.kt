@@ -11,6 +11,7 @@ import java.time.temporal.ChronoField
 import java.util.*
 
 
+// https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/iTuneSearchAPI/LookupExamples.html
 class iTuneClient: JsonClient() {
     private val dateFormatter =
         DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)

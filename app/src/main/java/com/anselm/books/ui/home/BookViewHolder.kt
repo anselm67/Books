@@ -35,13 +35,11 @@ class BookViewHolder(
         if (uri != null) {
             GlideApp.with(app.applicationContext)
                 .load(uri)
-                .placeholder(R.drawable.broken_image_icon)
-                .centerCrop()
+                .placeholder(R.mipmap.broken_cover_icon_foreground)
                 .into(binding.coverImageView)
         } else {
             GlideApp.with(app.applicationContext)
                 .load(R.mipmap.ic_book_cover)
-                .centerCrop()
                 .into(binding.coverImageView)
         }
         binding.root.setOnClickListener {

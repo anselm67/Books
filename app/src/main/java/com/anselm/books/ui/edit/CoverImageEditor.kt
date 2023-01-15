@@ -190,7 +190,7 @@ class CoverImageEditor(
         app.postOnUiThread {
             setChanged(editor.idCoverImage, editor.idUndoEdit)
             GlideApp.with(app.applicationContext)
-                .load(bitmap).centerCrop()
+                .load(bitmap)
                 .into(editor.idCoverImage)
         }
     }
@@ -198,8 +198,8 @@ class CoverImageEditor(
     private fun loadCoverImage(uri: Uri?) {
         if (uri != null) {
             GlideApp.with(app.applicationContext)
-                .load(uri).centerCrop()
-                .placeholder(R.drawable.broken_image_icon)
+                .load(uri)
+                .placeholder(R.mipmap.broken_cover_icon_foreground)
                 .into(editor.idCoverImage)
         } else {
             GlideApp.with(app.applicationContext)

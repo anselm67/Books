@@ -1,11 +1,17 @@
 package com.anselm.books
 
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.util.Log
 import com.bumptech.glide.Glide
+import com.bumptech.glide.GlideBuilder
 import com.bumptech.glide.Registry
 import com.bumptech.glide.annotation.GlideModule
+import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.Options
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.model.Headers
 import com.bumptech.glide.load.model.LazyHeaders
@@ -13,7 +19,11 @@ import com.bumptech.glide.load.model.ModelLoader
 import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
 import com.bumptech.glide.load.model.stream.BaseGlideUrlLoader
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.module.AppGlideModule
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.Target
 import java.io.InputStream
 
 
@@ -47,23 +57,42 @@ private class HeaderLoader(
     }
 }
 
+class GlideErrorHandler : RequestListener<Any> {
+    override fun onLoadFailed(
+        e: GlideException?,
+        model: Any?,
+        target: Target<Any>?,
+        isFirstResource: Boolean
+    ): Boolean {
+        Log.e(TAG, "Glide $model failed.", e)
+        return false
+    }
+
+    override fun onResourceReady(
+        resource: Any?,
+        model: Any?,
+        target: Target<Any>?,
+        dataSource: DataSource?,
+        isFirstResource: Boolean
+    ) = false
+
+}
+
 @GlideModule
 class BooksGlideModule : AppGlideModule() {
     override fun registerComponents(context: Context, glide: Glide, registry: Registry) {
         registry.prepend(Uri::class.java, InputStream::class.java, HeaderLoader.Factory())
     }
 
-    /*override fun applyOptions(context: Context, builder: GlideBuilder) {
-        // FIXME https://github.com/efemoney/maggg/blob/master/app/src/main/kotlin/com/efemoney/maggg/glide/MagggAppGlideModule.kt
-        val prefs = BooksApplication.app.prefs
-        val sizeMb = prefs.getInt("glide_cache_size_mb", GLIDE_DEFAULT_CACHE_SIZE_MB)
-        builder.setDiskCache(
-            InternalCacheDiskCacheFactory(
-                context,
-                1024L * 1024L * sizeMb.toLong()
-            )
-        )
-    }*/
+    override fun applyOptions(context: Context, builder: GlideBuilder) {
+        builder.setLogLevel(if (BuildConfig.DEBUG) Log.DEBUG else Log.ERROR)
+        builder.setDefaultRequestOptions(RequestOptions()
+            .diskCacheStrategy(DiskCacheStrategy.ALL)  // cache all
+            .centerCrop() // center crop, we are loading smaller images so this makes sense
+
+        ).addGlobalRequestListener(GlideErrorHandler())
+        builder.setDefaultTransitionOptions(Drawable::class.java, withCrossFade())
+    }
 
     override fun isManifestParsingEnabled(): Boolean = false
 }

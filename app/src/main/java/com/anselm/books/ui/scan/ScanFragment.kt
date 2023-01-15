@@ -201,13 +201,11 @@ class IsbnArrayAdapter(
                 if (uri != null) {
                     GlideApp.with(app.applicationContext)
                         .load(uri)
-                        .placeholder(R.drawable.broken_image_icon)
-                        .centerCrop()
+                        .placeholder(R.mipmap.broken_cover_icon_foreground)
                         .into(binding.idCoverImage)
                 } else {
                     GlideApp.with(app.applicationContext)
                         .load(R.mipmap.ic_book_cover)
-                        .centerCrop()
                         .into(binding.idCoverImage)
                 }
                 // Hide the progress, replace it with the checkmark.
@@ -217,7 +215,6 @@ class IsbnArrayAdapter(
                 // Clears the image in case this holder was used by a match before.
                 GlideApp.with(app.applicationContext)
                     .load(R.mipmap.ic_book_cover)
-                    .centerCrop()
                     .into(binding.idCoverImage)
                 // Some kind of error occurred: no match or a real error.
                 if ( result.errorMessage != null ) {
