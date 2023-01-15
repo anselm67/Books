@@ -226,6 +226,10 @@ class CleanUpFragment: BookFragment() {
         private val lock = ReentrantLock()
         private val cond = lock.newCondition()
 
+        fun cancel() {
+            calls.forEach { it.cancel() }
+        }
+
         fun addCall(call: Call?) {
             call?.let {
                 lock.withLock {
@@ -337,7 +341,10 @@ class CleanUpFragment: BookFragment() {
         val bookIds = app.repository.getIdsList(Query())
         val stats = FixCoverStats()
 
-        val progressSetter = app.loadingDialog(requireActivity())
+        val progressSetter = app.loadingDialog(
+            requireActivity()) {
+            stats.cancel()
+        }
         bookIds.forEach { bookId ->
             val book = app.repository.load(bookId, decorate = true)
             stats.totalCount++

@@ -18,7 +18,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.anselm.books.BooksApplication
-import com.anselm.books.GlideApp
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
 import com.anselm.books.TAG
 import kotlinx.coroutines.launch
@@ -38,17 +38,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
 
-        // Clears the Glide cache when requested.
-        findPreference<Preference>("glide_clear_cache")?.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener {
-                Log.i(TAG, "Clear glide cache directory.")
-                BooksApplication.app.applicationScope.launch {
-                    GlideApp.get(requireContext()).clearDiskCache()
-                }
-                BooksApplication.app.toast(R.string.glide_cache_cleared)
-                true
-            }
-
         // Sets up for import.
         val importer = setupImport()
         findPreference<Preference>("import_preference")?.onPreferenceClickListener =
@@ -65,6 +54,19 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 true
             }
 
+        findPreference<Preference>("reset_preference")?.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                val builder = android.app.AlertDialog.Builder(requireActivity())
+                builder.setMessage(getString(R.string.reset_database_confirmation))
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        app.applicationScope.launch {
+                            app.repository.deleteAll()
+                        }
+                    }
+                    .setNegativeButton(R.string.no) { _, _ -> }
+                    .show()
+                true
+            }
     }
 
     private fun handleMenu(menuHost: MenuHost) {

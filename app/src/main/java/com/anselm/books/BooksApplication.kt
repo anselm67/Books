@@ -243,14 +243,20 @@ class BooksApplication : Application() {
         return expected == isbn[12]
     }
 
-    fun loadingDialog(activity: Activity): (Int) -> Unit {
+    fun loadingDialog(activity: Activity, onCancel: (() -> Unit)? = null): (Int) -> Unit {
         val binding = ProgressBarDialogBinding.inflate(activity.layoutInflater)
         val dialog = AlertDialog.Builder(activity)
             .setCancelable(false)
             .setView(binding.root)
             .create()
-        binding.idCancelButton.setOnClickListener {
-            dialog.dismiss()
+        if (onCancel != null) {
+            binding.idCancelButton.isVisible = true
+            binding.idCancelButton.setOnClickListener {
+                onCancel()
+                dialog.dismiss()
+            }
+        } else {
+            binding.idCancelButton.isVisible = false
         }
         dialog.show()
         return { percent ->

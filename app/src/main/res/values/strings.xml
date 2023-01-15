@@ -129,4 +129,6 @@
 
     <string name="check_for_broken_images">Check and fix broken book covers.</string>
     <string name="cleanup_book_cover_section">Book covers</string>
+    <string name="reset_preference_title">Reset database</string>
+    <string name="reset_database_confirmation">This will remove all books, are you sure you want to proceed?</string>
 </resources>
