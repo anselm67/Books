@@ -85,7 +85,7 @@ class BooksGlideModule : AppGlideModule() {
     }
 
     override fun applyOptions(context: Context, builder: GlideBuilder) {
-        builder.setLogLevel(if (BuildConfig.DEBUG) Log.DEBUG else Log.ERROR)
+        // builder.setLogLevel(if (BuildConfig.DEBUG) Log.DEBUG else Log.ERROR)
         builder.setDefaultRequestOptions(RequestOptions()
             .diskCacheStrategy(DiskCacheStrategy.ALL)  // cache all
             .centerCrop() // center crop, we are loading smaller images so this makes sense

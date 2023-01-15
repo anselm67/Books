@@ -127,4 +127,6 @@
     <string name="discard_changes_prompt">Discard changes?</string>
     <string name="edit_no_book_error">An error occurred, no book to edit.</string>
 
+    <string name="check_for_broken_images">Check and fix broken book covers.</string>
+    <string name="cleanup_book_cover_section">Book covers</string>
 </resources>

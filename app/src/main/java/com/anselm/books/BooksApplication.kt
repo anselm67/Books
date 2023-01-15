@@ -1,18 +1,21 @@
 package com.anselm.books
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Application
 import android.content.SharedPreferences
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import com.anselm.books.database.Book
 import com.anselm.books.database.BookDao
 import com.anselm.books.database.BookDatabase
 import com.anselm.books.database.BookRepository
+import com.anselm.books.databinding.ProgressBarDialogBinding
 import com.anselm.books.lookup.AmazonImageClient
 import com.anselm.books.lookup.GoogleBooksClient
 import com.anselm.books.lookup.OclcClient
@@ -238,6 +241,24 @@ class BooksApplication : Application() {
         val checksum = (sum1 + sum2) % 10
         val expected = if (checksum == 0) '0' else ('0' + 10 - checksum)
         return expected == isbn[12]
+    }
+
+    fun loadingDialog(activity: Activity): (Int) -> Unit {
+        val binding = ProgressBarDialogBinding.inflate(activity.layoutInflater)
+        val dialog = AlertDialog.Builder(activity)
+            .setCancelable(false)
+            .setView(binding.root)
+            .create()
+        binding.idCancelButton.setOnClickListener {
+            dialog.dismiss()
+        }
+        dialog.show()
+        return { percent ->
+            binding.idProgressBar.progress = percent
+            if (percent >= 100) {
+                dialog.dismiss()
+            }
+        }
     }
 
     companion object {

@@ -34,6 +34,11 @@ class ImageRepository(
         }
     }
 
+    fun getCoverPath(book: Book): String {
+        check(book.imageFilename.isNotEmpty()) { "getCoverPath requires a book imageFilename."}
+        return File(basedir, book.imageFilename).path
+    }
+
     /**
      * Fetches the book cover from its URL when needed.
      * Checks if the book's cover has already been loaded; If not fetches it, converts it

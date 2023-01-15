@@ -1,5 +1,7 @@
 package com.anselm.books.ui.cleanup
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,12 +12,23 @@ import androidx.navigation.fragment.findNavController
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
 import com.anselm.books.TAG
+import com.anselm.books.database.Book
 import com.anselm.books.database.Label
+import com.anselm.books.database.Query
 import com.anselm.books.databinding.CleanupHeaderLayoutBinding
 import com.anselm.books.databinding.CleanupItemLayoutBinding
 import com.anselm.books.databinding.FragmentCleanupBinding
 import com.anselm.books.ui.widgets.BookFragment
 import kotlinx.coroutines.launch
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Request
+import okhttp3.Response
+import java.io.IOException
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
+import kotlin.math.roundToInt
 
 class CleanUpFragment: BookFragment() {
     private var _binding: FragmentCleanupBinding? = null
@@ -35,6 +48,7 @@ class CleanUpFragment: BookFragment() {
             Log.d(TAG, "Deleted $count unused labels.")
             bookSection(inflater, binding.idStatsContainer)
             labelSection(inflater, binding.idStatsContainer)
+            imageSection(inflater, binding.idStatsContainer)
         }
 
         super.handleMenu()
@@ -133,6 +147,18 @@ class CleanUpFragment: BookFragment() {
         return header.root
     }
 
+    private fun simpleBookItem(
+        inflater: LayoutInflater,
+        container : ViewGroup,
+        text: String,
+        onClick: () -> Unit,
+    ): View {
+        val item = CleanupItemLayoutBinding.inflate(inflater, container, false)
+        item.idItemText.text = text
+        item.idItemText.setOnClickListener { onClick() }
+        return item.root
+    }
+
     private fun bookItem(
         inflater: LayoutInflater,
         container : ViewGroup,
@@ -169,4 +195,164 @@ class CleanUpFragment: BookFragment() {
         return item.root
     }
 
+    private fun imageSection(
+        inflater: LayoutInflater,
+        container: ViewGroup,
+    ) {
+        container.addView(header(
+            inflater,
+            container,
+            getString(R.string.cleanup_book_cover_section),
+        ))
+        container.addView(simpleBookItem(
+            inflater, container,
+            getString(R.string.check_for_broken_images)
+        ) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                checkImages()
+            }
+        })
+    }
+
+    class FixCoverStats(
+        var totalCount : Int = 0,       // Total number of books seen.
+        var checkedCount: Int = 0,      // Total number cover image checked.
+        var brokenCount: Int = 0,       // Number of un-loadable bitmaps from files.
+        var unfetchedCount: Int = 0,    // Number of covers that weren't fetched.
+        var fetchCount: Int = 0,        // Number of covers we fetched.
+        var fetchFailedCount: Int = 0   // Number of failed cover fetches.
+    ) {
+        private val calls = emptyList<Call>().toMutableList()
+        private val lock = ReentrantLock()
+        private val cond = lock.newCondition()
+
+        fun addCall(call: Call?) {
+            call?.let {
+                lock.withLock {
+                    calls.add(it)
+                }
+            }
+        }
+
+        fun removeCall(call: Call) {
+            lock.withLock {
+                calls.remove(call)
+                if (calls.isEmpty()) {
+                    Log.d(TAG, "cond signaled.")
+                    cond.signalAll()
+                }
+            }
+        }
+
+        fun join() {
+            while (true) {
+                lock.withLock {
+                    if (calls.isEmpty()) {
+                        return@join
+                    }
+                    try {
+                        cond.await(500, TimeUnit.MILLISECONDS)
+                    } catch (e: InterruptedException) { /* ignored */ }
+                    Log.d(TAG, "cond awaited, empty? ${calls.isEmpty()}")
+                }
+            }
+        }
+    }
+
+    private fun saveCover(book:Book, bitmap: Bitmap) {
+        app.applicationScope.launch {
+            book.imageFilename = app.imageRepository.convertAndSave(book, bitmap)
+            app.repository.save(book)
+        }
+    }
+
+    private fun fixCover(stats: FixCoverStats, book: Book): Call? {
+        // If the book doesn't have a URL, there's nothing we can do.
+        if (book.imgUrl.isEmpty()) {
+            return null
+        }
+
+        // Fetches the bitmap, and re-save the image back to a (new) file.
+        val call = app.okHttp.newCall(
+            Request.Builder()
+                .header("Accept", "*/*")
+                .url(book.imgUrl)
+                .build()
+        )
+        stats.fetchCount++
+        stats.addCall(call)
+        call.enqueue(object: Callback {
+            // By doing nothing, we're doing all that needs get done.
+            override fun onFailure(call: Call, e: IOException) {
+                stats.removeCall(call)
+                stats.fetchFailedCount++
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    stats.removeCall(call)
+                    if (response.isSuccessful && response.body != null) {
+                        val bitmap = BitmapFactory.decodeStream(response.body!!.byteStream())
+                        if (bitmap != null) {
+                            saveCover(book, bitmap)
+                        } else {
+                            stats.fetchFailedCount++
+                        }
+                    } else {
+                        stats.fetchFailedCount++
+                    }
+                }
+            }
+        })
+        return call
+    }
+
+    private fun checkImage(stats: FixCoverStats, book: Book): Call? {
+        // Nothing we can do without an url to fetch the image from.
+        if (book.imgUrl.isEmpty()) {
+            return null
+        }
+        if (book.imageFilename.isEmpty()) {
+            // The book's image was never loaded, we can fix this.
+            stats.unfetchedCount++
+            return fixCover(stats, book)
+        } else /* book.imageFilename.isNotEmpty() */ {
+            // Verifies we can load this bitmap and fix if we can't.
+            val path = app.imageRepository.getCoverPath(book)
+            var failed = true
+            try {
+                failed = (BitmapFactory.decodeFile(path) == null)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to decode bitmap.")
+            }
+            if (failed) {
+                stats.brokenCount++
+                return fixCover(stats, book)
+            }
+        }
+        return null
+    }
+
+    private suspend fun checkImages() {
+        val bookIds = app.repository.getIdsList(Query())
+        val stats = FixCoverStats()
+
+        val progressSetter = app.loadingDialog(requireActivity())
+        bookIds.forEach { bookId ->
+            val book = app.repository.load(bookId, decorate = true)
+            stats.totalCount++
+            if (book != null) {
+                stats.checkedCount++
+                checkImage(stats, book)
+            }
+            val done = stats.totalCount.toFloat() / bookIds.size.toFloat()
+            progressSetter((100.0F * done).roundToInt())
+        }
+        // Wait until al calls have returned.
+        stats.join()
+        Log.d(TAG, "Done ${stats.totalCount}: " +
+                "broken: ${stats.brokenCount}, unfetched: ${stats.unfetchedCount} " +
+                "fetched: ${stats.fetchCount} of which ${stats.fetchFailedCount} failed."
+        )
+    }
 }
