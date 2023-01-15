@@ -1,4 +1,4 @@
-package com.anselm.books.openlibrary
+package com.anselm.books.lookup
 
 import com.anselm.books.database.Book
 import okhttp3.Response

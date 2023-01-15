@@ -13,10 +13,11 @@ import com.anselm.books.database.Book
 import com.anselm.books.database.BookDao
 import com.anselm.books.database.BookDatabase
 import com.anselm.books.database.BookRepository
-import com.anselm.books.openlibrary.AmazonImageClient
-import com.anselm.books.openlibrary.GoogleBooksClient
-import com.anselm.books.openlibrary.OclcClient
-import com.anselm.books.openlibrary.OpenLibraryClient
+import com.anselm.books.lookup.AmazonImageClient
+import com.anselm.books.lookup.GoogleBooksClient
+import com.anselm.books.lookup.OclcClient
+import com.anselm.books.lookup.OpenLibraryClient
+import com.anselm.books.lookup.iTuneClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -149,6 +150,7 @@ class BooksApplication : Application() {
     private val glClient = GoogleBooksClient()
     private val oclcClient = OclcClient()
     private val amClient = AmazonImageClient()
+    private val itClient = iTuneClient()
 
     private val requestIdCounter = AtomicInteger(1)
     private fun nextTag(): String {
@@ -167,8 +169,9 @@ class BooksApplication : Application() {
             "Google" -> glClient.lookup(tag, isbn, onError, onBook)
             "OpenLibrary" -> olClient.lookup(tag, isbn, onError, onBook)
             "Worldcat" -> oclcClient.lookup(tag, isbn, onError, onBook)
+            "iTunes" -> itClient.lookup(tag, isbn, onError, onBook)
             "Both" -> lookupBoth(tag, isbn, onError, onBook)
-            else -> check(true) { "Unsupported lookup service identifier $serviceId"}
+            else -> check(false) { "Unsupported lookup service identifier $serviceId"}
         }
         return tag
     }

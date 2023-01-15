@@ -4,12 +4,14 @@
         <item>Google</item>
         <item>OpenLibrary</item>
         <item>Worldcat</item>
+        <item>iTunes</item>
         <item>Both</item>
     </string-array>
     <string-array name="serviceNames">
         <item>Google Books</item>
         <item>Open Library</item>
         <item>Worldcat</item>
+        <item>iTunes</item>
         <item>Merge GoogleBooks and OpenLibrary</item>
     </string-array>
 
