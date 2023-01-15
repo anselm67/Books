@@ -1,7 +1,6 @@
 package com.anselm.books.openlibrary
 
 import android.util.Log
-import com.anselm.books.Constants
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import okhttp3.Call
@@ -16,14 +15,15 @@ class AmazonImageClient {
     private val client = OkHttpClient()
 
     private fun setCoverIfExists(
+        tag: String,
         book: Book,
         url: String,
         onBook: (Book) -> Unit,
     ): Call {
         val req = Request.Builder()
-            .header("User-Agent", Constants.USER_AGENT)
             .header("Accept", "*/*")
             .header("Accept-Encoding", "identity")
+            .tag(tag)
             .url(url)
             .head()
             .build()
@@ -46,7 +46,7 @@ class AmazonImageClient {
         return call
     }
 
-    fun cover(book: Book, onBook: (Book) -> Unit): Call? {
+    fun cover(tag: String, book: Book, onBook: (Book) -> Unit): Call? {
         if (book.isbn.length <= 3) {
             return null
         }
@@ -54,7 +54,7 @@ class AmazonImageClient {
         val amazonCoverUrl = "http://images.amazon.com/images/P/$key.01Z.jpg"
 
         try {
-            return setCoverIfExists(book, amazonCoverUrl, onBook)
+            return setCoverIfExists(tag, book, amazonCoverUrl, onBook)
         } catch (e: Exception) {
             Log.e(TAG, "$amazonCoverUrl: HTTP Request failed (ignored).", e)
             onBook(book)

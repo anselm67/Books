@@ -6,7 +6,6 @@ import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
-import okhttp3.Call
 import okhttp3.Response
 import org.json.JSONObject
 import org.xmlpull.v1.XmlPullParser
@@ -39,12 +38,13 @@ class OclcClient: SimpleClient() {
     private val wsKey = "REDACTED"
 
     override fun lookup(
+        tag: String,
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
         onBook: (matches: Book?) -> Unit
-    ): Call {
+    ) {
         val url = "https://www.worldcat.org/webservices/catalog/content/isbn/$isbn?wskey=$wsKey&maximumRecords=1&recordSchema=info:srw/schema/1/dc"
-        return runRequest(url, onError, onBook)
+        runRequest(tag, url, onError, onBook)
     }
 
     private var parser: XmlPullParser = Xml.newPullParser()
@@ -102,58 +102,63 @@ class OclcClient: SimpleClient() {
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
         parser.setInput(text.reader())
         parser.nextTag()
-        if (parser.name == "oclcdcs") {
-            expect(TEXT)
-            val book = Book()
-            val authors = emptyList<Label>().toMutableList()
-            while (parser.next() == START_TAG) {
-                val name = parser.name
+        when (parser.name) {
+            "oclcdcs" -> {
                 expect(TEXT)
-                val value = parser.text
-                expect(END_TAG)
-                when(name) {
-                    "dc:creator", "dc:contributor" -> {
-                        authors.add(app.repository.labelB(Label.Type.Authors, value))
-                    }
-                    "dc:title" -> {
-                        book.title = value
-                    }
-                    "dc:description" -> {
-                        book.summary = value
-                    }
-                    "dc:language" -> {
-                        val lang = getLanguage(value)
-                        book.language = app.repository.labelB(Label.Type.Language, lang)
-                    }
-                    "dc:format" -> {
-                        book.numberOfPages = extractNumberOfPages(value)
-                    }
-                    "dc:date" -> {
-                        value.toIntOrNull().let { book.yearPublished = it.toString() }
-                    }
-                    "dc:publisher" -> {
-                        book.publisher = app.repository.labelB(Label.Type.Publisher, value)
-                    }
-                    "dc:identifier" -> {
-                        if ( app.isValidEAN13(value) ) {
-                            book.isbn = value
+                val book = Book()
+                val authors = emptyList<Label>().toMutableList()
+                while (parser.next() == START_TAG) {
+                    val name = parser.name
+                    expect(TEXT)
+                    val value = parser.text
+                    expect(END_TAG)
+                    when(name) {
+                        "dc:creator", "dc:contributor" -> {
+                            authors.add(app.repository.labelB(Label.Type.Authors, value))
+                        }
+                        "dc:title" -> {
+                            book.title = value
+                        }
+                        "dc:description" -> {
+                            // We might get multiple of these, we just concatenate them.
+                            book.summary = book.summary + System.lineSeparator() + value
+                        }
+                        "dc:language" -> {
+                            val lang = getLanguage(value)
+                            book.language = app.repository.labelB(Label.Type.Language, lang)
+                        }
+                        "dc:format" -> {
+                            book.numberOfPages = extractNumberOfPages(value)
+                        }
+                        "dc:date" -> {
+                            value.toIntOrNull().let { book.yearPublished = it.toString() }
+                        }
+                        "dc:publisher" -> {
+                            book.publisher = app.repository.labelB(Label.Type.Publisher, value)
+                        }
+                        "dc:identifier" -> {
+                            if ( app.isValidEAN13(value) ) {
+                                book.isbn = value
+                            }
+                        }
+                        else -> {
+                            Log.d(TAG, "Unhandled tag: $name")
                         }
                     }
-                    else -> {
-                        Log.d(TAG, "Unhandled tag: $name")
-                    }
+                    expect(TEXT)
                 }
-                expect(TEXT)
+                book.authors = authors
+                onBook(book)
             }
-            book.authors = authors
-            onBook(book)
-        } else if (parser.name == "diagnostics") {
-            expectTag("diagnostic")
-            until("message") {
-                onError("$src: request failed, $it", null)
+            "diagnostics" -> {
+                expectTag("diagnostic")
+                until("message") {
+                    onError("$src: request failed, $it", null)
+                }
             }
-        } else {
-            onError("$src: expecting a x or y tag, got ${parser.name}", null)
+            else -> {
+                onError("$src: expecting a x or y tag, got ${parser.name}", null)
+            }
         }
     }
 }

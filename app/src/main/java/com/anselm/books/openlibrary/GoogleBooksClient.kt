@@ -5,7 +5,6 @@ import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
-import okhttp3.Call
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -96,14 +95,14 @@ class GoogleBooksClient: JsonClient() {
     }
 
     override fun lookup(
+        tag: String,
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
         onBook: (Book?) -> Unit,
-    ): Call {
+    ) {
         val url = "https://www.googleapis.com/books/v1/volumes?q=isbn:$isbn"
-        return runRequest(url, onError, onBook) {
+        runRequest(tag, url, onError, onBook) {
             convert(it, onError, onBook)
         }
-
     }
 }

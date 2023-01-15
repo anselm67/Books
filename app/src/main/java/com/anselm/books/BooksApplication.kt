@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.SharedPreferences
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.core.view.isVisible
@@ -20,8 +21,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import okhttp3.Call
+import okhttp3.OkHttpClient
 import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
 
 class BooksApplication : Application() {
     val applicationScope = CoroutineScope(SupervisorJob())
@@ -79,6 +81,35 @@ class BooksApplication : Application() {
 
     val displayMetrics: DisplayMetrics by lazy { resources.displayMetrics }
 
+    val okHttp by lazy {
+        OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                chain.proceed(
+                    chain.request().newBuilder()
+                        .addHeader("User-Agent", Constants.USER_AGENT)
+                        .build()
+                )
+            }.build()
+    }
+
+    fun cancelHttpRequests(tag: String): Int {
+        var count = 0
+        okHttp.dispatcher.runningCalls().map { call ->
+            if (call.request().tag() == tag) {
+                call.cancel()
+                count++
+            }
+        }
+        okHttp.dispatcher.queuedCalls().map { call ->
+            if (call.request().tag() == tag) {
+                call.cancel()
+                count++
+            }
+        }
+        Log.d(TAG, "okHttp: canceled $count calls.")
+        return count
+    }
+
     private val bookMerger by lazy {
         BookMerger()
     }
@@ -119,47 +150,60 @@ class BooksApplication : Application() {
     private val oclcClient = OclcClient()
     private val amClient = AmazonImageClient()
 
+    private val requestIdCounter = AtomicInteger(1)
+    private fun nextTag(): String {
+        return "lookup-${requestIdCounter.incrementAndGet()}"
+    }
+
     fun lookup(
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
         onBookOrig: (Book?) -> Unit,
-    ): Call? {
-        val onBook = { book: Book? -> lookupAmazonIfNeeded(isbn, book, onBookOrig) }
-        when(prefs.getString("lookup_service", "Google")) {
-            "Google" -> return glClient.lookup(isbn, onError, onBook)
-            "OpenLibrary" -> return olClient.lookup(isbn, onError, onBook)
-            "Worldcat" -> return oclcClient.lookup(isbn, onError, onBook)
-            "Both" -> return lookupBoth(isbn, onError, onBook)
-            else -> check(true)
+    ): String {
+        val tag = nextTag()
+        val onBook = { book: Book? -> lookupAmazonIfNeeded(tag, isbn, book, onBookOrig) }
+        val serviceId = prefs.getString("lookup_service", "Google")
+        when(serviceId) {
+            "Google" -> glClient.lookup(tag, isbn, onError, onBook)
+            "OpenLibrary" -> olClient.lookup(tag, isbn, onError, onBook)
+            "Worldcat" -> oclcClient.lookup(tag, isbn, onError, onBook)
+            "Both" -> lookupBoth(tag, isbn, onError, onBook)
+            else -> check(true) { "Unsupported lookup service identifier $serviceId"}
         }
-        return null
+        return tag
     }
 
-    private fun lookupAmazonIfNeeded(isbn: String, book: Book?, onBook: (Book?) -> Unit) {
-        // Preserves the ISBN in case welost it.
+    private fun lookupAmazonIfNeeded(
+        tag: String,
+        isbn: String,
+        book: Book?,
+        onBook: (Book?) -> Unit
+    ) {
+        // Preserves the ISBN in case we lost it.
         if (book != null && book.isbn.isEmpty()) {
             book.isbn = isbn
         }
         // Fetches the cover from Amazon if none was found yet.
         if (book != null && book.imageFilename.isEmpty() && book.imgUrl.isEmpty() /* && prefs */) {
-            amClient.cover(book, onBook)
+            amClient.cover(tag, book, onBook)
         } else {
             onBook(book)
         }
     }
 
     private fun lookupBoth(
+        tag: String,
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
         onBook: (Book?) -> Unit,
-    ): Call {
-        return glClient.lookup(isbn, { _, _ ->
-            olClient.lookup(isbn, onError, onBook)
+    ) {
+        glClient.lookup(tag, isbn, { _, _ ->
+            olClient.lookup(tag, isbn, onError, onBook)
         }, { glBook ->
             if (glBook == null) {
-                olClient.lookup(isbn, onError, onBook)
+                olClient.lookup(tag, isbn, onError, onBook)
             } else {
-                olClient.lookup(isbn, { _, _ ->
+                olClient.lookup(tag, isbn, { _, _ ->
                     // If OpenLibrary fails when GoogleBooks succeeded, use GoogleBooks.
                     onBook(glBook)
                 }, { olBook ->

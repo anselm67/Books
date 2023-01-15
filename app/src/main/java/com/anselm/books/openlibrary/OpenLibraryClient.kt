@@ -102,6 +102,7 @@ class OpenLibraryClient: JsonClient() {
     }
 
     private fun doAuthors(
+        tag: String,
         book: Book,
         work:JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
@@ -113,7 +114,7 @@ class OpenLibraryClient: JsonClient() {
             val values = arrayOfNulls<String>(keys.size)
             var done = 0
             for (i in keys.indices) {
-                calls[i] = (runRequest("https://openlibrary.org${keys[i]}.json",
+                calls[i] = (runRequest(tag, "https://openlibrary.org${keys[i]}.json",
                     {  msg, e ->        // onError fails immediately, ignore further responses.
                         for (call in calls) {
                             call?.cancel()
@@ -148,6 +149,7 @@ class OpenLibraryClient: JsonClient() {
     }
 
     private fun setupWorkAndAuthors(
+        tag: String,
         book: Book,
         work:JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
@@ -164,10 +166,11 @@ class OpenLibraryClient: JsonClient() {
         if (book.imgUrl == "") {
             book.imgUrl = coverUrl(work)
         }
-        doAuthors(book, work, onError, onBook)
+        doAuthors(tag, book, work, onError, onBook)
     }
 
     private fun doWorkAndAuthors(
+        tag: String,
         book: Book,
         obj:JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
@@ -178,8 +181,8 @@ class OpenLibraryClient: JsonClient() {
             onBook(book)
         } else {
             val url = "https://openlibrary.org$key.json"
-            runRequest(url, onError, onBook) {
-                setupWorkAndAuthors(book, it, onError, onBook)
+            runRequest(tag, url, onError, onBook) {
+                setupWorkAndAuthors(tag, book, it, onError, onBook)
             }
         }
     }
@@ -194,6 +197,7 @@ class OpenLibraryClient: JsonClient() {
     )
 
     private fun convert(
+        tag: String,
         obj: JSONObject,
         onError: (msg: String, e: Exception?) -> Unit,
         onBook: (Book?) -> Unit) {
@@ -212,18 +216,19 @@ class OpenLibraryClient: JsonClient() {
             // TODO We could get additional fields and use all the available precision of date.
             book.yearPublished = date.get(ChronoField.YEAR).toString()
         }
-        // Continues our journey to fetch additional infos about hte work, when available:
-        doWorkAndAuthors(book, obj, onError, onBook)
+        // Continues our journey to fetch additional infos about the work, when available:
+        doWorkAndAuthors(tag, book, obj, onError, onBook)
     }
 
     override fun lookup(
+        tag: String,
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
         onBook: (Book?) -> Unit
-    ): Call {
+    ) {
         val url = "$basedir/isbn/$isbn.json"
-        return runRequest(url, onError, onBook) {
-            convert(it, onError, onBook)
+        runRequest(tag, url, onError, onBook) {
+            convert(tag, it, onError, onBook)
         }
     }
 }

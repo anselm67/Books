@@ -1,16 +1,18 @@
 package com.anselm.books.openlibrary
 
+import android.util.Log
+import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import okhttp3.Call
 import okhttp3.Callback
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONObject
 import java.io.IOException
 
 abstract class SimpleClient {
-    private val client = OkHttpClient()
+    private val client by lazy { app.okHttp }
 
     /**
     * Runs the request and parses it as a json object, with three possible outcomes:
@@ -21,14 +23,18 @@ abstract class SimpleClient {
      *    exception
      */
     fun runRequest(
+        tag: String,
         url: String,
         onError: (message: String, e: Exception?) -> Unit,
         onBook: (Book?) -> Unit,
         onSuccess: ((JSONObject) -> Unit)? = null,
     ): Call {
-        val req = Request.Builder().url(url).build()
+        val req = Request.Builder()
+            .tag(tag)
+            .url(url)
+            .build()
         val call = client.newCall(req)
-
+        Log.d(TAG, "$tag: $url")
         call.enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
                 onError("$url: get failed.", e)
@@ -55,8 +61,9 @@ abstract class SimpleClient {
     )
 
     abstract fun lookup(
+        tag: String,
         isbn: String,
         onError: (msg: String, e: Exception?) -> Unit,
         onBook: (matches: Book?) -> Unit,
-    ): Call
+    )
 }

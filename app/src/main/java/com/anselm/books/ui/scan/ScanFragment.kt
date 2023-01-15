@@ -25,7 +25,6 @@ import com.anselm.books.databinding.FragmentScanBinding
 import com.anselm.books.databinding.RecyclerviewScanIsbnBinding
 import com.anselm.books.ui.widgets.BookFragment
 import kotlinx.coroutines.launch
-import okhttp3.Call
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -141,7 +140,7 @@ class ScanFragment: BookFragment() {
     }
 
     private fun onLookupResultClick(result: LookupResult) {
-        // We do nothing and that's fine for now.
+        Log.d(TAG, "${result.tag} clicked.")
     }
 
     override fun onDestroy() {
@@ -150,13 +149,14 @@ class ScanFragment: BookFragment() {
     }
 }
 
+
 class LookupResult(
-    var call: Call? = null,
+    var tag: String? = null,
     var book: Book? = null,
     var exception: Exception? = null,
     var errorMessage: String? = null,
 ) {
-    val loading get() = (call != null)
+    val loading get() = (tag != null)
 }
 
 data class LookupStats(
@@ -251,9 +251,8 @@ class IsbnArrayAdapter(
     fun removeAt(position: Int) {
         check (position >= 0 && position < dataSource.size)
         val (_, lookup) = dataSource[position]
-        if (lookup.call != null) {
-            lookup.call!!.cancel()
-            lookup.call = null
+        if (lookup.tag != null) {
+            app.cancelHttpRequests(lookup.tag!!)
         }
         dataSource.removeAt(position)
         notifyItemRemoved(position)
@@ -265,9 +264,9 @@ class IsbnArrayAdapter(
         dataSource.add(0, Pair(isbn, lookup))
         notifyItemInserted(0)
         stats.lookupCount.incrementAndGet()
-        lookup.call = app.lookup(isbn, { msg, e ->
+        lookup.tag = app.lookup(isbn, { msg, e ->
             Log.e(TAG, "Failed to lookup $isbn.", e)
-            lookup.call = null
+            lookup.tag = null
             stats.errorCount.incrementAndGet()
             lookup.exception = e
             lookup.errorMessage = msg
@@ -281,7 +280,7 @@ class IsbnArrayAdapter(
             } else {
                 stats.matchCount.incrementAndGet()
             }
-            lookup.call = null
+            lookup.tag = null
             lookup.book = book
             app.postOnUiThread {
                 notifyDataSetChanged()
