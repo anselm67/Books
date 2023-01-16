@@ -85,6 +85,7 @@ class ScanFragment: BookFragment() {
         if (modelInitialized && viewModel.stats != null) {
             updateLookupStats(viewModel.stats!!)
         }
+        handleMenu()
         return binding.root
     }
 
