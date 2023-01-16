@@ -211,16 +211,9 @@ class DetailsFragment : BookFragment() {
         // Main part of the details.
         titleView.text = book.title
         subtitleView.text = book.subtitle
-        if (uri != null) {
-            GlideApp.with(app.applicationContext)
-                .load(uri)
-                .placeholder(R.mipmap.broken_cover_icon_foreground)
-                .into(coverImageView)
-        } else {
-            GlideApp.with(app.applicationContext)
-                .load(R.mipmap.ic_book_cover)
-                .into(coverImageView)
-        }
+        GlideApp.with(BooksApplication.app.applicationContext)
+            .load(uri)
+            .into(coverImageView)
         // Authors and Genres.
         bindMultiLabelField(inflater, detailsView, getString(R.string.authorLabel),
             book.getLabels(Label.Type.Authors)

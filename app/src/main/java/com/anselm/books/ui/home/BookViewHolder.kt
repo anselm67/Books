@@ -32,16 +32,9 @@ class BookViewHolder(
         } else {
             binding.idEditBook.isVisible = false
         }
-        if (uri != null) {
-            GlideApp.with(app.applicationContext)
-                .load(uri)
-                .placeholder(R.mipmap.broken_cover_icon_foreground)
-                .into(binding.coverImageView)
-        } else {
-            GlideApp.with(app.applicationContext)
-                .load(R.mipmap.ic_book_cover)
-                .into(binding.coverImageView)
-        }
+        GlideApp.with(app.applicationContext)
+            .load(uri)
+            .into(binding.coverImageView)
         binding.root.setOnClickListener {
             onClick(this.bindingAdapterPosition)
         }

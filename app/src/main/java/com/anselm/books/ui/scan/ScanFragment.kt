@@ -273,16 +273,9 @@ class IsbnArrayAdapter(
             binding.idTitleText.text = result.book!!.title
             binding.idAuthorText.text = result.book!!.authors.joinToString { it.name }
             val uri = app.imageRepository.getCoverUri(result.book!!)
-            if (uri != null) {
-                GlideApp.with(app.applicationContext)
-                    .load(uri)
-                    .placeholder(R.mipmap.broken_cover_icon_foreground)
-                    .into(binding.idCoverImage)
-            } else {
-                GlideApp.with(app.applicationContext)
-                    .load(R.mipmap.ic_book_cover)
-                    .into(binding.idCoverImage)
-            }
+            GlideApp.with(app.applicationContext)
+                .load(uri)
+                .into(binding.idCoverImage)
         }
 
         private fun bindNotFound(result: LookupResult) {

@@ -17,7 +17,6 @@ import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.BuildConfig
 import com.anselm.books.GlideApp
 import com.anselm.books.MainActivity
-import com.anselm.books.R
 import com.anselm.books.database.Book
 import com.anselm.books.databinding.EditCoverImageLayoutBinding
 import com.anselm.books.ui.widgets.BookFragment
@@ -196,16 +195,9 @@ class CoverImageEditor(
     }
 
     private fun loadCoverImage(uri: Uri?) {
-        if (uri != null) {
-            GlideApp.with(app.applicationContext)
-                .load(uri)
-                .placeholder(R.mipmap.broken_cover_icon_foreground)
-                .into(editor.idCoverImage)
-        } else {
-            GlideApp.with(app.applicationContext)
-                .load(R.mipmap.ic_book_cover)
-                .into(editor.idCoverImage)
-        }
+        GlideApp.with(app.applicationContext)
+            .load(uri)
+            .into(editor.idCoverImage)
     }
 
 }

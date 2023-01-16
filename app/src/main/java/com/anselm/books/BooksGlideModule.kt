@@ -87,6 +87,8 @@ class BooksGlideModule : AppGlideModule() {
         builder.setDefaultRequestOptions(
             RequestOptions()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)  // cache all
+                .fallback(R.mipmap.ic_book_cover)
+                .error(R.mipmap.broken_cover_icon_foreground)
         ).addGlobalRequestListener(GlideErrorHandler())
         // Using animations this was breaks centerCrop, commenting it out for now.
         // builder.setDefaultTransitionOptions(Drawable::class.java, withCrossFade())
