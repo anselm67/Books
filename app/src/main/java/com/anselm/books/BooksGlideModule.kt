@@ -1,7 +1,6 @@
 package com.anselm.books
 
 import android.content.Context
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.util.Log
 import com.bumptech.glide.Glide
@@ -19,7 +18,6 @@ import com.bumptech.glide.load.model.ModelLoader
 import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
 import com.bumptech.glide.load.model.stream.BaseGlideUrlLoader
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.module.AppGlideModule
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
@@ -86,12 +84,12 @@ class BooksGlideModule : AppGlideModule() {
 
     override fun applyOptions(context: Context, builder: GlideBuilder) {
         // builder.setLogLevel(if (BuildConfig.DEBUG) Log.DEBUG else Log.ERROR)
-        builder.setDefaultRequestOptions(RequestOptions()
-            .diskCacheStrategy(DiskCacheStrategy.ALL)  // cache all
-            .centerCrop() // center crop, we are loading smaller images so this makes sense
-
+        builder.setDefaultRequestOptions(
+            RequestOptions()
+                .diskCacheStrategy(DiskCacheStrategy.ALL)  // cache all
         ).addGlobalRequestListener(GlideErrorHandler())
-        builder.setDefaultTransitionOptions(Drawable::class.java, withCrossFade())
+        // Using animations this was breaks centerCrop, commenting it out for now.
+        // builder.setDefaultTransitionOptions(Drawable::class.java, withCrossFade())
     }
 
     override fun isManifestParsingEnabled(): Boolean = false
