@@ -29,9 +29,10 @@ import kotlinx.coroutines.launch
 open class ListFragment: BookFragment() {
     private var _binding: FragmentListBinding? = null
     protected val binding get() = _binding!!
-    protected var _bookViewModel: BookViewModel? = null
-    protected val bookViewModel get() = _bookViewModel!!
+    protected lateinit var bookViewModel: BookViewModel
     private lateinit var adapter: BookAdapter
+
+    protected fun isModelInitialized() = ::bookViewModel.isInitialized
 
     override fun onCreateView(
         inflater: LayoutInflater,

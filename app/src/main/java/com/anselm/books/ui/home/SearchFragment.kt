@@ -63,14 +63,13 @@ class SearchFragment : ListFragment() {
                 bindSearch(it)
             }
         )
-
         // We start with a fresh query, initialized with our arguments.
         val model: BookViewModel by viewModels { BookViewModel.Factory }
-        if (_bookViewModel == null && safeArgs.query != null) {
-            _bookViewModel = model
+        if (safeArgs.query != null && ! isModelInitialized()) {
+            bookViewModel = model
             changeQuery(safeArgs.query!!)
         } else {
-            _bookViewModel = model
+            bookViewModel = model
             changeQuery(bookViewModel.query)
         }
 

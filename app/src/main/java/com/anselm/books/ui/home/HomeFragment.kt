@@ -64,7 +64,7 @@ class HomeFragment : ListFragment() {
             showBottomAddDialog()
         }
         val model: BookViewModel by viewModels { BookViewModel.Factory }
-        _bookViewModel = model
+        bookViewModel = model
         changeQuery(bookViewModel.query)
         return root
     }

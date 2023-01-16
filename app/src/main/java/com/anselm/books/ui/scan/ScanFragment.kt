@@ -48,7 +48,8 @@ class ScanFragment: BookFragment() {
         super.onCreateView(inflater, container, savedInstanceState)
         _binding = FragmentScanBinding.inflate(inflater, container, false)
 
-        val doCamera =  ! ::viewModel.isInitialized || ! viewModel.isDone
+        val modelInitialized = ::viewModel.isInitialized
+        val doCamera =  ! modelInitialized || ! viewModel.isDone
         val model: ScanViewModel by viewModels()
         viewModel = model
 
@@ -61,10 +62,10 @@ class ScanFragment: BookFragment() {
         )
         binding.idRecycler.adapter = adapter
         binding.idRecycler.layoutManager = LinearLayoutManager(binding.idRecycler.context)
+        ItemTouchHelper(ScanItemTouchHelper(adapter)).attachToRecyclerView(binding.idRecycler)
 
         // Starts the camera if we haven't stopped it already.
         if ( doCamera ) {
-            ItemTouchHelper(ScanItemTouchHelper(adapter)).attachToRecyclerView(binding.idRecycler)
             // For now, that's your only option out of scanning.
             binding.idDoneButton.setOnClickListener {
                 stopCamera()
@@ -81,6 +82,9 @@ class ScanFragment: BookFragment() {
             binding.idViewFinder.isVisible = false
             binding.idSaveButton.isVisible = true
             binding.idDoneButton.isVisible = false
+        }
+        if (modelInitialized && viewModel.stats != null) {
+            updateLookupStats(viewModel.stats!!)
         }
         return binding.root
     }
@@ -132,6 +136,7 @@ class ScanFragment: BookFragment() {
 
     private fun updateLookupStats(stats: LookupStats) {
         // Updates the display of the stats.
+        viewModel.stats = stats
         binding.idMessageText.text = app.getString(
             R.string.scan_stat_message,
             stats.lookupCount.get(),

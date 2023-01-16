@@ -19,7 +19,6 @@ import androidx.preference.CheckBoxPreference
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.Preference.OnPreferenceChangeListener
-import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import com.anselm.books.BooksApplication
 import com.anselm.books.BooksApplication.Companion.app
@@ -76,9 +75,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
         // preference.
         val locationCheckBox = findPreference<CheckBoxPreference>("lookup_use_last_location")!!
         val locationValue = findPreference<EditTextPreference>("lookup_use_last_location_value")!!
-        findPreference<PreferenceCategory>("lookup_service_preferences")
-            ?.removePreference(locationValue)
-        locationCheckBox.summary = locationValue.text
+        val prefs = preferenceManager.sharedPreferences
+        preferenceScreen.removePreference(locationValue)
+        if (prefs?.getBoolean("lookup_use_last_location", true) == true) {
+            locationCheckBox.summary = locationValue.text
+        } else {
+            locationCheckBox.summary = ""
+        }
         locationCheckBox.onPreferenceChangeListener =
             OnPreferenceChangeListener { _, newValue ->
                 if (!(newValue as Boolean)) {
