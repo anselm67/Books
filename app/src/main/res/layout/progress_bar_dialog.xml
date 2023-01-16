@@ -11,12 +11,12 @@
         style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:progressTint="#6200FF"
 
         app:layout_constraintBottom_toTopOf="@id/idCancelButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-
         android:progress="0"
     />
 

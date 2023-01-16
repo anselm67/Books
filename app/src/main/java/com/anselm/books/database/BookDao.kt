@@ -664,24 +664,38 @@ interface BookDao {
     @TypeConverters(Converters::class)
     suspend fun getLabels(type: Label.Type): List<Label>
 
-    @Query("     SELECT bt1.id FROM book_table AS bt1 " +
-            " LEFT JOIN book_labels AS bl1 ON bl1.bookId = bt1.id " +
-            "     WHERE (title, labelId) IN " +
-            "     (SELECT b.title AS title, lt.id AS labelId FROM book_table AS b" +
-            "   LEFT JOIN book_labels AS bl ON bl.bookId = b.id " +
-            "        JOIN label_table as lt on lt.id = bl.labelId " +
-            "       WHERE lt.type = 1 " +
-            "    GROUP BY title, name HAVING count(*) > 1)")
+    @Query("SELECT DISTINCT(id) FROM " +
+            "    (SELECT bt1.id AS id, bt1.title AS title " +
+            "       FROM book_table AS bt1 " +
+            "  LEFT JOIN book_labels AS bl1 ON bl1.bookId = bt1.id " +
+            "      WHERE (title, labelId) IN " +
+            "          (SELECT b.title AS title, lt.id AS labelId FROM book_table AS b " +
+            "        LEFT JOIN book_labels AS bl ON bl.bookId = b.id " +
+            "             JOIN label_table as lt on lt.id = bl.labelId " +
+            "            WHERE lt.type = 1 " +
+            "     GROUP BY title, name HAVING count(*) > 1) " +
+            "UNION " +
+            "    SELECT id, title FROM book_table " +
+            "     WHERE isbn != '' " +
+            "    GROUP BY isbn HAVING count(*) > 1 " +
+            "ORDER BY title ASC)")
     suspend fun getDuplicateBookIds(): List<Long>
 
-    @Query("SELECT COUNT(*) FROM (" +
-            "    SELECT b.title as title, lt.name as name , count(*) as count " +
-            "      FROM book_table as b " +
-            " LEFT JOIN book_labels as bl on bl.bookId = b.id " +
-            "      JOIN label_table as lt on lt.id = bl.labelId " +
-            "     WHERE lt.type = 1 " + // Label.Typ.Authors = 1
-            "GROUP BY title, name HAVING count > 1" +
-            ")")
+
+    @Query("SELECT COUNT(*) FROM (SELECT DISTINCT(id) FROM " +
+            "    (SELECT bt1.id AS id " +
+            "       FROM book_table AS bt1 " +
+            "  LEFT JOIN book_labels AS bl1 ON bl1.bookId = bt1.id " +
+            "      WHERE (title, labelId) IN " +
+            "          (SELECT b.title AS title, lt.id AS labelId FROM book_table AS b " +
+            "        LEFT JOIN book_labels AS bl ON bl.bookId = b.id " +
+            "             JOIN label_table as lt on lt.id = bl.labelId " +
+            "            WHERE lt.type = 1 " +
+            "     GROUP BY title, name HAVING count(*) > 1) " +
+            "UNION " +
+            "    SELECT id FROM book_table " +
+            "     WHERE isbn != '' " +
+            "    GROUP BY isbn HAVING count(*) > 1 ))")
     suspend fun getDuplicateBookCount(): Int
 
     @Query("SELECT COUNT(*) FROM book_table " +

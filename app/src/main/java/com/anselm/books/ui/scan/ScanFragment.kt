@@ -12,6 +12,7 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -51,8 +52,7 @@ class ScanFragment: BookFragment() {
         ItemTouchHelper(ScanItemTouchHelper(adapter)).attachToRecyclerView(binding.idRecycler)
         // For now, that's your only option out of scanning.
         binding.idDoneButton.setOnClickListener {
-            saveAllMatches()
-            findNavController().popBackStack()
+            stopCamera()
         }
 
         // Checks permissions and sets up the camera.
@@ -141,6 +141,23 @@ class ScanFragment: BookFragment() {
 
     private fun onLookupResultClick(result: LookupResult) {
         Log.d(TAG, "${result.tag} clicked.")
+    }
+
+    private fun stopCamera() {
+        // Stops the camera.
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+        cameraProviderFuture.addListener({
+            val cameraProvider = cameraProviderFuture.get()
+            cameraProvider.unbindAll()
+        }, ContextCompat.getMainExecutor(requireContext()))
+        binding.idViewFinder.isVisible = false
+        binding.idDoneButton.isVisible = false
+        // Gets ready for some cleanup work.
+        binding.idSaveButton.isVisible = true
+        binding.idSaveButton.setOnClickListener {
+            saveAllMatches()
+            findNavController().popBackStack()
+        }
     }
 
     override fun onDestroy() {

@@ -130,5 +130,6 @@
     <string name="reset_database_confirmation">This will remove all books, are you sure you want to proceed?</string>
     <string name="lookup_use_last_location_prompt">Use last physical location?</string>
     <string name="lookup_use_only_existing_genres_prompt">Import existing genres only?</string>
+    <string name="save">Save</string>
 
 </resources>
