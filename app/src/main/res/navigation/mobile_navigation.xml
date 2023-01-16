@@ -104,7 +104,13 @@
         android:name="com.anselm.books.ui.details.DetailsFragment"
         tools:layout="@layout/fragment_details" >
 
-        <argument android:name="bookId" app:argType="long" />
+        <argument android:name="bookId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <argument android:name="book"
+            app:argType="com.anselm.books.database.Book"
+            app:nullable="true"
+            android:defaultValue="@null" />
 
         <action android:id="@+id/toEditFragment"
             app:destination="@id/nav_edit" />
@@ -123,7 +129,8 @@
             app:argType="long"
             android:defaultValue="-1L"/>
         <argument android:name="book"
-            app:argType="com.anselm.books.database.Book" app:nullable="true"
+            app:argType="com.anselm.books.database.Book"
+            app:nullable="true"
             android:defaultValue="@null"/>
     </fragment>
 
@@ -156,6 +163,10 @@
         android:id="@+id/nav_scan"
         android:name="com.anselm.books.ui.scan.ScanFragment"
         tools:layout="@layout/fragment_scan" >
+
+        <action android:id="@+id/toDetailsFragment"
+            app:destination="@id/nav_details" />
+
     </fragment>
 
 </navigation>

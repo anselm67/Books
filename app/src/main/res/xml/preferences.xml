@@ -48,6 +48,7 @@
         <CheckBoxPreference
             app:key="lookup_use_last_location"
             android:title="@string/lookup_use_last_location_prompt" />
+
         <EditTextPreference
             app:key="lookup_use_last_location_value" android:defaultValue="" />
 

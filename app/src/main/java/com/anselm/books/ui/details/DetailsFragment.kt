@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -28,11 +27,13 @@ import com.anselm.books.databinding.RecyclerviewDetailsLabelItemBinding
 import com.anselm.books.ui.widgets.BookFragment
 import com.anselm.books.ui.widgets.MenuItemHandler
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class DetailsFragment : BookFragment() {
     private var _binding: FragmentDetailsBinding? = null
     private val binding get() = _binding!!
-    private var bookId: Long = -1L
+    private var _book: Book? = null
+    private val book get() = _book!!
     private lateinit var navController: NavController
 
     override fun onCreateView(
@@ -47,30 +48,35 @@ class DetailsFragment : BookFragment() {
         val repository = BooksApplication.app.repository
         val safeArgs: DetailsFragmentArgs by navArgs()
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            val book: Book? = repository.load(safeArgs.bookId, decorate = true)
-            if (book != null) {
-                bookId = book.id
-                binding.bind(inflater, book)
-
-                // We have to wait for the book to setup the menu.
-                handleMenu(
-                    MenuItemHandler(R.id.idDeleteBook, {
-                        val builder = AlertDialog.Builder(requireActivity())
-                        builder.setMessage(getString(R.string.delete_book_confirmation, book.title))
-                            .setPositiveButton(R.string.yes) { _, _ -> deleteBook(book) }
-                            .setNegativeButton(R.string.no) { _, _ -> }
-                            .show()
-                    }),
-                )
-
-            } else {
-                navController.popBackStack()
+        if (safeArgs.bookId > 0) {
+            runBlocking {
+                _book = repository.load(safeArgs.bookId, decorate = true)!!
             }
+        } else {
+            _book = safeArgs.book
+        }
+        if (_book == null) {
+            navController.popBackStack()
+        }
+
+        binding.bind(inflater, book)
+
+        // We have to wait for the book to setup the menu. And we can't delete a book that
+        // hasn't been saved yet, e.g. a scanned book.
+        if (book.id > 0) {
+            handleMenu(
+                MenuItemHandler(R.id.idDeleteBook, {
+                    val builder = AlertDialog.Builder(requireActivity())
+                    builder.setMessage(getString(R.string.delete_book_confirmation, book.title))
+                        .setPositiveButton(R.string.yes) { _, _ -> deleteBook(book) }
+                        .setNegativeButton(R.string.no) { _, _ -> }
+                        .show()
+                }),
+            )
         }
 
         binding.fabEditButton.setOnClickListener {
-            val action = DetailsFragmentDirections.toEditFragment(bookId)
+            val action = DetailsFragmentDirections.toEditFragment(book = book)
             navController.navigate(action)
         }
 

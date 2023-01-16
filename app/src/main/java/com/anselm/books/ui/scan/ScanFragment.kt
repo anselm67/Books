@@ -13,6 +13,8 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -25,6 +27,7 @@ import com.anselm.books.database.Book
 import com.anselm.books.databinding.FragmentScanBinding
 import com.anselm.books.databinding.RecyclerviewScanIsbnBinding
 import com.anselm.books.ui.widgets.BookFragment
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -35,6 +38,7 @@ class ScanFragment: BookFragment() {
     private val binding get() = _binding!!
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var adapter: IsbnArrayAdapter
+    private lateinit var viewModel: ScanViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,22 +48,40 @@ class ScanFragment: BookFragment() {
         super.onCreateView(inflater, container, savedInstanceState)
         _binding = FragmentScanBinding.inflate(inflater, container, false)
 
+        val doCamera =  ! ::viewModel.isInitialized || ! viewModel.isDone
+        val model: ScanViewModel by viewModels()
+        viewModel = model
+
         // Sets up the recycler view.
-        adapter = IsbnArrayAdapter({ updateLookupStats(it)  }, { onLookupResultClick(it) })
+        adapter = IsbnArrayAdapter(
+            viewModel.lookupResults,
+            { updateLookupStats(it)  },
+            { onLookupResultClick(it) },
+            viewLifecycleOwner.lifecycleScope
+        )
         binding.idRecycler.adapter = adapter
         binding.idRecycler.layoutManager = LinearLayoutManager(binding.idRecycler.context)
 
-        ItemTouchHelper(ScanItemTouchHelper(adapter)).attachToRecyclerView(binding.idRecycler)
-        // For now, that's your only option out of scanning.
-        binding.idDoneButton.setOnClickListener {
-            stopCamera()
-        }
+        // Starts the camera if we haven't stopped it already.
+        if ( doCamera ) {
+            ItemTouchHelper(ScanItemTouchHelper(adapter)).attachToRecyclerView(binding.idRecycler)
+            // For now, that's your only option out of scanning.
+            binding.idDoneButton.setOnClickListener {
+                stopCamera()
+            }
 
-        // Checks permissions and sets up the camera.
-        if ( checkCameraPermission()) {
-            startCamera()
+            // Checks permissions and sets up the camera.
+            if (checkCameraPermission()) {
+                startCamera()
+            }
+            cameraExecutor = Executors.newSingleThreadExecutor()
+            binding.idSaveButton.isVisible = false
+            binding.idDoneButton.isVisible = true
+        } else {
+            binding.idViewFinder.isVisible = false
+            binding.idSaveButton.isVisible = true
+            binding.idDoneButton.isVisible = false
         }
-        cameraExecutor = Executors.newSingleThreadExecutor()
         return binding.root
     }
 
@@ -140,7 +162,10 @@ class ScanFragment: BookFragment() {
     }
 
     private fun onLookupResultClick(result: LookupResult) {
-        Log.d(TAG, "${result.tag} clicked.")
+        if (viewModel.isDone && result.book != null) {
+            val action = ScanFragmentDirections.toDetailsFragment(book = result.book)
+            findNavController().navigate(action)
+        }
     }
 
     private fun stopCamera() {
@@ -152,6 +177,7 @@ class ScanFragment: BookFragment() {
         }, ContextCompat.getMainExecutor(requireContext()))
         binding.idViewFinder.isVisible = false
         binding.idDoneButton.isVisible = false
+        viewModel.isDone = true
         // Gets ready for some cleanup work.
         binding.idSaveButton.isVisible = true
         binding.idSaveButton.setOnClickListener {
@@ -168,8 +194,10 @@ class ScanFragment: BookFragment() {
 
 
 class LookupResult(
+    val isbn: String,
     var tag: String? = null,
     var book: Book? = null,
+    var isDuplicate: Boolean = false,
     var exception: Exception? = null,
     var errorMessage: String? = null,
 ) {
@@ -184,65 +212,89 @@ data class LookupStats(
 )
 
 class IsbnArrayAdapter(
+    private val dataSource: MutableList<LookupResult>,
     private val statsListener: (LookupStats) -> Unit,
     private val onClick: (LookupResult) -> Unit,
+    private val viewScope: CoroutineScope,
 ): RecyclerView.Adapter<IsbnArrayAdapter.ViewHolder>() {
-    private val dataSource = mutableListOf<Pair<String, LookupResult>>()
     private val stats = LookupStats()
 
     inner class ViewHolder(
         val binding: RecyclerviewScanIsbnBinding,
     ): RecyclerView.ViewHolder(binding.root) {
 
-        private fun updateStatus(loading: Boolean, checked: Boolean, error: Boolean) {
+        private fun updateStatus(
+            loading: Boolean = false,
+            checked: Boolean = false,
+            error: Boolean = false,
+            duplicate: Boolean = false,
+        ) {
             binding.idLoadProgress.visibility = if (loading) View.VISIBLE else View.GONE
             binding.idCheckMark.visibility = if (checked) View.VISIBLE else View.GONE
             binding.idErrorMark.visibility = if (error) View.VISIBLE else View.GONE
+            binding.idDuplicateMark.visibility = if (duplicate) View.VISIBLE else View.GONE
         }
 
-        fun bind(item: Pair<String, LookupResult>) {
+        fun bind(result: LookupResult) {
             // We always have at least an ISBN to display.
-            val (isbn, result) = item
-            binding.idISBNText.text = isbn
+            binding.idISBNText.text = result.isbn
             binding.root.setOnClickListener { onClick(result) }
             if (result.loading) {
-                updateStatus(true, checked = false, error = false)
+                updateStatus(loading = true)
                 return
             }
             // Results are back.
             if (result.book != null) {
-                // A match wa found, fill in the bindings.
-                binding.idTitleText.text = result.book!!.title
-                binding.idAuthorText.text = result.book!!.authors.joinToString { it.name }
-                val uri = app.imageRepository.getCoverUri(result.book!!)
-                if (uri != null) {
-                    GlideApp.with(app.applicationContext)
-                        .load(uri)
-                        .placeholder(R.mipmap.broken_cover_icon_foreground)
-                        .into(binding.idCoverImage)
-                } else {
-                    GlideApp.with(app.applicationContext)
-                        .load(R.mipmap.ic_book_cover)
-                        .into(binding.idCoverImage)
-                }
-                // Hide the progress, replace it with the checkmark.
-                updateStatus(loading = false, checked = true, error = false)
-                binding.idCheckMark.visibility = View.VISIBLE
+                bindWithBook(result)
             } else {
-                // Clears the image in case this holder was used by a match before.
+                bindNotFound(result)
+            }
+        }
+
+        private fun bindWithBook(result: LookupResult) {
+            check(result.book != null) { "Expected a match i LookupResult."}
+            // Launch duplicate detection which will update the status UI.
+            // FIXME We should spare the lookup when it's already been done. eg from model.
+            viewScope.launch {
+                // Hide the progress, replace it with the checkmark.
+                if (app.repository.getDuplicates(result.book!!).isEmpty()) {
+                    updateStatus(checked = true)
+                } else {
+                    result.isDuplicate = true
+                    updateStatus(duplicate = true)
+                }
+            }
+            // Fills in the bindings.
+            binding.idTitleText.text = result.book!!.title
+            binding.idAuthorText.text = result.book!!.authors.joinToString { it.name }
+            val uri = app.imageRepository.getCoverUri(result.book!!)
+            if (uri != null) {
+                GlideApp.with(app.applicationContext)
+                    .load(uri)
+                    .placeholder(R.mipmap.broken_cover_icon_foreground)
+                    .into(binding.idCoverImage)
+            } else {
                 GlideApp.with(app.applicationContext)
                     .load(R.mipmap.ic_book_cover)
                     .into(binding.idCoverImage)
-                // Some kind of error occurred: no match or a real error.
-                if ( result.errorMessage != null ) {
-                    binding.idTitleText.text = result.errorMessage ?: result.exception!!.message
-                } else {
-                    binding.idTitleText.text = app.getString(R.string.no_match_found)
-                    binding.idAuthorText.text = app.getString(R.string.manual_input_required)
-                }
-                updateStatus(false, checked = false, error = true)
             }
         }
+
+        private fun bindNotFound(result: LookupResult) {
+            // Clears the image in case this holder was used by a match before.
+            GlideApp.with(app.applicationContext)
+                .load(R.mipmap.ic_book_cover)
+                .into(binding.idCoverImage)
+            // Some kind of error occurred: no match or a real error.
+            if ( result.errorMessage != null ) {
+                binding.idTitleText.text = result.errorMessage ?: result.exception!!.message
+            } else {
+                binding.idTitleText.text = app.getString(R.string.no_match_found)
+                binding.idAuthorText.text = app.getString(R.string.manual_input_required)
+            }
+            updateStatus(error = true)
+        }
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
@@ -264,9 +316,9 @@ class IsbnArrayAdapter(
 
     fun removeAt(position: Int) {
         check (position >= 0 && position < dataSource.size)
-        val (_, lookup) = dataSource[position]
-        if (lookup.tag != null) {
-            app.cancelHttpRequests(lookup.tag!!)
+        val result = dataSource[position]
+        if (result.tag != null) {
+            app.cancelHttpRequests(result.tag!!)
         }
         dataSource.removeAt(position)
         notifyItemRemoved(position)
@@ -274,8 +326,8 @@ class IsbnArrayAdapter(
 
     @SuppressLint("NotifyDataSetChanged")
     fun insertFirst(isbn: String) {
-        val lookup = LookupResult()
-        dataSource.add(0, Pair(isbn, lookup))
+        val lookup = LookupResult(isbn)
+        dataSource.add(lookup)
         notifyItemInserted(0)
         stats.lookupCount.incrementAndGet()
         lookup.tag = app.lookup(isbn, { msg, e ->
@@ -304,6 +356,6 @@ class IsbnArrayAdapter(
     }
 
     fun getAllBooks(): List<Book> {
-        return dataSource.mapNotNull { (_, result) -> result.book }
+        return dataSource.mapNotNull { it.book }
     }
 }
