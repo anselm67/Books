@@ -1,18 +1,18 @@
 package com.anselm.books.lookup
 
 import android.util.Log
+import com.anselm.books.BooksApplication
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import okhttp3.Call
 import okhttp3.Callback
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.internal.headersContentLength
 import java.io.IOException
 
 class AmazonImageClient {
-    private val client = OkHttpClient()
+    private val client by lazy { BooksApplication.app.okHttp }
 
     private fun setCoverIfExists(
         tag: String,
@@ -28,6 +28,7 @@ class AmazonImageClient {
             .head()
             .build()
         val call = client.newCall(req)
+        Log.d(TAG, "$tag: $url")
         call.enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e(TAG, "$url: HTTP Request failed, onFailure (ignored).", e)
