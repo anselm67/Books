@@ -9,11 +9,10 @@ import android.widget.Button
 import android.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.anselm.books.*
@@ -63,13 +62,17 @@ class SearchFragment : ListFragment() {
                 bindSearch(it)
             }
         )
-        // We start with a fresh query, initialized with our arguments.
-        val model: BookViewModel by viewModels { BookViewModel.Factory }
-        if (safeArgs.query != null && ! isModelInitialized()) {
-            bookViewModel = model
+
+        /*
+         * We start with a fresh query, initialized with our arguments.
+         * WARNING: The bookViewModel assignment initializes bookViewModel, so we have to get
+         * isInitialized *before* we execute it.
+         */
+        val isInitialized = isModelInitialized()
+        bookViewModel = ViewModelProvider(this, BookViewModel.Factory)[BookViewModel::class.java]
+        if (safeArgs.query != null && ! isInitialized) {
             changeQuery(safeArgs.query!!)
         } else {
-            bookViewModel = model
             changeQuery(bookViewModel.query)
         }
 

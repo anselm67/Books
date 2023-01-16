@@ -13,7 +13,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -50,8 +50,7 @@ class ScanFragment: BookFragment() {
 
         val modelInitialized = ::viewModel.isInitialized
         val doCamera =  ! modelInitialized || ! viewModel.isDone
-        val model: ScanViewModel by viewModels()
-        viewModel = model
+        viewModel = ViewModelProvider(this)[ScanViewModel::class.java]
 
         // Sets up the recycler view.
         adapter = IsbnArrayAdapter(

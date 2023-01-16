@@ -6,8 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
@@ -63,8 +63,8 @@ class HomeFragment : ListFragment() {
         binding.fabScanButton.setOnClickListener {
             showBottomAddDialog()
         }
-        val model: BookViewModel by viewModels { BookViewModel.Factory }
-        bookViewModel = model
+        bookViewModel = ViewModelProvider(this, BookViewModel.Factory)[BookViewModel::class.java]
+
         changeQuery(bookViewModel.query)
         return root
     }
