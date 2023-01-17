@@ -52,6 +52,10 @@ class BooksApplication : Application() {
         PreferenceManager.getDefaultSharedPreferences(applicationContext)
     }
 
+    val bookPrefs: BooksPreferences by lazy {
+        BooksPreferences(prefs)
+    }
+
     val defaultSortOrder: Int get() {
         return when (prefs.getString("sort_order", "DateAdded")) {
             "DateAdded" -> BookDao.SortByDateAdded

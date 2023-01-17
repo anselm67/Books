@@ -32,7 +32,7 @@ class iTuneClient: JsonClient() {
             Pair(book::authors, stringToList(item.optString("artistName")).map {
                 app.repository.labelB(Label.Type.Authors, it)
             }),
-            Pair(book::genres,  if ( app.prefs.getBoolean("lookup_use_only_existing_genres", false)) {
+            Pair(book::genres,  if ( app.bookPrefs.useOnlyExistingGenres) {
                 arrayToList<String>(item.optJSONArray("genres"))
                     .mapNotNull { app.repository.labelIfExistsB(Label.Type.Genres, it) }
             } else {

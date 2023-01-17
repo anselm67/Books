@@ -241,10 +241,10 @@ class DetailsFragment : BookFragment() {
             Triple(R.string.summaryLabel, book::summary.getter, null),
             Triple(R.string.dateAddedLabel, book::dateAdded.getter, null),
         )
-        if (app.prefs.getBoolean("display_last_modified", false)) {
+        if (app.bookPrefs.displayLastModified) {
             fields.add(Triple(R.string.lastModifiedLabel, book::lastModified.getter, null))
         }
-        if (app.prefs.getBoolean("display_book_id", false)) {
+        if (app.bookPrefs.displayBookId) {
             fields.add(Triple(R.string.bookIdLabel, book::sqlId.getter, null))
         }
 

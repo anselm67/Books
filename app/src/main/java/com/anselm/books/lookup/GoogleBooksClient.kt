@@ -54,7 +54,7 @@ class GoogleBooksClient: JsonClient() {
             // Label-fields:
             Pair(book::authors, arrayToList<String>(volumeInfo.optJSONArray("authors"))
                 .map { repository.labelB(Label.Type.Authors, it) }),
-            if ( app.prefs.getBoolean("lookup_use_only_existing_genres", false)) {
+            if ( app.bookPrefs.useOnlyExistingGenres) {
                 Pair(book::genres, arrayToList<String>(volumeInfo.optJSONArray("categories"))
                     .mapNotNull { repository.labelIfExistsB(Label.Type.Genres, it) })
             } else {

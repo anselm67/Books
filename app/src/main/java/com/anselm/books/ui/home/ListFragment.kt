@@ -96,7 +96,7 @@ open class ListFragment: BookFragment() {
      */
     private fun bindAdapter() {
         val onEditClick: ((Book) -> Unit)?
-            = if (app.prefs.getBoolean("enable_shortcut_to_edit", true)) {
+            = if (app.bookPrefs.enableShortcutToEdit) {
                 { book -> onEditClick(book) }
             } else {
                 null

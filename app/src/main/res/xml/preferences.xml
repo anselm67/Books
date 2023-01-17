@@ -47,6 +47,7 @@
 
         <CheckBoxPreference
             app:key="lookup_use_only_existing_genres"
+            android:defaultValue="false"
             android:title="@string/lookup_use_only_existing_genres_prompt" />
     </PreferenceCategory>
 

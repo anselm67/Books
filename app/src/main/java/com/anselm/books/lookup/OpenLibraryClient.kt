@@ -130,7 +130,7 @@ class OpenLibraryClient: JsonClient() {
     ) {
         setIfEmpty(
             Pair(book::summary, getDescription(work)),
-            Pair(book::genres, if ( app.prefs.getBoolean("lookup_use_only_existing_genres", false)) {
+            Pair(book::genres, if ( app.bookPrefs.useOnlyExistingGenres) {
                 arrayToList<String>(work.optJSONArray("subjects"))
                     .mapNotNull { app.repository.labelIfExistsB(Label.Type.Genres, it) }
             } else {
