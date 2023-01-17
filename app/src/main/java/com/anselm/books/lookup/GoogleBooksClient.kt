@@ -43,7 +43,7 @@ class GoogleBooksClient: JsonClient() {
         book.isbn = extractIsbn(volumeInfo)
         book.title = volumeInfo.optString("title", "")
         book.subtitle = volumeInfo.optString("subtitle", "")
-        // FIXME book.yearPublished
+        book.yearPublished = publishDate(volumeInfo.optString("publishedDate", ""))
         book.summary = volumeInfo.optString("description")
         book.imgUrl = volumeInfo.optJSONObject("imageLinks")?.optString("thumbnail") ?: ""
         book.language = getLanguage(volumeInfo.optString("language", ""))

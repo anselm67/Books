@@ -2,15 +2,11 @@ package com.anselm.books.lookup
 
 import android.util.Log
 import com.anselm.books.BooksApplication.Companion.app
-import com.anselm.books.database.Book
 import com.anselm.books.TAG
+import com.anselm.books.database.Book
 import com.anselm.books.database.Label
-import okhttp3.*
+import okhttp3.Call
 import org.json.JSONObject
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
-import java.time.temporal.ChronoField
-import java.time.temporal.TemporalAccessor
 
 class OpenLibraryClient: JsonClient() {
     private val basedir = "https://openlibrary.org"
@@ -60,19 +56,6 @@ class OpenLibraryClient: JsonClient() {
             return "https://covers.openlibrary.org/b/id/${coverId}-L.jpg"
         }
         return ""
-    }
-
-    private fun publishDate(obj: JSONObject): TemporalAccessor? {
-        val value = obj.optString("publish_date") ?: return null
-        for (fmt in dateFormatters) {
-            try {
-                return fmt.parse(value)
-            } catch (e: DateTimeParseException) {
-                // Ignored.
-            }
-        }
-        Log.d(TAG, "Failed to parse date: $value.")
-        return null
     }
 
     // typedObject -> { "type": "/type/<some-type>", "valueKey": "the value" }
@@ -190,15 +173,6 @@ class OpenLibraryClient: JsonClient() {
         }
     }
 
-    private val dateFormatters = arrayOf(
-        DateTimeFormatter.ofPattern("MMMM d, yyyy"),
-        DateTimeFormatter.ofPattern("MMMM yyyy"),
-        DateTimeFormatter.ofPattern("MMM d, yyyy"),
-        DateTimeFormatter.ofPattern("yyyy-MM"),
-        DateTimeFormatter.ofPattern("yyyy MMMM"),
-        DateTimeFormatter.ofPattern("yyyy"),
-    )
-
     private fun convert(
         tag: String,
         obj: JSONObject,
@@ -214,11 +188,7 @@ class OpenLibraryClient: JsonClient() {
         book.publisher = app.repository.labelOrNullB(
             Label.Type.Publisher, asStringArray(obj, "publishers").joinToString())
         book.imgUrl = coverUrl(obj)
-        val date = publishDate(obj)
-        if (date != null) {
-            // TODO We could get additional fields and use all the available precision of date.
-            book.yearPublished = date.get(ChronoField.YEAR).toString()
-        }
+        book.yearPublished = publishDate(obj.optString("publish_date", ""))
         // Continues our journey to fetch additional infos about the work, when available:
         doWorkAndAuthors(tag, book, obj, onError, onBook)
     }

@@ -93,6 +93,12 @@ class OclcClient: SimpleClient() {
         return matchResult?.groups?.get(1)?.value ?: ""
     }
 
+    private val yearRE = Regex(".*(^|\\s+|\\p{P}+|\\p{S}+)([0-9]{4})($|\\s+).*")
+    private fun extractYear(s: String): String {
+        val matchResult = yearRE.matchEntire(s)
+        return matchResult?.groups?.get(2)?.value ?: ""
+    }
+
     private fun parseXml(
         src: String,
         text: String,
@@ -131,7 +137,7 @@ class OclcClient: SimpleClient() {
                             book.numberOfPages = extractNumberOfPages(value)
                         }
                         "dc:date" -> {
-                            value.toIntOrNull().let { book.yearPublished = it.toString() }
+                            book.yearPublished = extractYear(value)
                         }
                         "dc:publisher" -> {
                             book.publisher = app.repository.labelB(Label.Type.Publisher, value)
