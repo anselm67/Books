@@ -15,14 +15,14 @@ class LookupCall(
     private val call: Call,
 ) {
     private var onResponseCallback: ((Response) -> Unit) ?= null
-    private var onErrorCallback: ((e: IOException) -> Unit) ?= null
+    private var onErrorCallback: ((e: Exception) -> Unit) ?= null
 
     fun onResponse(callback: (Response) -> Unit): LookupCall {
         this.onResponseCallback = callback
         return this
     }
 
-    fun onError(callback: (e: IOException) -> Unit): LookupCall {
+    fun onError(callback: (e: Exception) -> Unit): LookupCall {
         this.onErrorCallback = callback
         return this
     }
@@ -35,7 +35,12 @@ class LookupCall(
 
             override fun onResponse(call: Call, response: Response) {
                 response.use {
-                    onResponseCallback?.invoke(response)
+                    try {
+                        onResponseCallback?.invoke(response)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "${call.request().url} handling failed.", e)
+                        onErrorCallback?.invoke(e)
+                    }
                 }
             }
         })

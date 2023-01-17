@@ -4,7 +4,6 @@ import android.util.Log
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import okhttp3.internal.headersContentLength
-import java.io.IOException
 
 class AmazonImageClient: SimpleClient() {
 
@@ -22,7 +21,7 @@ class AmazonImageClient: SimpleClient() {
                     }
                     onCompletion()
                 }
-                .onError { e: IOException ->
+                .onError { e: Exception ->
                     Log.e(TAG, "$url http request failed.", e)
                     onCompletion()
                 }

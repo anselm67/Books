@@ -16,21 +16,20 @@ class OclcClient: SimpleClient() {
     private val wsKey = "REDACTED"
     private var parser: XmlPullParser = Xml.newPullParser()
 
-    private fun expectTag(name: String) {
-        if (parser.next() != START_TAG || parser.name != name) {
-            throw XmlPullParserException("Expected $name tag, got ${parser.name}")
-        }
-    }
-
     private fun until(name: String, handle: (String) -> Unit) {
         while (parser.next() != END_TAG) {
-            if (parser.next() == START_TAG && parser.name == name) {
-                if (parser.next() != TEXT) {
-                    throw XmlPullParserException("Expected TEXT.")
+            if (parser.eventType == START_TAG) {
+                if (parser.name == name) {
+                    if (parser.next() != TEXT) {
+                        throw XmlPullParserException("Expected TEXT.")
+                    } else {
+                        handle(parser.text)
+                        check(parser.next() == END_TAG)
+                        return
+                    }
                 } else {
-                    handle(parser.text)
-                    check(parser.next() == END_TAG)
-                    return
+                    parser.next() // TEXT
+                    parser.next() // END_TAG
                 }
             }
         }
@@ -67,6 +66,7 @@ class OclcClient: SimpleClient() {
     }
 
     private fun parseXml(
+        book: Book,
         src: String,
         text: String,
     ) {
@@ -76,7 +76,6 @@ class OclcClient: SimpleClient() {
         when (parser.name) {
             "oclcdcs" -> {
                 expect(TEXT)
-                val book = Book()
                 val authors = emptyList<Label>().toMutableList()
                 while (parser.next() == START_TAG) {
                     val name = parser.name
@@ -121,7 +120,8 @@ class OclcClient: SimpleClient() {
                 setIfEmpty(book::authors, authors)
             }
             "diagnostics" -> {
-                expectTag("diagnostic")
+                while (parser.next() != START_TAG) { /* Intended empty */ }
+                check(parser.name == "diagnostic")
                 until("message") {
                     Log.e(TAG, "$src: request failed, $it")
                 }
@@ -156,7 +156,7 @@ class OclcClient: SimpleClient() {
         request(tag, url)
             .onResponse {
                 if (it.isSuccessful) {
-                    parseXml(url, it.body!!.string())
+                    parseXml(book, url, it.body!!.string())
                 } else {
                     Log.e(TAG, "$url: HTTP request returned status ${it.code}")
                 }
