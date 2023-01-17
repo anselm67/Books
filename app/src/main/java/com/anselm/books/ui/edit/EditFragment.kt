@@ -268,17 +268,14 @@ class EditFragment: BookFragment() {
             return
         }
         app.loading(true, "performMagic")
-        app.lookup(book.isbn, { msg, _ ->
-            app.loading(false, "performMagic")
-            app.toast("Lookup failed: ${msg}")
-        }, {
+        app.lookupService.lookup(book.isbn) {
             app.loading(false, "performMagic")
             if (it == null) {
-                app.toast("Unable to find a match.")
+                app.toast("No match found, no magic!")
             } else {
                 mergeFrom(it)
             }
-        })
+        }
     }
 }
 

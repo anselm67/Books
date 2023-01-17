@@ -2,7 +2,6 @@ package com.anselm.books.lookup
 
 import android.util.Log
 import com.anselm.books.TAG
-import com.anselm.books.database.Book
 import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
@@ -13,11 +12,21 @@ import java.time.temporal.ChronoField
 
 abstract class JsonClient: SimpleClient() {
 
+    protected fun stringToList(item: String): List<String> {
+        return if (item.isEmpty()) { emptyList() } else { listOf(item) }
+    }
+
     protected inline fun <reified T: Any> arrayToList(a: JSONArray?): List<T> {
         return if (a == null) {
             emptyList()
         } else {
-            (0 until a.length()).map { (a.get(it) as T) }
+            (0 until a.length()).mapNotNull {
+                when (val item = (a.get(it) as T)) {
+                    is String -> { item.ifEmpty { null } }
+                    is List<*> -> { item.ifEmpty { null } }
+                    else -> { item }
+                }
+            }
         }
     }
 
@@ -44,29 +53,18 @@ abstract class JsonClient: SimpleClient() {
         Log.d(TAG, "Failed to parse date: $s.")
         return ""
     }
-    override fun handleResponse(
-        resp: Response,
-        onError: (message: String, e: Exception?) -> Unit,
-        onBook: (Book?) -> Unit,
-        onSuccess: ((JSONObject) -> Unit)?
-    ) {
-        val url = resp.request.url
+
+    protected fun parse(resp: Response): JSONObject? {
         if (resp.isSuccessful) {
             val tok = JSONTokener(resp.body!!.string())
             val obj = tok.nextValue()
             if (obj !is JSONObject) {
-                onError("$url: parse failed got a ${obj.javaClass.name}.", null)
+                Log.e(TAG, "${resp.request.url}: parse failed got a ${obj.javaClass.name}.")
             } else {
-                onSuccess?.invoke(obj)
-            }
-        } else {
-            if (resp.code == 404) {
-                //That's a no-match.
-                onBook(null)
-            } else {
-                // A real error.
-                onError("$url: HTTP request failed, status $resp", null)
+                return obj
             }
         }
+        return null
     }
+
 }

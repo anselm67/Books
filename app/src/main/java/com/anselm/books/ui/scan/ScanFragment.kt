@@ -142,7 +142,6 @@ class ScanFragment: BookFragment() {
             stats.lookupCount.get(),
             stats.matchCount.get(),
             stats.noMatchCount.get(),
-            stats.errorCount.get(),
         )
     }
 
@@ -211,7 +210,6 @@ class LookupResult(
 
 data class LookupStats(
     val lookupCount: AtomicInteger = AtomicInteger(0),
-    val errorCount: AtomicInteger = AtomicInteger(0),
     val matchCount: AtomicInteger = AtomicInteger(0),
     val noMatchCount: AtomicInteger = AtomicInteger(0),
 )
@@ -328,17 +326,7 @@ class IsbnArrayAdapter(
         dataSource.add(lookup)
         notifyItemInserted(0)
         stats.lookupCount.incrementAndGet()
-        lookup.tag = app.lookup(isbn, { msg, e ->
-            Log.e(TAG, "Failed to lookup $isbn.", e)
-            lookup.tag = null
-            stats.errorCount.incrementAndGet()
-            lookup.exception = e
-            lookup.errorMessage = msg
-            app.postOnUiThread {
-                notifyDataSetChanged()
-                statsListener(stats)
-            }
-        }, { book ->
+        lookup.tag = app.lookupService.lookup(isbn) { book ->
             if (book == null) {
                 stats.noMatchCount.incrementAndGet()
             } else {
@@ -350,7 +338,7 @@ class IsbnArrayAdapter(
                 notifyDataSetChanged()
                 statsListener(stats)
             }
-        })
+        }
     }
 
     fun getAllBooks(): List<Book> {

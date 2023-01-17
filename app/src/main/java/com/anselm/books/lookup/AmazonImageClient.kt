@@ -1,65 +1,33 @@
 package com.anselm.books.lookup
 
 import android.util.Log
-import com.anselm.books.BooksApplication
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Request
-import okhttp3.Response
 import okhttp3.internal.headersContentLength
 import java.io.IOException
 
-class AmazonImageClient {
-    private val client by lazy { BooksApplication.app.okHttp }
+class AmazonImageClient: SimpleClient() {
 
-    private fun setCoverIfExists(
-        tag: String,
-        book: Book,
-        url: String,
-        onBook: (Book) -> Unit,
-    ): Call {
-        val req = Request.Builder()
-            .header("Accept", "*/*")
-            .header("Accept-Encoding", "identity")
-            .tag(tag)
-            .url(url)
-            .head()
-            .build()
-        val call = client.newCall(req)
-        Log.d(TAG, "$tag: $url")
-        call.enqueue(object: Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                Log.e(TAG, "$url: HTTP Request failed, onFailure (ignored).", e)
-                onBook(book)
-            }
+    override fun lookup(tag: String, book: Book, onCompletion: () -> Unit) {
+        if (book.imgUrl.isNotEmpty() || book.isbn.length <= 3) {
+            onCompletion()
+        } else {
+            val key = book.isbn.substring(3)
+            val url = "http://images.amazon.com/images/P/$key.01Z.jpg"
 
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
+            request(tag, url, useHead = true)
+                .onResponse { response ->
                     if (response.isSuccessful && response.headersContentLength() > 50) {
                         book.imgUrl = url
                     }
-                    onBook(book)
+                    onCompletion()
                 }
-            }
-        })
-        return call
-    }
-
-    fun cover(tag: String, book: Book, onBook: (Book) -> Unit): Call? {
-        if (book.isbn.length <= 3) {
-            return null
+                .onError { e: IOException ->
+                    Log.e(TAG, "$url http request failed.", e)
+                    onCompletion()
+                }
+                .run()
         }
-        val key = book.isbn.substring(3)
-        val amazonCoverUrl = "http://images.amazon.com/images/P/$key.01Z.jpg"
-
-        try {
-            return setCoverIfExists(tag, book, amazonCoverUrl, onBook)
-        } catch (e: Exception) {
-            Log.e(TAG, "$amazonCoverUrl: HTTP Request failed (ignored).", e)
-            onBook(book)
-        }
-        return null
     }
 }
+

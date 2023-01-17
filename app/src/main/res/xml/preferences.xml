@@ -18,7 +18,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory app:title="@string/import_preferences_header">
+    <PreferenceCategory app:title="Import / Export">
 
         <Preference
             app:key="import_preference"
@@ -34,16 +34,9 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:key="lookup_service_preferences"
-        app:title="@string/preference_category_lookup_service">
-
-        <DropDownPreference
-            app:key="lookup_service"
-            android:defaultValue="Both"
-            android:entries="@array/serviceNames"
-            android:entryValues="@array/serviceIdentifiers"
-            android:title="@string/lookup_service_preference_prompt"
-            app:useSimpleSummaryProvider="true"/>
+    <PreferenceCategory
+        app:key="preferences_import_options"
+        app:title="@string/import_preferences_header">
 
         <CheckBoxPreference
             app:key="lookup_use_last_location"
@@ -55,6 +48,33 @@
         <CheckBoxPreference
             app:key="lookup_use_only_existing_genres"
             android:title="@string/lookup_use_only_existing_genres_prompt" />
+    </PreferenceCategory>
+
+
+    <PreferenceCategory app:key="lookup_service_preferences"
+        app:title="@string/preference_category_lookup_service">
+
+        <CheckBoxPreference app:key="use_google"
+            android:title="Google Books"
+            android:summary="Enable Google Books ISBN lookup."
+            android:defaultValue="true" />
+        <CheckBoxPreference app:key="use_itunes"
+            android:title="iTunes"
+            android:summary="Enable iTunes ISBN lookup."
+            android:defaultValue="true" />
+        <CheckBoxPreference app:key="use_worldcat"
+            android:title="Worldcat"
+            android:summary="Enable Worldcat ISBN lookup."
+            android:defaultValue="true" />
+        <CheckBoxPreference app:key="use_amazon"
+            android:title="Amazon"
+            android:summary="Enable Amazon cover image lookup."
+            android:defaultValue="true" />
+        <CheckBoxPreference app:key="use_open_library"
+            android:title="Open Library"
+            android:summary="Enable OpenLibrary ISBN lookup."
+            android:defaultValue="true" />
+
 
     </PreferenceCategory>
 

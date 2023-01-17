@@ -38,20 +38,8 @@ class OpenLibraryClient: JsonClient() {
         return languages[tag] ?: ""
     }
 
-    private fun asStringArray(obj: JSONObject, key: String): List<String> {
-        val list = obj.optJSONArray(key) ?: return emptyList()
-        return if (list.length() > 0) {
-            val arr = ArrayList<String>()
-            for (i: Int in 0 until list.length())
-                arr.add(list[i] as String)
-            return arr
-        } else {
-            emptyList()
-        }
-    }
-
     private fun coverUrl(obj: JSONObject): String {
-        val coverId = firstOrEmpty(obj,"covers")
+        val coverId = firstOrEmpty(obj, "covers")
         if (coverId != "") {
             return "https://covers.openlibrary.org/b/id/${coverId}-L.jpg"
         }
@@ -88,35 +76,38 @@ class OpenLibraryClient: JsonClient() {
         tag: String,
         book: Book,
         work:JSONObject,
-        onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book?) -> Unit
+        onCompletion: () -> Unit,
     ) {
         val keys = extractAuthorsFromWork(work)
-        if (keys != null && keys.isNotEmpty()) {
-            val calls = arrayOfNulls<Call>(keys.size)
-            val values = arrayOfNulls<String>(keys.size)
-            var done = 0
-            for (i in keys.indices) {
-                calls[i] = (runRequest(tag, "https://openlibrary.org${keys[i]}.json",
-                    {  msg, e ->        // onError fails immediately, ignore further responses.
-                        for (call in calls) {
-                            call?.cancel()
-                        }
-                        onError(msg, e)
-                    },
-                    onBook,
-                    {
-                        values[i] = it.optString("name")
+        if (keys == null || keys.isEmpty()) {
+            onCompletion()
+            return
+        }
+        val calls = arrayOfNulls<Call>(keys.size)
+        val values = arrayOfNulls<String>(keys.size)
+        var done = 0
+        for (i in keys.indices) {
+            val url = "https://openlibrary.org${keys[i]}.json"
+            calls[i] = request(tag, url)
+                .onResponse { response ->
+                    parse(response)?.let { obj ->
+                        values[i] = obj.optString("name")
                         if (++ done == keys.size) {
-                            book.authors = values.filter { ! it.isNullOrEmpty() }
+                            book.authors = values
+                                .filter { ! it.isNullOrEmpty() }
                                 .map { app.repository.labelB(Label.Type.Authors, it!!) }
-                            onBook(book)
+                            onCompletion()
                         }
                     }
-                ))
-            }
-        } else {
-            onBook(book)
+                }
+                .onError {
+                    Log.e(TAG, "$url: http request failed.", it)
+                    for (call in calls) {
+                        call?.cancel()
+                    }
+                    onCompletion()
+                }
+                .run()
         }
     }
 
@@ -135,73 +126,114 @@ class OpenLibraryClient: JsonClient() {
         tag: String,
         book: Book,
         work:JSONObject,
-        onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book?) -> Unit
+        onCompletion: () -> Unit
     ) {
-        book.summary = getDescription(work)
-        if ( app.prefs.getBoolean("lookup_use_only_existing_genres", false)) {
-            book.genres = arrayToList<String>(work.optJSONArray("subjects"))
-                .mapNotNull { app.repository.labelIfExistsB(Label.Type.Genres, it) }
+        setIfEmpty(
+            Pair(book::summary, getDescription(work)),
+            Pair(book::genres, if ( app.prefs.getBoolean("lookup_use_only_existing_genres", false)) {
+                arrayToList<String>(work.optJSONArray("subjects"))
+                    .mapNotNull { app.repository.labelIfExistsB(Label.Type.Genres, it) }
+            } else {
+                book.genres = arrayToList<String>(work.optJSONArray("subjects"))
+                    .map { app.repository.labelB(Label.Type.Genres, it) }
+            }),
+            Pair(book::subtitle, work.optString("subtitle")),
+            Pair(book::imgUrl, coverUrl(work)),
+        )
+        if (book.authors.isEmpty()) {
+            doAuthors(tag, book, work, onCompletion)
         } else {
-            book.genres = arrayToList<String>(work.optJSONArray("subjects"))
-                .map { app.repository.labelB(Label.Type.Genres, it) }
+            onCompletion()
         }
-        if (book.subtitle == "") {
-            book.subtitle = work.optString("subtitle", "")
-        }
-        if (book.imgUrl == "") {
-            book.imgUrl = coverUrl(work)
-        }
-        doAuthors(tag, book, work, onError, onBook)
     }
+
+    private val workProperties = listOf(
+        Book::summary,
+        Book::genres,
+        Book::subtitle,
+        Book::imgUrl,
+        Book::authors,
+    )
 
     private fun doWorkAndAuthors(
         tag: String,
         book: Book,
         obj:JSONObject,
-        onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book?) -> Unit
+        onCompletion: () -> Unit
     ) {
         val key = firstKeyOrNull(obj, "works")
-        if (key == null) {
-            onBook(book)
+        if (key == null || hasAllProperties(book, workProperties)) {
+            onCompletion()
         } else {
             val url = "https://openlibrary.org$key.json"
-            runRequest(tag, url, onError, onBook) {
-                setupWorkAndAuthors(tag, book, it, onError, onBook)
-            }
+            request(tag, url)
+                .onResponse { response ->
+                    parse(response)?.let {
+                        setupWorkAndAuthors(tag, book, it, onCompletion)
+                    }
+                }
+                .onError {
+                    Log.e(TAG, "$url: http request failed.", it)
+                    onCompletion()
+                }
+                .run()
         }
     }
+
 
     private fun convert(
         tag: String,
+        book: Book,
         obj: JSONObject,
-        onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book?) -> Unit) {
-        val book = app.repository.newBook()
+        onCompletion: () -> Unit,
+    ) {
         // Copies all the pass through fields.
-        book.title = obj.optString("title","")
-        book.subtitle = obj.optString("subtitle", "")
-        book.numberOfPages = obj.optString("number_of_pages", "")
-        book.isbn = firstOrEmpty(obj, "isbn_13")
-        book.language = app.repository.labelOrNullB(Label.Type.Language, language(obj))
-        book.publisher = app.repository.labelOrNullB(
-            Label.Type.Publisher, asStringArray(obj, "publishers").joinToString())
-        book.imgUrl = coverUrl(obj)
-        book.yearPublished = publishDate(obj.optString("publish_date", ""))
+        setIfEmpty(
+            Pair(book::title, obj.optString("title")),
+            Pair(book::subtitle, obj.optString("subtitle")),
+            Pair(book::numberOfPages, obj.optString("number_of_pages")),
+            Pair(book::isbn, firstOrEmpty(obj, "isbn_13")),
+            Pair(book::language, app.repository.labelOrNullB(Label.Type.Language, language(obj))),
+            Pair(book::publisher, app.repository.labelOrNullB(
+                Label.Type.Publisher,
+                arrayToList<String>(obj.optJSONArray("publishers")).joinToString())
+            ),
+            Pair(book::imgUrl, coverUrl(obj)),
+            Pair(book::yearPublished, publishDate(obj.optString("publish_date", ""))),
+        )
         // Continues our journey to fetch additional infos about the work, when available:
-        doWorkAndAuthors(tag, book, obj, onError, onBook)
+        doWorkAndAuthors(tag, book, obj, onCompletion)
     }
+
+    private val allProperties = listOf(
+        Book::title,
+        Book::subtitle,
+        Book::numberOfPages,
+        Book::isbn,
+        Book::language,
+        Book::publisher,
+        Book::imgUrl,
+        Book::yearPublished,
+    ) + workProperties
 
     override fun lookup(
         tag: String,
-        isbn: String,
-        onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book?) -> Unit
+        book: Book,
+        onCompletion: () -> Unit,
     ) {
-        val url = "$basedir/isbn/$isbn.json"
-        runRequest(tag, url, onError, onBook) {
-            convert(tag, it, onError, onBook)
+        if (hasAllProperties(book, allProperties)) {
+            onCompletion()
+            return
         }
+        val url = "$basedir/isbn/${book.isbn}.json"
+        request(tag, url)
+            .onResponse { response ->
+                parse(response)?.let { convert(tag, book, it, onCompletion) }
+            }
+            .onError {
+                Log.e(TAG, "$url: http request failed.", it)
+                onCompletion()
+            }
+            .run()
     }
 }

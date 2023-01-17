@@ -1,7 +1,6 @@
 package com.anselm.books.ui.home
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +18,7 @@ import com.anselm.books.database.BookDao
 import com.anselm.books.database.Query
 import com.anselm.books.databinding.BottomAddDialogBinding
 import com.anselm.books.hideKeyboard
+import com.anselm.books.showKeyboard
 import com.anselm.books.ui.widgets.MenuItemHandler
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.Dispatchers
@@ -96,13 +96,16 @@ class HomeFragment : ListFragment() {
             dialog.dismiss()
         }
         binding.idIsbn.setOnClickListener {
+            val enable = ! binding.idIsbnEdit.isVisible
             binding.idIsbnEdit.visibility =
-                if (binding.idIsbnEdit.visibility != View.VISIBLE) {
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
+                if (enable) { View.VISIBLE } else { View.GONE }
             binding.idIsbnButton.visibility = binding.idIsbnEdit.visibility
+            if (enable) {
+                binding.idIsbnEdit.requestFocus()
+                requireContext().showKeyboard(binding.idIsbnEdit)
+            } else {
+                requireContext().hideKeyboard(binding.idIsbnEdit)
+            }
             dialog.show()
         }
         binding.idIsbnButton.setOnClickListener{
@@ -116,11 +119,7 @@ class HomeFragment : ListFragment() {
 
     private fun handleISBN(isbn: String) {
         app.loading(true, "$TAG.handleISBM")
-        app.lookup(isbn, { msg: String, e: Exception? ->
-            Log.e(TAG, "$isbn: ${msg}.", e)
-            app.toast("No matches found for $isbn")
-            app.loading(false, "$TAG.handleISBM")
-        }, { book ->
+        app.lookupService.lookup(isbn) { book ->
             if (book == null) {
                 app.toast("Book not found.")
             } else {
@@ -132,7 +131,7 @@ class HomeFragment : ListFragment() {
                 }
             }
             app.loading(false, "$TAG.handleISBM")
-        })
+        }
     }
 }
 

@@ -191,8 +191,9 @@ class BookRepository(
      * Creates a new book for insertion.
      * This might set some default values for some fields based on preferences.
      */
-    fun newBook(): Book {
+    fun newBook(isbn: String? = null): Book {
         val book = Book()
+        book.isbn = isbn ?: ""
         listeners.forEach { it.onBookCreated(book) }
         return book
     }

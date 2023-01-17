@@ -6,8 +6,6 @@ import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
-import okhttp3.Response
-import org.json.JSONObject
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParser.END_TAG
 import org.xmlpull.v1.XmlPullParser.START_TAG
@@ -15,38 +13,7 @@ import org.xmlpull.v1.XmlPullParser.TEXT
 import org.xmlpull.v1.XmlPullParserException
 
 class OclcClient: SimpleClient() {
-
-    override fun handleResponse(
-        resp: Response,
-        onError: (message: String, e: Exception?) -> Unit,
-        onBook: (Book?) -> Unit,
-        onSuccess: ((JSONObject) -> Unit)?
-    ) {
-        val url = resp.request.url
-        if (resp.isSuccessful) {
-            parseXml(
-                url.toString(),
-                resp.body!!.string(),
-                onError,
-                onBook,
-            )
-        } else {
-            onError("$url: HTTP Request failed, status $resp", null)
-        }
-    }
-
     private val wsKey = "REDACTED"
-
-    override fun lookup(
-        tag: String,
-        isbn: String,
-        onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (matches: Book?) -> Unit
-    ) {
-        val url = "https://www.worldcat.org/webservices/catalog/content/isbn/$isbn?wskey=$wsKey&maximumRecords=1&recordSchema=info:srw/schema/1/dc"
-        runRequest(tag, url, onError, onBook)
-    }
-
     private var parser: XmlPullParser = Xml.newPullParser()
 
     private fun expectTag(name: String) {
@@ -102,8 +69,6 @@ class OclcClient: SimpleClient() {
     private fun parseXml(
         src: String,
         text: String,
-        onError: (msg: String, e: Exception?) -> Unit,
-        onBook: (Book?) -> Unit
     ) {
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
         parser.setInput(text.reader())
@@ -123,28 +88,28 @@ class OclcClient: SimpleClient() {
                             authors.add(app.repository.labelB(Label.Type.Authors, value))
                         }
                         "dc:title" -> {
-                            book.title = value
+                            setIfEmpty(book::title, value)
                         }
                         "dc:description" -> {
-                            // We might get multiple of these, we just concatenate them.
-                            book.summary = book.summary + System.lineSeparator() + value
+                            // We might get multiple of these, we just get the first one.
+                            setIfEmpty(book::summary, value)
                         }
                         "dc:language" -> {
                             val lang = getLanguage(value)
-                            book.language = app.repository.labelB(Label.Type.Language, lang)
+                            setIfEmpty(book::language, app.repository.labelB(Label.Type.Language, lang))
                         }
                         "dc:format" -> {
-                            book.numberOfPages = extractNumberOfPages(value)
+                            setIfEmpty(book::numberOfPages, extractNumberOfPages(value))
                         }
                         "dc:date" -> {
-                            book.yearPublished = extractYear(value)
+                            setIfEmpty(book::yearPublished, extractYear(value))
                         }
                         "dc:publisher" -> {
-                            book.publisher = app.repository.labelB(Label.Type.Publisher, value)
+                            setIfEmpty(book::publisher, app.repository.labelB(Label.Type.Publisher, value))
                         }
                         "dc:identifier" -> {
-                            if ( app.isValidEAN13(value) ) {
-                                book.isbn = value
+                            if (app.isValidEAN13(value)) {
+                                setIfEmpty(book::isbn, value)
                             }
                         }
                         else -> {
@@ -153,19 +118,55 @@ class OclcClient: SimpleClient() {
                     }
                     expect(TEXT)
                 }
-                book.authors = authors
-                onBook(book)
+                setIfEmpty(book::authors, authors)
             }
             "diagnostics" -> {
                 expectTag("diagnostic")
                 until("message") {
-                    onError("$src: request failed, $it", null)
+                    Log.e(TAG, "$src: request failed, $it")
                 }
             }
             else -> {
-                onError("$src: expecting a x or y tag, got ${parser.name}", null)
+                Log.e(TAG, "$src: expecting a x or y tag, got ${parser.name}")
             }
         }
+    }
+
+    private val properties = listOf(
+        Book::authors,
+        Book::title,
+        Book::summary,
+        Book::language,
+        Book::numberOfPages,
+        Book::yearPublished,
+        Book::publisher,
+        Book::isbn
+    )
+
+    override fun lookup(
+        tag: String,
+        book: Book,
+        onCompletion: () -> Unit,
+    ) {
+        if (hasAllProperties(book, properties)) {
+            onCompletion()
+            return
+        }
+        val url = "https://www.worldcat.org/webservices/catalog/content/isbn/${book.isbn}?wskey=$wsKey&maximumRecords=1&recordSchema=info:srw/schema/1/dc"
+        request(tag, url)
+            .onResponse {
+                if (it.isSuccessful) {
+                    parseXml(url, it.body!!.string())
+                } else {
+                    Log.e(TAG, "$url: HTTP request returned status ${it.code}")
+                }
+                onCompletion()
+            }
+            .onError {
+                Log.e(TAG, "$url: http request failed.", it)
+                onCompletion()
+            }
+            .run()
     }
 }
 

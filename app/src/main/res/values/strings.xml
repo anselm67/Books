@@ -19,7 +19,7 @@
 
     <string name="menu_settings">Settings</string>
 
-    <string name="import_preferences_header">Import</string>
+    <string name="import_preferences_header">Import Options</string>
     <string name="import_preference_title">Import books&#8230;</string>
     <string name="glide_cache_cleared">Glide cache cleared.</string>
 
@@ -85,7 +85,7 @@
     <string name="manual_input_required">Manual input is required for this book.</string>
     <string name="scan_status_matched">Matched</string>
     <string name="scan_status_error">Scan error.</string>
-    <string name="scan_stat_message">%1$d lookups: %2$d matches (%3$d didn\'t match and %4$d failed)</string>
+    <string name="scan_stat_message">%1$d lookups: %2$d matches (%3$d didn\'t match)</string>
     <string name="scan_books_added">Added %1$d books to your library.</string>
     <string name="done">Done</string>
     <string name="preference_display_book_id">Display SQL book id?</string>
