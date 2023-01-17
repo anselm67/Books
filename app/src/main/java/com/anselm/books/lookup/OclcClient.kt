@@ -3,6 +3,7 @@ package com.anselm.books.lookup
 import android.util.Log
 import android.util.Xml
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.ISBN
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
@@ -107,7 +108,7 @@ class OclcClient: SimpleClient() {
                             setIfEmpty(book::publisher, app.repository.labelB(Label.Type.Publisher, value))
                         }
                         "dc:identifier" -> {
-                            if (app.isValidEAN13(value)) {
+                            if (ISBN.isValidEAN13(value)) {
                                 setIfEmpty(book::isbn, value)
                             }
                         }

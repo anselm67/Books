@@ -12,6 +12,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.anselm.books.BooksApplication
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.ISBN
 import com.anselm.books.R
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
@@ -150,7 +151,7 @@ class EditFragment: BookFragment() {
                 Label.Type.Location, R.string.physicalLocationLabel,
                 Book::location.getter, Book::location.setter),
             TextEditor(this, inflater, book, R.string.isbnLabel,
-                Book::isbn.getter, Book::isbn.setter, app::isValidEAN13),
+                Book::isbn.getter, Book::isbn.setter, ISBN::isValidEAN13),
             SingleLabelEditor(this, inflater, book,
                 Label.Type.Language, R.string.languageLabel,
                 Book::language.getter, Book::language.setter),
