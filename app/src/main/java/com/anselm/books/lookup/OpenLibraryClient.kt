@@ -66,7 +66,6 @@ class OpenLibraryClient: JsonClient() {
                 if (key != null) {
                     keys.add(key)
                 }
-                Log.d(TAG, "Author key $key")
             }
         }
         return keys
@@ -80,9 +79,11 @@ class OpenLibraryClient: JsonClient() {
     ) {
         val keys = extractAuthorsFromWork(work)
         if (keys == null || keys.isEmpty()) {
+            Log.d(TAG, "$tag - no extracted authors. done.")
             onCompletion()
             return
         }
+        Log.d(TAG, "$tag looking for ${keys.size}")
         val calls = arrayOfNulls<Call>(keys.size)
         val values = arrayOfNulls<String>(keys.size)
         var done = 0
@@ -90,14 +91,16 @@ class OpenLibraryClient: JsonClient() {
             val url = "https://openlibrary.org${keys[i]}.json"
             calls[i] = request(tag, url)
                 .onResponse { response ->
-                    parse(response)?.let { obj ->
+                    val obj = parse(response)
+                    if (obj != null) {
                         values[i] = obj.optString("name")
-                        if (++ done == keys.size) {
-                            book.authors = values
-                                .filter { ! it.isNullOrEmpty() }
-                                .map { app.repository.labelB(Label.Type.Authors, it!!) }
-                            onCompletion()
-                        }
+                    }
+                    Log.d(TAG, "$tag ${done + 1} of ${keys.size}")
+                    if (++done == keys.size) {
+                        book.authors = values
+                            .filter { ! it.isNullOrEmpty() }
+                            .map { app.repository.labelB(Label.Type.Authors, it!!) }
+                        onCompletion()
                     }
                 }
                 .onError {
@@ -130,7 +133,7 @@ class OpenLibraryClient: JsonClient() {
     ) {
         setIfEmpty(
             Pair(book::summary, getDescription(work)),
-            Pair(book::genres, if ( app.bookPrefs.useOnlyExistingGenres) {
+            Pair(book::genres, if (app.bookPrefs.useOnlyExistingGenres) {
                 arrayToList<String>(work.optJSONArray("subjects"))
                     .mapNotNull { app.repository.labelIfExistsB(Label.Type.Genres, it) }
             } else {
@@ -163,14 +166,22 @@ class OpenLibraryClient: JsonClient() {
     ) {
         val key = firstKeyOrNull(obj, "works")
         if (key == null || hasAllProperties(book, workProperties)) {
+            Log.d(TAG, "$tag no work. done.")
             onCompletion()
         } else {
             val url = "https://openlibrary.org$key.json"
             request(tag, url)
                 .onResponse { response ->
-                    parse(response)?.let {
-                        setupWorkAndAuthors(tag, book, it, onCompletion)
+                    val work: JSONObject?
+                    if (response.isSuccessful) {
+                        work = parse(response)
+                        if (work != null) {
+                            setupWorkAndAuthors(tag, book, work, onCompletion)
+                            return@onResponse
+                        }
                     }
+                    Log.e(TAG, "$url: http status ${response.code} parsing failed.")
+                    onCompletion()
                 }
                 .onError {
                     Log.e(TAG, "$url: http request failed.", it)
@@ -228,7 +239,15 @@ class OpenLibraryClient: JsonClient() {
         val url = "$basedir/isbn/${book.isbn}.json"
         request(tag, url)
             .onResponse { response ->
-                parse(response)?.let { convert(tag, book, it, onCompletion) }
+                if (response.isSuccessful) {
+                    val obj = parse(response)
+                    if (obj != null) {
+                        convert(tag, book, obj, onCompletion)
+                        return@onResponse
+                    }
+                }
+                Log.e(TAG, "$url http status ${response.code} parsing failed.")
+                onCompletion()
             }
             .onError {
                 Log.e(TAG, "$url: http request failed.", it)
