@@ -176,7 +176,15 @@ class BooksApplication : Application() {
         }
     }
 
-    companion object {
+    /**
+     * invoked by one only activity when it's pause.
+     * A good time to perform some saves and what not.
+     */
+    fun onPause() {
+        lookupService.saveStats()
+    }
+
+   companion object {
         @SuppressLint("StaticFieldLeak")
         lateinit var app: BooksApplication
             private set

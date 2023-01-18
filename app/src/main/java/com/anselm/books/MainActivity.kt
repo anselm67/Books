@@ -14,6 +14,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.databinding.ActivityMainBinding
 import com.google.android.material.navigation.NavigationView
 
@@ -42,13 +43,13 @@ class MainActivity : AppCompatActivity() {
         cameraPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestPermission()) {
             if ( ! it ) {
-                BooksApplication.app.toast(R.string.request_camera_permission)
+                app.toast(R.string.request_camera_permission)
             }
         }
 
         // We're up and running: enable the progress bar, and set the title.
-        BooksApplication.app.enableProgressBar(findViewById(R.id.progress_bar))
-        BooksApplication.app.enableTitle { title: String ->
+        app.enableProgressBar(findViewById(R.id.progress_bar))
+        app.enableTitle { title: String ->
             binding.appBarMain.toolbar.title = title
         }
     }
@@ -69,9 +70,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        app.onPause()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        BooksApplication.app.disableProgressBar()
+        app.disableProgressBar()
     }
 
     fun checkCameraPermission(): Boolean {

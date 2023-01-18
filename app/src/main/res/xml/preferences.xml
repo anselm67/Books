@@ -57,27 +57,21 @@
 
         <CheckBoxPreference app:key="use_google"
             android:title="Google Books"
-            android:summary="Enable Google Books ISBN lookup."
             android:defaultValue="true" />
         <CheckBoxPreference app:key="use_bnf"
             android:title="Bibliothèque Nationale de France"
-            android:summary="Enable BNF ISBN lookup."
-            android:defaultValue="true" />
-        <CheckBoxPreference app:key="use_itunes"
-            android:title="iTunes"
-            android:summary="Enable iTunes ISBN lookup."
             android:defaultValue="true" />
         <CheckBoxPreference app:key="use_worldcat"
             android:title="Worldcat"
-            android:summary="Enable Worldcat ISBN lookup."
+            android:defaultValue="true" />
+        <CheckBoxPreference app:key="use_itunes"
+            android:title="iTunes"
             android:defaultValue="true" />
         <CheckBoxPreference app:key="use_amazon"
             android:title="Amazon"
-            android:summary="Enable Amazon cover image lookup."
             android:defaultValue="true" />
         <CheckBoxPreference app:key="use_open_library"
             android:title="Open Library"
-            android:summary="Enable OpenLibrary ISBN lookup."
             android:defaultValue="true" />
 
 

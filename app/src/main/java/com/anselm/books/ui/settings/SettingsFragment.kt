@@ -72,25 +72,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 true
             }
 
-        // Handles the "last location" preference using the hidden "lookup_use_last_location_value"
-        // preference.
-        val locationCheckBox = findPreference<CheckBoxPreference>("lookup_use_last_location")!!
-        val locationValue = findPreference<EditTextPreference>("lookup_use_last_location_value")!!
-        findPreference<PreferenceCategory>("preferences_import_options")
-            ?.removePreference(locationValue)
-        val prefs = preferenceManager.sharedPreferences
-        if (prefs?.getBoolean("lookup_use_last_location", true) == true) {
-            locationCheckBox.summary = locationValue.text
-        } else {
-            locationCheckBox.summary = ""
-        }
-        locationCheckBox.onPreferenceChangeListener =
-            OnPreferenceChangeListener { _, newValue ->
-                if (!(newValue as Boolean)) {
-                    locationCheckBox.summary = ""
-                }
-                true
-            }
+        setupLastLocation()
+        setupLookupServices()
     }
 
     private fun handleMenu(menuHost: MenuHost) {
@@ -171,6 +154,38 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     app.toast(text)
                 }
             }
+        }
+    }
+
+    private fun setupLastLocation() {
+        // Handles the "last location" preference using the hidden "lookup_use_last_location_value"
+        // preference.
+        val locationCheckBox = findPreference<CheckBoxPreference>("lookup_use_last_location")!!
+        val locationValue = findPreference<EditTextPreference>("lookup_use_last_location_value")!!
+        findPreference<PreferenceCategory>("preferences_import_options")
+            ?.removePreference(locationValue)
+        val prefs = preferenceManager.sharedPreferences
+        if (prefs?.getBoolean("lookup_use_last_location", true) == true) {
+            locationCheckBox.summary = locationValue.text
+        } else {
+            locationCheckBox.summary = ""
+        }
+        locationCheckBox.onPreferenceChangeListener =
+            OnPreferenceChangeListener { _, newValue ->
+                if (!(newValue as Boolean)) {
+                    locationCheckBox.summary = ""
+                }
+                true
+            }
+    }
+
+    private fun setupLookupServices() {
+        app.lookupService.clientKeys {
+            val preference = findPreference<CheckBoxPreference>(it)
+            val (lookupCount, matchCount, coverCount) = app.lookupService.stats(it)
+            preference?.summary = getString(R.string.preferences_lookup_service_stats,
+                lookupCount, matchCount, coverCount
+            )
         }
     }
 }

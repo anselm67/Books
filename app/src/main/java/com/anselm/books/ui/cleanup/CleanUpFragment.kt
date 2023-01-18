@@ -147,15 +147,15 @@ class CleanUpFragment: BookFragment() {
         return header.root
     }
 
-    private fun simpleBookItem(
+    private fun item(
         inflater: LayoutInflater,
         container : ViewGroup,
         text: String,
-        onClick: () -> Unit,
+        onClick: (() -> Unit)? = null,
     ): View {
         val item = CleanupItemLayoutBinding.inflate(inflater, container, false)
         item.idItemText.text = text
-        item.idItemText.setOnClickListener { onClick() }
+        onClick?.let { item.idItemText.setOnClickListener { it() } }
         return item.root
     }
 
@@ -204,7 +204,7 @@ class CleanUpFragment: BookFragment() {
             container,
             getString(R.string.cleanup_book_cover_section),
         ))
-        container.addView(simpleBookItem(
+        container.addView(item(
             inflater, container,
             getString(R.string.check_for_broken_images)
         ) {

@@ -1,5 +1,6 @@
 package com.anselm.books
 
+import android.util.Log
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.database.Book
 import com.anselm.books.lookup.AmazonImageClient
@@ -9,26 +10,86 @@ import com.anselm.books.lookup.OclcClient
 import com.anselm.books.lookup.OpenLibraryClient
 import com.anselm.books.lookup.SimpleClient
 import com.anselm.books.lookup.iTuneClient
+import org.json.JSONObject
+import org.json.JSONTokener
+import java.io.File
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KProperty0
 
 private data class LookupServiceClient(
+    val preferenceKey: String,
     val preferenceGetter: KProperty0.Getter<Boolean>,
     val client: SimpleClient,
-)
+) {
+    var lookupCount = 0
+    var matchCount = 0
+    var coverCount = 0
+}
 
 class LookupService {
+    private val statsFile = File(app.applicationContext?.filesDir, "lookup_stats.json")
     private val prefs by lazy {
         app.bookPrefs
     }
 
+    init {
+        loadStats()
+    }
+
+    fun clientKeys(handler: (String) -> Unit) {
+        clients.forEach { handler(it.preferenceKey) }
+    }
+
+    fun stats(key: String): Triple<Int, Int, Int> {
+        val client = clients.firstOrNull() { it.preferenceKey == key }
+        return Triple(client?.lookupCount ?: 0, client?.matchCount ?: 0, client?.coverCount ?: 0)
+    }
+
+    fun saveStats() {
+        try {
+            val obj = JSONObject()
+            clients.forEach {
+                obj.put("${it.preferenceKey}.lookup", it.lookupCount)
+                obj.put("${it.preferenceKey}.match", it.matchCount)
+                obj.put("${it.preferenceKey}.cover", it.coverCount)
+            }
+            statsFile.outputStream().use { outputStream ->
+                OutputStreamWriter(outputStream, Charsets.UTF_8).use {
+                    it.write(obj.toString(2))
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save lookup statistics from ${statsFile.path} (ignored)", e)
+        }
+    }
+
+    private fun loadStats() {
+        try {
+            var obj: JSONObject
+            statsFile.inputStream().use { inputStream ->
+                InputStreamReader(inputStream).use {
+                    obj = JSONTokener(it.readText()).nextValue() as JSONObject
+                }
+            }
+            clients.forEach {
+                it.lookupCount = obj.getInt("${it.preferenceKey}.lookup")
+                it.matchCount = obj.getInt("${it.preferenceKey}.match")
+                it.coverCount = obj.getInt("${it.preferenceKey}.cover")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to load lookup statistics from ${statsFile.path} (ignored)", e)
+        }
+    }
+
     private val clients = listOf(
-        LookupServiceClient(prefs::useGoogle.getter, GoogleBooksClient()),
-        LookupServiceClient(prefs::useBNF.getter, BnfClient()),
-        LookupServiceClient(prefs::useWorldcat.getter, OclcClient()),
-        LookupServiceClient(prefs::useiTunes.getter, iTuneClient()),
-        LookupServiceClient(prefs::useAmazon.getter, AmazonImageClient()),
-        LookupServiceClient(prefs::useOpenLibrary.getter, OpenLibraryClient()),
+        LookupServiceClient("use_google", prefs::useGoogle.getter, GoogleBooksClient()),
+        LookupServiceClient("use_bnf", prefs::useBNF.getter, BnfClient()),
+        LookupServiceClient("use_worldcat", prefs::useWorldcat.getter, OclcClient()),
+        LookupServiceClient("use_itunes", prefs::useiTunes.getter, iTuneClient()),
+        LookupServiceClient("use_amazon", prefs::useAmazon.getter, AmazonImageClient()),
+        LookupServiceClient("use_open_library", prefs::useOpenLibrary.getter, OpenLibraryClient()),
     )
 
     private val requestIdCounter = AtomicInteger(1)
@@ -61,7 +122,16 @@ class LookupService {
                 break
             }
             if (service.preferenceGetter()) {
+                val missTitleAndAuthor = book.title.isEmpty() || book.authors.isEmpty()
+                val missImgUrl = book.imgUrl.isEmpty()
+                service.lookupCount++
                 service.client.lookup(tag, book) {
+                    if (missTitleAndAuthor && book.title.isNotEmpty() && book.authors.isNotEmpty()) {
+                        service.matchCount++
+                    }
+                    if (missImgUrl && book.imgUrl.isNotEmpty()) {
+                        service.coverCount++
+                    }
                     onCompletion(i + 1, tag, book, stopAt, onDone)
                 }
                 return

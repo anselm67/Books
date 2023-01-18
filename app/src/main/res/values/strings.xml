@@ -132,5 +132,6 @@
     <string name="lookup_use_only_existing_genres_prompt">Import existing genres only?</string>
     <string name="save">Save</string>
     <string name="scan_status_duplicate">Duplicate</string>
+    <string name="preferences_lookup_service_stats">%1$d lookups, %2$d matches and %3$d covers.</string>
 
 </resources>
