@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -27,6 +28,7 @@ import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.databinding.FragmentScanBinding
 import com.anselm.books.databinding.RecyclerviewScanIsbnBinding
+import com.anselm.books.databinding.ScanConfirmDialogLayoutBinding
 import com.anselm.books.ui.widgets.BookFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -156,16 +158,70 @@ class ScanFragment: BookFragment() {
 
     private fun saveAllMatches() {
         // Is there any work to do?
-        val books = adapter.getAllBooks()
-        if (books.isEmpty())
+        val results = adapter.getAllLookupResults()
+        if (results.isEmpty())
             return
-        // Lets run with it.
-        app.applicationScope.launch {
-            books.forEach {
-                app.repository.save(it)
+        var insertCount = 0
+        var noMatchCount = 0
+        var duplicateCount = 0
+        var errorCount = 0
+        results.forEach {
+            if (it.errorMessage != null) {
+                errorCount++
+            } else if (it.book == null) {
+                noMatchCount++
+            } else if (it.isDuplicate) {
+                duplicateCount++
+            } else {
+                insertCount++
             }
-            app.toast(app.getString(R.string.scan_books_added, books.size))
         }
+        if (errorCount > 0 || noMatchCount > 0 || duplicateCount > 0) {
+            val dialogBinding = ScanConfirmDialogLayoutBinding.inflate(layoutInflater)
+            var msg = ""
+            if (duplicateCount > 0) {
+                msg = msg + System.lineSeparator() + getString(
+                    R.string.scan_confirm_duplicates,
+                    duplicateCount
+                )
+            }
+            if (errorCount > 0) {
+                msg = msg + System.lineSeparator() + getString(
+                    R.string.scan_confirm_error,
+                    errorCount
+                )
+            }
+            if (noMatchCount > 0) {
+                msg = msg + System.lineSeparator() + getString(
+                    R.string.scan_confirm_no_match,
+                    noMatchCount
+                )
+            }
+            dialogBinding.idTitleText.text = msg
+            AlertDialog.Builder(requireActivity())
+                .setView(dialogBinding.root)
+                .setTitle(getString(R.string.scan_confirm_prompt, insertCount))
+                .setPositiveButton(R.string.ok) { _, _ ->
+                    doSaveAllMatches(results)
+                }
+                .setNegativeButton(R.string.cancel) { _, _ -> }
+                .create().show()
+        }
+    }
+
+    private fun doSaveAllMatches(results: List<LookupResult>) {
+        // Lets run with it.
+        var addedCount = 0
+        app.applicationScope.launch {
+            results.forEach {
+                it.book?.let { book ->
+                    app.repository.save(book)
+                    addedCount++
+                }
+            }
+            app.toast(app.getString(R.string.scan_books_added, addedCount))
+        }
+        findNavController().popBackStack()
     }
 
     private fun onLookupResultClick(result: LookupResult) {
@@ -189,7 +245,6 @@ class ScanFragment: BookFragment() {
         binding.idSaveButton.isVisible = true
         binding.idSaveButton.setOnClickListener {
             saveAllMatches()
-            findNavController().popBackStack()
         }
     }
 
@@ -326,7 +381,7 @@ class IsbnArrayAdapter(
     @SuppressLint("NotifyDataSetChanged")
     fun insertFirst(isbn: String) {
         val lookup = LookupResult(isbn)
-        dataSource.add(lookup)
+        dataSource.add(0, lookup)
         notifyItemInserted(0)
         stats.lookupCount.incrementAndGet()
         lookup.tag = app.lookupService.lookup(isbn) { book ->
@@ -344,7 +399,7 @@ class IsbnArrayAdapter(
         }
     }
 
-    fun getAllBooks(): List<Book> {
-        return dataSource.mapNotNull { it.book }
+    fun getAllLookupResults(): List<LookupResult> {
+        return dataSource.toList()
     }
 }

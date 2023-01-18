@@ -134,4 +134,10 @@
     <string name="scan_status_duplicate">Duplicate</string>
     <string name="preferences_lookup_service_stats">%1$d lookups, %2$d matches and %3$d covers.</string>
 
+    <string name="scan_confirm_prompt">About to save %1$d books</string>
+    <string name="scan_confirm_duplicates">This includes %1$d duplicate(s).</string>
+    <string name="scan_confirm_error">%1$d lookups failed.</string>
+    <string name="scan_confirm_no_match">%1$d didn\'t match any book.</string>
+
+    <string name="ok">OK</string>
 </resources>
