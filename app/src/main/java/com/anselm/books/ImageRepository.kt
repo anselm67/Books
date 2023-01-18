@@ -56,10 +56,10 @@ class ImageRepository(
         // Gets the work done.
         withContext(Dispatchers.IO) {
             // We ignore errors, cause quite frankly we don't know what to do anyways.
-            // We'' have some other chances to fetch the cover, e.g. through data cleansing.
+            // We have some other chances to fetch the cover, e.g. through data cleansing.
             val bitmap = GlideApp.with(context)
                 .asBitmap()
-                .load(book.imgUrl) // sample image
+                .load(book.imgUrl)
                 .submit()
                 .get()
             val path = convertAndSave(book, bitmap)

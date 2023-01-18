@@ -6,6 +6,7 @@ import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
+import okhttp3.internal.headersContentLength
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParser.END_DOCUMENT
 import org.xmlpull.v1.XmlPullParser.END_TAG
@@ -132,28 +133,48 @@ class BnfClient: XmlClient() {
 
     private val setters = mapOf(
         "101.a" to { book: Book, value: String ->
-                book.language = getLanguage(value)
+            setIfEmpty(book::language, getLanguage(value))
         },
-        "073.a" to Book::isbn.setter,
-        "200.a" to Book::title.setter,
+        "073.a" to { book: Book, value: String ->
+            setIfEmpty(book::isbn, value)
+        },
+        "200.a" to { book: Book, value: String ->
+            setIfEmpty(book::title, value)
+        },
         "200.f" to { book: Book, value: String
-            -> book.authors = listOf(app.repository.labelB(Label.Type.Authors, value))
+            -> setIfEmpty(book::authors, listOf(app.repository.labelB(Label.Type.Authors, value)))
+        },
+        // Two ways to get to publisher, e.g. ISBNs 9782757206492 and 9782072987885
+        "210.c" to {  book: Book, value: String ->
+            setIfEmpty(book::publisher, app.repository.labelB(Label.Type.Publisher, value))
         },
         "214.c" to {  book: Book, value: String ->
-            book.publisher = app.repository.labelB(Label.Type.Publisher, value)
+            setIfEmpty(book::publisher, app.repository.labelB(Label.Type.Publisher, value))
         },
         "214.d" to { book: Book, value: String ->
-            book.yearPublished = extractYear(value)
+            setIfEmpty(book::yearPublished, extractYear(value))
         },
         "215.a" to { book: Book, value: String ->
-            book.numberOfPages = extractNumberOfPages(value)
+            setIfEmpty(book::numberOfPages, extractNumberOfPages(value))
         },
-        "330.a" to Book::summary.setter,
+        "330.a" to { book: Book, value: String ->
+            setIfEmpty(book::summary, value)
+        },
+        "606.x" to { book: Book, value: String ->
+            if (app.bookPrefs.useOnlyExistingGenres) {
+                val label = app.repository.labelIfExistsB(Label.Type.Genres, value)
+                label?.let { setIfEmpty(book::genres, listOf(it)) }
+            } else {
+                setIfEmpty(book::genres, listOf(app.repository.labelB(Label.Type.Genres, value)))
+            }
+        }
     )
 
     private fun parseXml(
+        tag: String,
         book: Book,
         text: String,
+        onCompletion: () -> Unit,
     ) {
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true)
         parser.setInput(text.reader())
@@ -162,11 +183,13 @@ class BnfClient: XmlClient() {
         // Checks the root tag and the number of matches.
         if (parser.name != "searchRetrieveResponse") {
             Log.e(TAG, "Expected a srw:searchRetrieveResponse tag.")
+            onCompletion()
             return
         }
         val numberOfRecords = untilChild("numberOfRecords")?.toIntOrNull()
         if (numberOfRecords == null || numberOfRecords < 1 ) {
             // No match found.
+            onCompletion()
             return
         }
         closeTag(1)
@@ -183,19 +206,19 @@ class BnfClient: XmlClient() {
         }
 
         // Parses each field into the corresponding book property.
-        var tag: String? = null
+        var tagName: String? = null
         var code: String? = null
         forEachTag(
             "datafield", {
                 if (parser.name == "datafield") {
-                    tag = getAttributeValue("tag")
+                    tagName = getAttributeValue("tag")
                 } else if (parser.name == "subfield") {
                     code = getAttributeValue("code")
                 }
             },
             {
-                Log.d(TAG, "$tag.$code: ${parser.text}")
-                val setter = setters.getOrDefault("$tag.$code", null)
+                Log.d(TAG, "$tagName.$code: ${parser.text}")
+                val setter = setters.getOrDefault("$tagName.$code", null)
                 if (setter != null) {
                     setter(book, parser.text)
                 }
@@ -204,8 +227,24 @@ class BnfClient: XmlClient() {
         )
 
         // Gets the image when needed.
+        // Makes sure to always call onCompletion.
         if (book.imgUrl.isEmpty()) {
-            book.imgUrl = "https://catalogue.bnf.fr/couverture?&appName=NE&idArk=$arkId&couverture=1"
+            val imgUrl = "https://catalogue.bnf.fr/couverture?&appName=NE&idArk=$arkId&couverture=1"
+            // We have to HEAD this because they always provide a default image even if none found.
+            request(tag, imgUrl, useHead = true)
+                .onResponse {
+                    if (it.isSuccessful && it.headersContentLength() != 4658L) {
+                        book.imgUrl = imgUrl
+                    }
+                    onCompletion()
+                }
+                .onError {
+                    Log.e(TAG, "$imgUrl for image failed (no image from BNF).", it)
+                    onCompletion()
+                }
+                .run()
+        } else {
+            onCompletion()
         }
     }
 
@@ -214,11 +253,13 @@ class BnfClient: XmlClient() {
         request(tag, url)
             .onResponse {
                 if (it.isSuccessful) {
-                    parseXml(book, it.body!!.string())
+                    // It's up to parseXml to call onCompletion: it can make request to check
+                    // the cover image url.
+                    parseXml(tag, book, it.body!!.string(), onCompletion)
                 } else {
                     Log.e(TAG, "$url: http request returned status ${it.code}.")
+                    onCompletion()
                 }
-                onCompletion()
             }
             .onError {
                 Log.e(TAG, "$url http request failed.")

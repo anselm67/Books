@@ -1,6 +1,7 @@
 package com.anselm.books
 
 import android.util.Log
+import com.anselm.books.database.Label
 import kotlin.reflect.KMutableProperty0
 
 class Property {
@@ -10,6 +11,7 @@ class Property {
             return when (propertyValue) {
                 null -> { true }
                 is String -> { propertyValue.isEmpty() }
+                is Label -> { false }
                 is List<*> -> { propertyValue.isEmpty() }
                 else -> { true }
             }

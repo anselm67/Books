@@ -1,9 +1,11 @@
+
 BNF metadata
 https://catalogue.bnf.fr/api/SRU?version=1.2&operation=searchRetrieve&query=bib.isbn%20adj%20%229782072987885%22&recordSchema=unimarcXchange&maximumRecords=100&startRecord=1
 query=bib.isbn adj "\"<isbn>\""
 And cover
 https://catalogue.bnf.fr/couverture?&appName=NE&idArk=ark:/12148/cb47110186n&couverture=1
 
+9782757206492 - BNF Match without cover
 9782702183618
 
 

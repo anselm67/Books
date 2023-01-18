@@ -33,6 +33,14 @@ class LookupService {
     private val prefs by lazy {
         app.bookPrefs
     }
+    private val clients = listOf(
+        LookupServiceClient("use_google", prefs::useGoogle.getter, GoogleBooksClient()),
+        LookupServiceClient("use_bnf", prefs::useBNF.getter, BnfClient()),
+        LookupServiceClient("use_worldcat", prefs::useWorldcat.getter, OclcClient()),
+        LookupServiceClient("use_itunes", prefs::useiTunes.getter, iTuneClient()),
+        LookupServiceClient("use_amazon", prefs::useAmazon.getter, AmazonImageClient()),
+        LookupServiceClient("use_open_library", prefs::useOpenLibrary.getter, OpenLibraryClient()),
+    )
 
     init {
         loadStats()
@@ -79,18 +87,11 @@ class LookupService {
                 it.coverCount = obj.getInt("${it.preferenceKey}.cover")
             }
         } catch (e: Exception) {
+            // By deleting the file we make sure it'll get recreated proprly next time around.
             Log.e(TAG, "Failed to load lookup statistics from ${statsFile.path} (ignored)", e)
+            statsFile.delete()
         }
     }
-
-    private val clients = listOf(
-        LookupServiceClient("use_google", prefs::useGoogle.getter, GoogleBooksClient()),
-        LookupServiceClient("use_bnf", prefs::useBNF.getter, BnfClient()),
-        LookupServiceClient("use_worldcat", prefs::useWorldcat.getter, OclcClient()),
-        LookupServiceClient("use_itunes", prefs::useiTunes.getter, iTuneClient()),
-        LookupServiceClient("use_amazon", prefs::useAmazon.getter, AmazonImageClient()),
-        LookupServiceClient("use_open_library", prefs::useOpenLibrary.getter, OpenLibraryClient()),
-    )
 
     private val requestIdCounter = AtomicInteger(1)
     private fun nextTag(): String {

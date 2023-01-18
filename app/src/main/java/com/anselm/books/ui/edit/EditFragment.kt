@@ -38,7 +38,7 @@ class EditFragment: BookFragment() {
             this,
             object: OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    if ( this@EditFragment.isChanged() ) {
+                    if ( this@EditFragment.isChanged() || book.id <= 0) {
                         AlertDialog.Builder(requireActivity())
                             .setMessage(getString(R.string.discard_changes_prompt))
                             .setPositiveButton(R.string.yes) { _, _ ->
@@ -247,7 +247,10 @@ class EditFragment: BookFragment() {
         }?.invokeOnCompletion {
             app.toast("${book.title} saved.")
             app.loading(false)
-            findNavController().popBackStack()
+            // When the save is very long, we might already have gone.
+            if (isAdded ) {
+                findNavController().popBackStack()
+            }
         }
     }
 
