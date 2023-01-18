@@ -1,4 +1,5 @@
 
+
 BNF metadata
 https://catalogue.bnf.fr/api/SRU?version=1.2&operation=searchRetrieve&query=bib.isbn%20adj%20%229782072987885%22&recordSchema=unimarcXchange&maximumRecords=100&startRecord=1
 query=bib.isbn adj "\"<isbn>\""

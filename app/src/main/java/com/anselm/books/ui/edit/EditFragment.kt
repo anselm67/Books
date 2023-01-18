@@ -214,9 +214,7 @@ class EditFragment: BookFragment() {
     // Checks for duplicates and save the book if the user is ok.
     private fun checkForDuplicates() {
         viewLifecycleOwner.lifecycleScope.launch {
-            val dupes = app.repository.getDuplicates(book).filter {
-                it.id != book.id
-            }
+            val dupes = app.repository.getDuplicates(book)
             if (dupes.isNotEmpty()) {
                 val builder = AlertDialog.Builder(requireActivity())
                 builder.setMessage(

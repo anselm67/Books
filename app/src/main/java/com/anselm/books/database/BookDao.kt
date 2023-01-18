@@ -14,11 +14,17 @@ interface BookDao {
     @Query("SELECT * FROM book_table WHERE id = :bookId")
     suspend fun load(bookId: Long) : Book?
 
-    @Query("SELECT bt.* FROM book_table AS bt " +
-            " LEFT JOIN book_labels AS lb ON lb.bookId = bt.id " +
-            " WHERE bt.title = :title " +
-            "   AND ((:authorId = 0) OR (lb.labelId = :authorId))")
-    suspend fun getDuplicates(title: String, authorId: Long): List<Book>
+    @Query(" SELECT bt.* FROM book_table AS bt " +
+            " WHERE bt.id IN (SELECT DISTINCT(id) FROM " +
+            "    (SELECT bt.id AS id FROM book_table AS bt " +
+            "     LEFT JOIN book_labels AS lb ON lb.bookId = bt.id " +
+            "     WHERE bt.title = :title AND bt.id != :bookId " +
+            "       AND ((:authorId = 0) OR (lb.labelId = :authorId)) " +
+            "    UNION SELECT bt1.id AS id FROM book_table AS bt1 " +
+            "            WHERE bt1.id != :bookId " +
+            "              AND (:isbn != '' AND bt1.isbn = :isbn))) ")
+    suspend fun getDuplicates(bookId: Long, title: String, authorId: Long, isbn: String): List<Book>
+
 
     @Update
     suspend fun update(book: Book)

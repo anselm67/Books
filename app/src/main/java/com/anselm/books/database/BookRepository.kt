@@ -15,10 +15,6 @@ class BookRepository(
         listeners.add(listener)
     }
 
-    fun removeBookListener(listener: BookRepositoryListener) {
-        listeners.remove(listener)
-    }
-
     suspend fun getTotalCount(): Int {
         return dao.getTotalCount()
     }
@@ -182,9 +178,12 @@ class BookRepository(
         }
     }
 
+    /**
+     * Returns the list of duplicates for the [book] not including itself.
+     */
     suspend fun getDuplicates(book: Book): List<Book> {
         val authorId = if (book.authors.isEmpty()) 0 else book.authors[0].id
-        return dao.getDuplicates(book.title, authorId)
+        return dao.getDuplicates(book.id, book.title, authorId, book.isbn)
     }
 
     /**
