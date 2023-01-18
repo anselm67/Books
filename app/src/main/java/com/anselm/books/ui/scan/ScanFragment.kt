@@ -206,6 +206,8 @@ class ScanFragment: BookFragment() {
                 }
                 .setNegativeButton(R.string.cancel) { _, _ -> }
                 .create().show()
+        } else {
+            doSaveAllMatches(results)
         }
     }
 
