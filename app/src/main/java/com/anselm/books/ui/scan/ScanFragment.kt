@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.GlideApp
+import com.anselm.books.ISBN
 import com.anselm.books.R
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
@@ -104,7 +105,9 @@ class ScanFragment: BookFragment() {
 
             // Sets up the image analyzer user case.
             val barcodeAnalyzer = BarcodeAnalyzer(binding.idOverlay) {
-                handleISBN(it)
+                if (ISBN.isValidEAN13(it)) {
+                    handleISBN(it)
+                }
             }
             val imageAnalyzer = ImageAnalysis.Builder()
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
