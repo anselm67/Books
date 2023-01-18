@@ -24,9 +24,11 @@ class BooksPreferences(
     private val preferenceListener =
         SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
             val prop = preferenceMap.getOrDefault(key, null)
-            val value = (prefs?.getBoolean(key, false) == true)
-            prop?.second?.setter?.invoke(value)
-            Log.d(TAG, "$key changed to $value")
+            if (prop != null) {
+                val value = (prefs?.getBoolean(key, false) == true)
+                prop.second.setter.invoke(value)
+                Log.d(TAG, "$key changed to $value")
+            }
         }
 
     init {

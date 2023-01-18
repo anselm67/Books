@@ -44,12 +44,9 @@ class LastLocationPreference(
         // Hook into the repository to update our last known location.
         repository.addBookListener(object : BookRepositoryListener {
             override fun onBookDeleted(book: Book) { }
+            override fun onBookUpdated(book: Book) { }
 
             override fun onBookInserted(book: Book) {
-                handleInsert(book)
-            }
-
-            override fun onBookUpdated(book: Book) {
                 handleInsert(book)
             }
 
