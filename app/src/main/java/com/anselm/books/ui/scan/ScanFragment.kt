@@ -7,7 +7,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -30,6 +29,7 @@ import com.anselm.books.databinding.FragmentScanBinding
 import com.anselm.books.databinding.RecyclerviewScanIsbnBinding
 import com.anselm.books.databinding.ScanConfirmDialogLayoutBinding
 import com.anselm.books.ui.widgets.BookFragment
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
@@ -156,6 +156,69 @@ class ScanFragment: BookFragment() {
         ringtone.play()
     }
 
+    private fun showBottomWarningDialog(
+        insertCount: Int,
+        noMatchCount: Int,
+        duplicateCount: Int,
+        errorCount: Int,
+        results: List<LookupResult>,
+    ) {
+        val dialog = BottomSheetDialog(requireContext())
+        val dialogBinding = ScanConfirmDialogLayoutBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogBinding.root)
+        dialogBinding.idTitle.text = getString(
+            R.string.scan_confirm_prompt,
+            insertCount + duplicateCount,
+            adapter.itemCount,
+        )
+        // Handles no match results:
+        if (noMatchCount > 0) {
+            dialogBinding.idNoMatch.isVisible = true
+            dialogBinding.idNoMatchCount.text = noMatchCount.toString()
+        } else {
+            dialogBinding.idNoMatch.isVisible = false
+        }
+        dialogBinding.idDeleteNoMatchButton.setOnClickListener {
+            adapter.removeNoMatches()
+            dialog.dismiss()
+        }
+
+        // Handles duplicates results:
+        if (duplicateCount > 0) {
+            dialogBinding.idDuplicate.isVisible = true
+            dialogBinding.idDuplicateCount.text = duplicateCount.toString()
+        } else {
+            dialogBinding.idDuplicate.isVisible = false
+        }
+        dialogBinding.idDeleteDuplicateButton.setOnClickListener {
+            adapter.removeDuplicates()
+            dialog.dismiss()
+        }
+
+        // Handles error results:
+        if (errorCount > 0) {
+            dialogBinding.idError.isVisible = true
+            dialogBinding.idErrorCount.text = errorCount.toString()
+        } else {
+            dialogBinding.idError.isVisible = false
+        }
+        dialogBinding.idDeleteErrorButton.setOnClickListener {
+            adapter.removeErrors()
+            dialog.dismiss()
+        }
+
+        // Proceed button.
+        dialogBinding.idProceedButton.text = getString(
+            R.string.scan_proceed,
+            insertCount + duplicateCount
+        )
+        dialogBinding.idProceedButton.setOnClickListener {
+            doSaveAllMatches(results)
+            dialog.dismiss()
+        }
+        dialog.show()
+    }
+
     private fun saveAllMatches() {
         // Is there any work to do?
         val results = adapter.getAllLookupResults()
@@ -177,35 +240,13 @@ class ScanFragment: BookFragment() {
             }
         }
         if (errorCount > 0 || noMatchCount > 0 || duplicateCount > 0) {
-            val dialogBinding = ScanConfirmDialogLayoutBinding.inflate(layoutInflater)
-            var msg = ""
-            if (duplicateCount > 0) {
-                msg = msg + System.lineSeparator() + getString(
-                    R.string.scan_confirm_duplicates,
-                    duplicateCount
-                )
-            }
-            if (errorCount > 0) {
-                msg = msg + System.lineSeparator() + getString(
-                    R.string.scan_confirm_error,
-                    errorCount
-                )
-            }
-            if (noMatchCount > 0) {
-                msg = msg + System.lineSeparator() + getString(
-                    R.string.scan_confirm_no_match,
-                    noMatchCount
-                )
-            }
-            dialogBinding.idTitleText.text = msg
-            AlertDialog.Builder(requireActivity())
-                .setView(dialogBinding.root)
-                .setTitle(getString(R.string.scan_confirm_prompt, insertCount))
-                .setPositiveButton(R.string.ok) { _, _ ->
-                    doSaveAllMatches(results)
-                }
-                .setNegativeButton(R.string.cancel) { _, _ -> }
-                .create().show()
+            showBottomWarningDialog(
+                insertCount,
+                noMatchCount,
+                duplicateCount,
+                errorCount,
+                results,
+            )
         } else {
             doSaveAllMatches(results)
         }
@@ -379,6 +420,32 @@ class IsbnArrayAdapter(
         dataSource.removeAt(position)
         notifyItemRemoved(position)
     }
+
+    private fun filter(test: (LookupResult) -> Boolean) {
+        var position = 0
+        while (position < dataSource.size) {
+            val result = dataSource[position]
+            if ( test(result) ) {
+                dataSource.removeAt(position)
+                notifyItemRemoved(position)
+                if (result.book == null && result.errorMessage == null) {
+                    stats.noMatchCount.decrementAndGet()
+                } else if (result.book != null) {
+                    stats.matchCount.decrementAndGet()
+                }
+                stats.lookupCount.decrementAndGet()
+                statsListener(stats)
+            } else {
+                position++
+            }
+        }
+    }
+
+    fun removeNoMatches() = filter { it.book == null }
+
+    fun removeErrors() = filter { it.errorMessage != null }
+
+    fun removeDuplicates() = filter { it.isDuplicate }
 
     @SuppressLint("NotifyDataSetChanged")
     fun insertFirst(isbn: String) {

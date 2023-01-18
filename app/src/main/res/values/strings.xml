@@ -87,7 +87,6 @@
     <string name="scan_status_error">Scan error.</string>
     <string name="scan_stat_message">%1$d lookups: %2$d matches (%3$d didn\'t match)</string>
     <string name="scan_books_added">Added %1$d books to your library.</string>
-    <string name="done">Done</string>
     <string name="preference_display_book_id">Display SQL book id?</string>
     <string name="preference_display_last_modified">Display last modified date?</string>
     <string name="preference_category_lookup_service">Lookup service</string>
@@ -115,7 +114,6 @@
     <string name="book_selected">Selected</string>
     <string name="book_selected_count">%1$d books selected</string>
     <string name="edit_multiple_books">Updating %1$d books</string>
-    <string name="apply">Apply</string>
     <string name="lookup_service_preference_prompt">Lookup Service</string>
     <string name="sort_order_preference_prompt">Default Sort Order</string>
 
@@ -130,14 +128,18 @@
     <string name="reset_database_confirmation">This will remove all books, are you sure you want to proceed?</string>
     <string name="lookup_use_last_location_prompt">Use last physical location?</string>
     <string name="lookup_use_only_existing_genres_prompt">Import existing genres only?</string>
-    <string name="save">Save</string>
     <string name="scan_status_duplicate">Duplicate</string>
     <string name="preferences_lookup_service_stats">%1$d lookups, %2$d matches and %3$d covers.</string>
 
-    <string name="scan_confirm_prompt">About to save %1$d books</string>
-    <string name="scan_confirm_duplicates">This includes %1$d duplicate(s).</string>
-    <string name="scan_confirm_error">%1$d lookups failed.</string>
-    <string name="scan_confirm_no_match">%1$d didn\'t match any book.</string>
+    <string name="scan_confirm_prompt">About to save %1$d of %2$d books</string>
+    <string name="scan_confirm_duplicates">duplicate(s) will get saved.</string>
+    <string name="scan_confirm_error">lookups errors.</string>
+    <string name="scan_confirm_no_match">didn\'t match.</string>
+    <string name="scan_proceed">Save %1$d books</string>
 
-    <string name="ok">OK</string>
+    <string name="apply">Apply</string>
+    <string name="save">Save</string>
+    <string name="done">Done</string>
+    <string name="clear">Clear</string>
+
 </resources>
