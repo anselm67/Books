@@ -2,6 +2,7 @@ package com.anselm.books.lookup
 
 import android.util.Log
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.Property
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import okhttp3.Call
@@ -51,13 +52,12 @@ class LookupCall(
 abstract class SimpleClient {
     private val client by lazy { app.okHttp }
 
-    private fun isEmpty(propertyValue: Any?): Boolean {
-        return when (propertyValue) {
-            null -> { true }
-            is String -> { propertyValue.isEmpty() }
-            is List<*> -> { propertyValue.isEmpty() }
-            else -> { true }
-        }
+    protected fun setIfEmpty(prop: KMutableProperty0<*>, value: Any?) {
+        Property.setIfEmpty(prop, value)
+    }
+
+    protected fun setIfEmpty(vararg props: Pair<KMutableProperty0<*>, Any?>) {
+        Property.setIfEmpty(*props)
     }
 
     protected fun hasAllProperties(
@@ -65,26 +65,8 @@ abstract class SimpleClient {
         getters: List<(book: Book) -> Any?>,
     ) : Boolean {
         return getters.firstOrNull {
-            isEmpty(it(book))
+            Property.isEmpty(it(book))
         } == null
-    }
-
-    protected fun setIfEmpty(prop: KMutableProperty0<*>, value: Any?) {
-        val currentValue = prop.getter()
-        if (isEmpty(currentValue) && ! isEmpty(value)) {
-            @Suppress("UNCHECKED_CAST")
-            (prop.setter as (Any) -> Unit)(value!!)
-        }
-    }
-
-    protected fun setIfEmpty(vararg props: Pair<KMutableProperty0<*>, Any?>) {
-        props.forEach { (prop, value) ->
-            try {
-                setIfEmpty(prop, value)
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to set ${prop.name} to $value (ignored).", e)
-            }
-        }
     }
 
     protected fun request(

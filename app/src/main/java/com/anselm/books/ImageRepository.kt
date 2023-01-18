@@ -67,10 +67,11 @@ class ImageRepository(
         }
     }
 
-    suspend fun convertAndSave(book: Book, bitmap: Bitmap): String {
+    suspend fun convertAndSave(book: Book, origBitmap: Bitmap): String {
         val file = getFileFor(book)
         file.parentFile?.mkdirs()
 
+        val bitmap = resize(origBitmap)
         withContext(Dispatchers.IO) {
             FileOutputStream(file).use { outputStream ->
                 HeifWriter.Builder(

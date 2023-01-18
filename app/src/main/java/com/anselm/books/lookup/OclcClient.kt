@@ -13,7 +13,7 @@ import org.xmlpull.v1.XmlPullParser.START_TAG
 import org.xmlpull.v1.XmlPullParser.TEXT
 import org.xmlpull.v1.XmlPullParserException
 
-class OclcClient: SimpleClient() {
+class OclcClient: XmlClient() {
     private val wsKey = "REDACTED"
     private var parser: XmlPullParser = Xml.newPullParser()
 
@@ -45,30 +45,8 @@ class OclcClient: SimpleClient() {
         }
     }
 
-    private val languages = mapOf(
-        "fre" to "French",
-        "eng" to "English",
-    )
-
-    private fun getLanguage(code: String): String {
-        return languages.getOrDefault(code, code)
-    }
-
-    private val numberOfPagesRE = Regex("^.*[\\s(\\[]+([0-9]+)[\\s)\\]]+p.*$", RegexOption.IGNORE_CASE)
-    private fun extractNumberOfPages(format: String): String {
-        val matchResult = numberOfPagesRE.matchEntire(format)
-        return matchResult?.groups?.get(1)?.value ?: ""
-    }
-
-    private val yearRE = Regex(".*(^|\\s+|\\p{P}+|\\p{S}+)([0-9]{4})($|\\s+).*")
-    private fun extractYear(s: String): String {
-        val matchResult = yearRE.matchEntire(s)
-        return matchResult?.groups?.get(2)?.value ?: ""
-    }
-
     private fun parseXml(
         book: Book,
-        src: String,
         text: String,
     ) {
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
@@ -95,8 +73,7 @@ class OclcClient: SimpleClient() {
                             setIfEmpty(book::summary, value)
                         }
                         "dc:language" -> {
-                            val lang = getLanguage(value)
-                            setIfEmpty(book::language, app.repository.labelB(Label.Type.Language, lang))
+                            setIfEmpty(book::language, getLanguage(value))
                         }
                         "dc:format" -> {
                             setIfEmpty(book::numberOfPages, extractNumberOfPages(value))
@@ -124,11 +101,11 @@ class OclcClient: SimpleClient() {
                 while (parser.next() != START_TAG) { /* Intended empty */ }
                 check(parser.name == "diagnostic")
                 until("message") {
-                    Log.e(TAG, "$src: request failed, $it")
+                    Log.e(TAG, "Request failed, diagnostic: $it")
                 }
             }
             else -> {
-                Log.e(TAG, "$src: expecting a x or y tag, got ${parser.name}")
+                Log.e(TAG, "XML parser git unexpected tag ${parser.name}")
             }
         }
     }
@@ -157,9 +134,9 @@ class OclcClient: SimpleClient() {
         request(tag, url)
             .onResponse {
                 if (it.isSuccessful) {
-                    parseXml(book, url, it.body!!.string())
+                    parseXml(book, it.body!!.string())
                 } else {
-                    Log.e(TAG, "$url: HTTP request returned status ${it.code}")
+                    Log.e(TAG, "$url: http request returned status ${it.code}.")
                 }
                 onCompletion()
             }

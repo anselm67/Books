@@ -8,6 +8,7 @@ class BooksPreferences(
     private val prefs: SharedPreferences
 ) {
     var useGoogle = true
+    var useBNF = true
     var useiTunes = true
     var useWorldcat = true
     var useAmazon = true
@@ -40,6 +41,7 @@ class BooksPreferences(
             "use_worldcat" to Pair(true, ::useWorldcat),
             "use_amazon" to Pair(true, ::useAmazon),
             "use_open_library" to Pair(false, ::useOpenLibrary),
+            "use_bnf" to Pair(true, ::useBNF),
         )
         preferenceMap.forEach { (key: String, prop: Pair<Boolean, KMutableProperty0<Boolean>>) ->
             prop.second.setter(prefs.getBoolean(key, prop.first))
