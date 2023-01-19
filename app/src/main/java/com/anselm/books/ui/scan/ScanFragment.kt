@@ -84,10 +84,26 @@ class ScanFragment: BookFragment() {
         // Sets up the recycler view.
         adapter = IsbnArrayAdapter(
             viewModel.lookupResults,
+            viewModel.stats,
             { updateLookupStats(it)  },
             { onLookupResultClick(it) },
             viewLifecycleOwner.lifecycleScope
         )
+        /*
+         * Cleans up the model lookup results:
+         * The user might have navigated around and saved or deleted some of the books in our
+         * results set before coming back here. This removes these handled entries before heading
+         * to the recycler.
+         */
+        if ( adapter.filter {
+            val book = it.book
+            (book != null)
+                && (book.status == Book.Status.Saved || book.status == Book.Status.Deleted)
+            } ) {
+            saveSaysDone()
+        }
+        updateLookupStats(viewModel.stats)
+
         binding.idRecycler.adapter = adapter
         binding.idRecycler.layoutManager = LinearLayoutManager(binding.idRecycler.context)
         ItemTouchHelper(ScanItemTouchHelper(adapter)).attachToRecyclerView(binding.idRecycler)
@@ -117,9 +133,6 @@ class ScanFragment: BookFragment() {
             binding.idViewFinder.isVisible = false
             binding.idSaveButton.isVisible = true
             binding.idDoneButton.isVisible = false
-        }
-        if (modelInitialized && viewModel.stats != null) {
-            updateLookupStats(viewModel.stats!!)
         }
         handleMenu()
         return binding.root
@@ -189,6 +202,10 @@ class ScanFragment: BookFragment() {
         ringtone.play()
     }
 
+    private fun saveSaysDone() {
+        binding.idSaveButton.text = getString(R.string.done)
+    }
+
     private fun showBottomWarningDialog(
         insertCount: Int,
         noMatchCount: Int,
@@ -213,7 +230,8 @@ class ScanFragment: BookFragment() {
             dialogBinding.idNoMatch.isVisible = false
         }
         dialogBinding.idDeleteNoMatchButton.setOnClickListener {
-            adapter.removeNoMatches()
+            if ( adapter.removeNoMatches() )
+                saveSaysDone()
             dialogBinding.idNoMatch.isVisible = false
         }
 
@@ -225,7 +243,8 @@ class ScanFragment: BookFragment() {
             dialogBinding.idDuplicate.isVisible = false
         }
         dialogBinding.idDeleteDuplicateButton.setOnClickListener {
-            adapter.removeDuplicates()
+            if ( adapter.removeDuplicates() )
+                saveSaysDone()
             dialogBinding.idDuplicate.isVisible = false
             if ( insertCount == 0) {
                 dialog.dismiss()
@@ -250,7 +269,8 @@ class ScanFragment: BookFragment() {
             dialogBinding.idError.isVisible = false
         }
         dialogBinding.idDeleteErrorButton.setOnClickListener {
-            adapter.removeErrors()
+            if ( adapter.removeErrors() )
+                saveSaysDone()
             dialogBinding.idError.isVisible = false
         }
 
@@ -361,11 +381,11 @@ data class LookupStats(
 
 class IsbnArrayAdapter(
     private val dataSource: MutableList<LookupResult>,
+    private val stats: LookupStats,
     private val statsListener: (LookupStats) -> Unit,
     private val onClick: (LookupResult) -> Unit,
     private val viewScope: CoroutineScope,
 ): RecyclerView.Adapter<IsbnArrayAdapter.ViewHolder>() {
-    private val stats = LookupStats()
 
     inner class ViewHolder(
         val binding: RecyclerviewScanIsbnBinding,
@@ -402,7 +422,6 @@ class IsbnArrayAdapter(
         private fun bindWithBook(result: LookupResult) {
             check(result.book != null) { "Expected a match i LookupResult."}
             // Launch duplicate detection which will update the status UI.
-            // FIXME We should spare the lookup when it's already been done. eg from model.
             viewScope.launch {
                 // Hide the progress, replace it with the checkmark.
                 if (app.repository.getDuplicates(result.book!!).isEmpty()) {
@@ -465,7 +484,11 @@ class IsbnArrayAdapter(
         notifyItemRemoved(position)
     }
 
-    private fun filter(test: (LookupResult) -> Boolean) {
+    /**
+     * Filters the list of lookup results according to [test]
+     * Returns true if the lookup result list is now empty.
+     */
+    fun filter(test: (LookupResult) -> Boolean): Boolean {
         var position = 0
         while (position < dataSource.size) {
             val result = dataSource[position]
@@ -483,13 +506,14 @@ class IsbnArrayAdapter(
                 position++
             }
         }
+        return dataSource.size == 0
     }
 
-    fun removeNoMatches() = filter { it.book == null }
+    fun removeNoMatches(): Boolean = filter { it.book == null }
 
-    fun removeErrors() = filter { it.errorMessage != null }
+    fun removeErrors(): Boolean = filter { it.errorMessage != null }
 
-    fun removeDuplicates() = filter { it.isDuplicate }
+    fun removeDuplicates(): Boolean = filter { it.isDuplicate }
 
     @SuppressLint("NotifyDataSetChanged")
     fun insertFirst(isbn: String) {

@@ -25,7 +25,7 @@ class BookRepository(
                 " filters: '${query.filters}'," +
                 " sort: ${query.sortBy}"
         )
-        return if ( query.query.isNullOrEmpty() ) {
+        val books =  if ( query.query.isNullOrEmpty() ) {
             dao.getFilteredPagedList(
                 query.filters.map { it.labelId },
                 query.sortBy, limit, offset
@@ -37,6 +37,8 @@ class BookRepository(
                 query.sortBy, limit, offset
             )
         }
+        books.forEach { it.status = Book.Status.Loaded }
+        return books
     }
 
     suspend fun getPagedListCount(query: Query): Int {
@@ -82,6 +84,7 @@ class BookRepository(
     suspend fun deleteBook(book: Book) {
         listeners.forEach { it.onBookDeleted(book) }
         dao.deleteBook(book)
+        book.status = Book.Status.Deleted
     }
 
     suspend fun getHisto(
@@ -133,6 +136,7 @@ class BookRepository(
         if (book != null && decorate) {
             decorate(book)
         }
+        book?.status = Book.Status.Loaded
         return book
     }
 
@@ -148,10 +152,12 @@ class BookRepository(
             }
             listeners.forEach { it.onBookInserted(book) }
             bookId = dao.insert(book)
+            book.status = Book.Status.Saved
         } else {
             book.rawLastModified = timestamp
             listeners.forEach { it.onBookUpdated(book) }
             dao.update(book)
+            book.status = Book.Status.Saved
         }
         if (book.labelsChanged) {
             dao.clearLabels(book.id)
@@ -183,7 +189,9 @@ class BookRepository(
      */
     suspend fun getDuplicates(book: Book): List<Book> {
         val authorId = if (book.authors.isEmpty()) 0 else book.authors[0].id
-        return dao.getDuplicates(book.id, book.title, authorId, book.isbn)
+        val books = dao.getDuplicates(book.id, book.title, authorId, book.isbn)
+        books.forEach { it.status = Book.Status.Loaded }
+        return books
     }
 
     /**

@@ -55,25 +55,21 @@ class DetailsFragment : BookFragment() {
         } else {
             _book = safeArgs.book
         }
-        if (_book == null) {
+        if (_book == null || book.status == Book.Status.Deleted) {
             navController.popBackStack()
         }
 
         binding.bind(inflater, book)
 
-        // We have to wait for the book to setup the menu. And we can't delete a book that
-        // hasn't been saved yet, e.g. a scanned book.
-        if (book.id > 0) {
-            handleMenu(
-                MenuItemHandler(R.id.idDeleteBook, {
-                    val builder = AlertDialog.Builder(requireActivity())
-                    builder.setMessage(getString(R.string.delete_book_confirmation, book.title))
-                        .setPositiveButton(R.string.yes) { _, _ -> deleteBook(book) }
-                        .setNegativeButton(R.string.no) { _, _ -> }
-                        .show()
-                }),
-            )
-        }
+        handleMenu(
+            MenuItemHandler(R.id.idDeleteBook, {
+                val builder = AlertDialog.Builder(requireActivity())
+                builder.setMessage(getString(R.string.delete_book_confirmation, book.title))
+                    .setPositiveButton(R.string.yes) { _, _ -> deleteBook(book) }
+                    .setNegativeButton(R.string.no) { _, _ -> }
+                    .show()
+            }),
+        )
 
         binding.fabEditButton.setOnClickListener {
             val action = DetailsFragmentDirections.toEditFragment(book = book)
@@ -89,10 +85,12 @@ class DetailsFragment : BookFragment() {
             app.applicationScope.launch {
                 app.repository.deleteBook(book)
                 app.toast(getString(R.string.book_deleted, book.title))
-                app.postOnUiThread {
-                    findNavController().popBackStack()
-                }
             }
+        } else {
+            book.status = Book.Status.Deleted
+        }
+        app.postOnUiThread {
+            findNavController().popBackStack()
         }
     }
 

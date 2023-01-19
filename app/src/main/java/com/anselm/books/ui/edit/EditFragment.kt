@@ -114,6 +114,8 @@ class EditFragment: BookFragment() {
                 app.repository.deleteBook(book)
                 app.toast(getString(R.string.book_deleted, book.title))
             }
+        } else {
+            book.status = Book.Status.Deleted
         }
         findNavController().popBackStack()
     }

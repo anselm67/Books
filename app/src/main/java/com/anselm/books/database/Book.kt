@@ -2,7 +2,12 @@ package com.anselm.books.database
 
 import android.os.Parcel
 import android.os.Parcelable
-import androidx.room.*
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Fts4
+import androidx.room.Ignore
+import androidx.room.Index
+import androidx.room.PrimaryKey
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.text.SimpleDateFormat
@@ -283,6 +288,16 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
 
     val sqlId: String
         get() = id.toString()
+
+    enum class Status {
+        Created,
+        Loaded,
+        Deleted,
+        Saved,
+    }
+    @Ignore
+    var status: Status = Status.Created
+
 }
 
 @Entity(tableName = "book_fts")
