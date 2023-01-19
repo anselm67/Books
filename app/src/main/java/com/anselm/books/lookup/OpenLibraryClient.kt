@@ -20,6 +20,7 @@ class OpenLibraryClient: JsonClient() {
         "/languages/fre" to "French",
         "/languages/eng" to "English",
         "/languages/spa" to "Spanish",
+        "/languages/ita" to "Italian",
     )
 
     private fun firstKeyOrNull(obj: JSONObject, key: String): String? {

@@ -8,6 +8,8 @@ abstract class XmlClient: SimpleClient() {
     private val languages = mapOf(
         "fre" to "French",
         "eng" to "English",
+        "ita" to "Italian",
+        "spa" to "Spanish",
     )
 
     protected fun getLanguage(code: String): Label {

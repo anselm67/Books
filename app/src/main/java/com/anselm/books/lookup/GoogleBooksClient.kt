@@ -22,10 +22,11 @@ class GoogleBooksClient: JsonClient() {
         }
     }
 
-    private val languages = mapOf<String, String>(
+    private val languages = mapOf(
         "fr" to "French",
         "en" to "English",
         "es" to "Spanish",
+        "it" to "Italian",
     )
 
     private fun getLanguage(str: String): Label? {
