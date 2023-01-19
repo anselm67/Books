@@ -8,6 +8,7 @@ import androidx.room.Fts4
 import androidx.room.Ignore
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.text.SimpleDateFormat
@@ -130,6 +131,12 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
 
     }
 
+    private fun toJsonArray(labels: List<Label>): JSONArray {
+        val array = JSONArray()
+        labels.forEach { array.put(it.name) }
+        return array
+    }
+
     fun toJson(): JSONObject {
         val obj = JSONObject()
         obj.put(BookFields.TITLE, title)
@@ -143,8 +150,8 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
         obj.put(BookFields.IMAGE_FILENAME, imageFilename)
         obj.put(BookFields.LAST_MODIFIED, rawLastModified)
         // Handles label fields.
-        obj.put(BookFields.AUTHOR, authors.map { it.name })
-        obj.put(BookFields.GENRE, genres.map { it.name })
+        obj.put(BookFields.AUTHOR, toJsonArray(authors))
+        obj.put(BookFields.GENRE, toJsonArray(genres))
         obj.put(BookFields.PHYSICAL_LOCATION, location?.name ?: "")
         obj.put(BookFields.PUBLISHER, publisher?.name ?: "")
         obj.put(BookFields.LANGUAGE, language?.name ?: "")
