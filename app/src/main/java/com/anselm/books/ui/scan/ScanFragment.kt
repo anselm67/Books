@@ -66,13 +66,20 @@ class ScanFragment: BookFragment() {
         binding.idRecycler.layoutManager = LinearLayoutManager(binding.idRecycler.context)
         ItemTouchHelper(ScanItemTouchHelper(adapter)).attachToRecyclerView(binding.idRecycler)
 
+        // Gets ready for some cleanup work.
+        binding.idSaveButton.setOnClickListener {
+            saveAllMatches()
+        }
+        binding.idDoneButton.setOnClickListener {
+            stopCamera()
+            binding.idSaveButton.isVisible = true
+            if (adapter.itemCount == 0) {
+                findNavController().popBackStack()
+            }
+        }
+
         // Starts the camera if we haven't stopped it already.
         if ( doCamera ) {
-            // For now, that's your only option out of scanning.
-            binding.idDoneButton.setOnClickListener {
-                stopCamera()
-            }
-
             // Checks permissions and sets up the camera.
             if (checkCameraPermission()) {
                 startCamera()
@@ -284,11 +291,6 @@ class ScanFragment: BookFragment() {
         binding.idViewFinder.isVisible = false
         binding.idDoneButton.isVisible = false
         viewModel.isDone = true
-        // Gets ready for some cleanup work.
-        binding.idSaveButton.isVisible = true
-        binding.idSaveButton.setOnClickListener {
-            saveAllMatches()
-        }
     }
 
     override fun onDestroy() {

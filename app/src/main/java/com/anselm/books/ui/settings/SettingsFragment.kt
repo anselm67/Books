@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.forEach
@@ -179,7 +180,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
     }
 
-    private fun setupLookupServices() {
+    private fun displayLookupServiceStats() {
         app.lookupService.clientKeys {
             val preference = findPreference<CheckBoxPreference>(it)
             val (lookupCount, matchCount, coverCount) = app.lookupService.stats(it)
@@ -187,6 +188,22 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 lookupCount, matchCount, coverCount
             )
         }
+    }
+
+    private fun setupLookupServices() {
+        findPreference<Preference>("lookup_service_reset_stats")?.setOnPreferenceClickListener {
+            Log.d(TAG, "Pref")
+            AlertDialog.Builder(requireActivity())
+                .setTitle("Really reset lookup statistics?")
+                .setPositiveButton(R.string.yes) {  _, _ ->
+                    app.lookupService.resetStats()
+                    displayLookupServiceStats()
+                }
+                .setNegativeButton(R.string.no) { _, _ -> }
+                .create().show()
+            true
+        }
+        displayLookupServiceStats()
     }
 }
 

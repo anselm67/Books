@@ -55,11 +55,11 @@
     <PreferenceCategory app:key="lookup_service_preferences"
         app:title="@string/preference_category_lookup_service">
 
-        <CheckBoxPreference app:key="use_google"
-            android:title="Google Books"
-            android:defaultValue="true" />
         <CheckBoxPreference app:key="use_bnf"
             android:title="Bibliothèque Nationale de France"
+            android:defaultValue="true" />
+        <CheckBoxPreference app:key="use_google"
+            android:title="Google Books"
             android:defaultValue="true" />
         <CheckBoxPreference app:key="use_worldcat"
             android:title="Worldcat"
@@ -74,6 +74,8 @@
             android:title="Open Library"
             android:defaultValue="true" />
 
+        <Preference app:key="lookup_service_reset_stats"
+            android:title="Reset lookup statistics." />
 
     </PreferenceCategory>
 
