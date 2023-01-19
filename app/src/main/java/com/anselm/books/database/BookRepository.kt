@@ -23,17 +23,20 @@ class BookRepository(
         check(query.filters.size <= 5)
         Log.d(TAG, "getPagedList [$offset, $limit] ${query.query}/${query.partial}," +
                 " filters: '${query.filters}'," +
+                " withoutLabelOfType: ${query.withoutLabelOfType}" +
                 " sort: ${query.sortBy}"
         )
         val books =  if ( query.query.isNullOrEmpty() ) {
             dao.getFilteredPagedList(
                 query.filters.map { it.labelId },
+                query.withoutLabelOfType,
                 query.sortBy, limit, offset
             )
         } else /* Requests text matching. */ {
             dao.getTitlePagedList(
                 if (query.partial) query.query!! + '*' else query.query!!,
                 query.filters.map { it.labelId },
+                query.withoutLabelOfType,
                 query.sortBy, limit, offset
             )
         }
@@ -44,16 +47,19 @@ class BookRepository(
     suspend fun getPagedListCount(query: Query): Int {
         check(query.filters.size <= 5)
         Log.d(TAG, "getPagedListCount ${query.query}/${query.partial}," +
-                " filters: '${query.filters}',"
+                " filters: '${query.filters}'," +
+                " withoutLabelOfType: ${query.withoutLabelOfType}"
         )
         val count = if ( query.query.isNullOrEmpty() ) {
             dao.getFilteredPagedListCount(
                 query.filters.map { it -> it.labelId },
+                query.withoutLabelOfType,
             )
         } else /* Requests text matching. */ {
             dao.getTitlePagedListCount(
                 if (query.partial) query.query!! + '*' else query.query!!,
                 query.filters.map { it -> it.labelId },
+                query.withoutLabelOfType,
             )
         }
         return count
@@ -64,13 +70,13 @@ class BookRepository(
         return if ( query.query.isNullOrEmpty() ) {
             dao.getFilteredIdsList(
                 query.filters.map { it -> it.labelId },
-                query.sortBy,
+                query.withoutLabelOfType, query.sortBy,
             )
         } else /* Requests text matching. */ {
             dao.getTitleIdsList(
                 if (query.partial) query.query!! + '*' else query.query!!,
                 query.filters.map { it -> it.labelId },
-                query.sortBy,
+                query.withoutLabelOfType, query.sortBy,
             )
         }
     }
@@ -97,11 +103,18 @@ class BookRepository(
         val histos = if ( query.query.isNullOrEmpty() ) {
             if (labelQuery.isNullOrEmpty()) {
                 dao.getFilteredHisto(
-                    type, query.filters.map { it.labelId }, sortBy,
+                    type,
+                    query.filters.map { it.labelId },
+                    query.withoutLabelOfType,
+                    sortBy,
                 )
             } else {
                 dao.searchFilteredHisto(
-                    type, labelQuery, query.filters.map { it.labelId }, sortBy,
+                    type,
+                    labelQuery,
+                    query.filters.map { it.labelId },
+                    query.withoutLabelOfType,
+                    sortBy,
                 )
             }
         } else /* Requests text match. */ {
@@ -110,6 +123,7 @@ class BookRepository(
                     type,
                     if (query.partial) query.query!! + '*' else query.query!!,
                     query.filters.map { it.labelId },
+                    query.withoutLabelOfType,
                     sortBy,
                 )
             } else {
@@ -118,6 +132,7 @@ class BookRepository(
                     labelQuery,
                     if (query.partial) query.query!! + '*' else query.query!!,
                     query.filters.map { it.labelId },
+                    query.withoutLabelOfType,
                     sortBy,
                 )
             }
@@ -298,9 +313,6 @@ class BookRepository(
         return dao.getWithoutLabelBookCount(type)
     }
 
-    suspend fun getWithoutLabelBookIds(type: Label.Type): List<Long> {
-        return dao.getWithoutLabelBookIds(type)
-    }
     suspend fun getLabelTypeCounts(): List<LabelTypeCount> {
         return dao.getLabelTypeCounts()
     }

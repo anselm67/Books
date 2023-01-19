@@ -74,6 +74,9 @@
         <action android:id="@+id/toPagerFragment"
             app:destination="@id/nav_pager" />
 
+        <action android:id="@+id/toSearchFragment"
+            app:destination="@id/nav_search" />
+
         <action
             android:id="@+id/toCleanupLabelFragment"
             app:destination="@id/nav_cleanup_label" />

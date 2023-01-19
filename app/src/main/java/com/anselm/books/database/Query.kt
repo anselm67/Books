@@ -9,6 +9,7 @@ data class Query(
     var query: String? = null,
     var partial: Boolean = false,
     var filters: MutableList<Filter> = mutableListOf(),
+    var withoutLabelOfType: Label.Type = Label.Type.NoType,
     var sortBy: Int = app.defaultSortOrder,
 ) : Parcelable {
 

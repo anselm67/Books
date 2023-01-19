@@ -86,39 +86,35 @@ class CleanUpFragment: BookFragment() {
         // Books without certain label type.
         count = app.repository.getWithoutLabelBookCount(Label.Type.Authors)
         if (count > 0) {
-            container.addView(bookItem(
+            container.addView(bookQueryItem(
                 inflater, container,
-                getString(R.string.without_authors_cleanup, count)
-            ) {
-                app.repository.getWithoutLabelBookIds(Label.Type.Authors)
-            })
+                getString(R.string.without_authors_cleanup, count),
+                Query(withoutLabelOfType = Label.Type.Authors),
+            ))
         }
         count = app.repository.getWithoutLabelBookCount(Label.Type.Genres)
         if (count > 0) {
-            container.addView(bookItem(
+            container.addView(bookQueryItem(
                 inflater, container,
-                getString(R.string.without_genres_cleanup, count)
-            ) {
-                app.repository.getWithoutLabelBookIds(Label.Type.Genres)
-            })
+                getString(R.string.without_genres_cleanup, count),
+                Query(withoutLabelOfType = Label.Type.Genres),
+            ))
         }
         count = app.repository.getWithoutLabelBookCount(Label.Type.Location)
         if (count > 0) {
-            container.addView(bookItem(
+            container.addView(bookQueryItem(
                 inflater, container,
-                getString(R.string.without_locations_cleanup, count)
-            ) {
-                app.repository.getWithoutLabelBookIds(Label.Type.Location)
-            })
+                getString(R.string.without_locations_cleanup, count),
+                Query(withoutLabelOfType = Label.Type.Location),
+            ))
         }
         count = app.repository.getWithoutLabelBookCount(Label.Type.Language)
         if (count > 0) {
-            container.addView(bookItem(
+            container.addView(bookQueryItem(
                 inflater, container,
-                getString(R.string.without_languages_cleanup, count)
-            ) {
-                app.repository.getWithoutLabelBookIds(Label.Type.Language)
-            })
+                getString(R.string.without_languages_cleanup, count),
+                Query(withoutLabelOfType = Label.Type.Language)
+            ))
         }
     }
 
@@ -156,6 +152,23 @@ class CleanUpFragment: BookFragment() {
         val item = CleanupItemLayoutBinding.inflate(inflater, container, false)
         item.idItemText.text = text
         onClick?.let { item.idItemText.setOnClickListener { it() } }
+        return item.root
+    }
+
+    private fun bookQueryItem(
+        inflater: LayoutInflater,
+        container : ViewGroup,
+        text: String,
+        query: Query,
+    ): View {
+        val item = CleanupItemLayoutBinding.inflate(inflater, container, false)
+        item.idItemText.text = text
+        item.idItemText.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val action = CleanUpFragmentDirections.toSearchFragment(query)
+                findNavController().navigate(action)
+            }
+        }
         return item.root
     }
 

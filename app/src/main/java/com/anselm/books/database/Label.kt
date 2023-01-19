@@ -28,6 +28,7 @@ data class Label(
     }
 
     enum class Type(val type: Int) {
+        NoType(0),
         Authors(1),
         Genres(2),
         Location(3),
