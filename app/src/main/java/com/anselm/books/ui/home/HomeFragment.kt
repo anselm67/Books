@@ -1,6 +1,9 @@
 package com.anselm.books.ui.home
 
+import android.graphics.Color
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +15,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.anselm.books.BookViewModel
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.ISBN
 import com.anselm.books.R
 import com.anselm.books.TAG
 import com.anselm.books.database.BookDao
@@ -108,6 +112,19 @@ class HomeFragment : ListFragment() {
             }
             dialog.show()
         }
+        binding.idIsbnEdit.addTextChangedListener(object: TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { }
+
+            override fun afterTextChanged(s: Editable?) {
+                val text = s.toString().trim()
+                if ( ISBN.isValidEAN(text)) {
+                    binding.idIsbnEdit.setTextColor(Color.BLACK)
+                } else {
+                    binding.idIsbnEdit.setTextColor(Color.RED)
+                }
+            }
+        })
         binding.idIsbnButton.setOnClickListener{
             val isbn = binding.idIsbnEdit.text.toString().trim()
             view?.let { myself -> activity?.hideKeyboard(myself) }
@@ -118,8 +135,16 @@ class HomeFragment : ListFragment() {
     }
 
     private fun handleISBN(isbn: String) {
-        app.loading(true, "$TAG.handleISBM")
-        app.lookupService.lookup(isbn) { book ->
+        var input = isbn
+        if (isbn.length == 10) {
+            // Convert it to an ISBN 13
+            input = ISBN.toISBN13(isbn) ?: return
+        } else if ( ! ISBN.isValidEAN13(input) ) {
+            app.toast("Invalid ISBN number.")
+            return
+        }
+        app.loading(true, "$TAG.handleISBN")
+        app.lookupService.lookup(input) { book ->
             if (book == null) {
                 app.toast("Book not found.")
             } else {
@@ -130,7 +155,7 @@ class HomeFragment : ListFragment() {
                     findNavController().navigate(action)
                 }
             }
-            app.loading(false, "$TAG.handleISBM")
+            app.loading(false, "$TAG.handleISBN")
         }
     }
 }

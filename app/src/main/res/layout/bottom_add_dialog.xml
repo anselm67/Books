@@ -65,7 +65,7 @@
         android:id="@+id/idIsbnEdit"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:inputType="text"
+        android:inputType="number"
         android:importantForAutofill="no"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/idIsbnButton"
