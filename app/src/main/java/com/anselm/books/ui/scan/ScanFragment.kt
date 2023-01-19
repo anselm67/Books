@@ -1,12 +1,15 @@
 package com.anselm.books.ui.scan
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.Context
 import android.media.RingtoneManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -42,6 +45,29 @@ class ScanFragment: BookFragment() {
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var adapter: IsbnArrayAdapter
     private lateinit var viewModel: ScanViewModel
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        requireActivity().onBackPressedDispatcher.addCallback(
+            this,
+            object: OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (adapter.itemCount > 0) {
+                        AlertDialog.Builder(requireActivity())
+                            .setMessage(getString(R.string.discard_changes_prompt))
+                            .setPositiveButton(R.string.yes) { _, _ ->
+                                isEnabled = false
+                                requireActivity().onBackPressedDispatcher.onBackPressed()
+                            }
+                            .setNegativeButton(R.string.no) { _, _ -> }
+                            .show()
+                    } else {
+                        isEnabled = false
+                        requireActivity().onBackPressedDispatcher.onBackPressed()
+                    }
+                }
+            })
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
