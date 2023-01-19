@@ -178,6 +178,7 @@ class ScanFragment: BookFragment() {
             insertCount + duplicateCount,
             adapter.itemCount,
         )
+        dialogBinding.idCancelDialog.setOnClickListener { dialog.dismiss() }
         // Handles no match results:
         if (noMatchCount > 0) {
             dialogBinding.idNoMatch.isVisible = true
@@ -187,7 +188,7 @@ class ScanFragment: BookFragment() {
         }
         dialogBinding.idDeleteNoMatchButton.setOnClickListener {
             adapter.removeNoMatches()
-            dialog.dismiss()
+            dialogBinding.idNoMatch.isVisible = false
         }
 
         // Handles duplicates results:
@@ -199,7 +200,20 @@ class ScanFragment: BookFragment() {
         }
         dialogBinding.idDeleteDuplicateButton.setOnClickListener {
             adapter.removeDuplicates()
-            dialog.dismiss()
+            dialogBinding.idDuplicate.isVisible = false
+            if ( insertCount == 0) {
+                dialog.dismiss()
+            } else {
+                dialogBinding.idTitle.text = getString(
+                    R.string.scan_confirm_prompt,
+                    insertCount,
+                    adapter.itemCount,
+                )
+                dialogBinding.idProceedButton.text = getString(
+                    R.string.scan_proceed,
+                    insertCount
+                )
+            }
         }
 
         // Handles error results:
@@ -211,7 +225,7 @@ class ScanFragment: BookFragment() {
         }
         dialogBinding.idDeleteErrorButton.setOnClickListener {
             adapter.removeErrors()
-            dialog.dismiss()
+            dialogBinding.idError.isVisible = false
         }
 
         // Proceed button.
@@ -229,8 +243,10 @@ class ScanFragment: BookFragment() {
     private fun saveAllMatches() {
         // Is there any work to do?
         val results = adapter.getAllLookupResults()
-        if (results.isEmpty())
-            return
+        if (results.isEmpty()) {
+            findNavController().popBackStack()
+           return
+        }
         var insertCount = 0
         var noMatchCount = 0
         var duplicateCount = 0

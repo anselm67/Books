@@ -8,12 +8,30 @@
     android:orientation="vertical"
     android:layoutDirection="ltr">
 
-    <TextView
-        android:id="@+id/idTitle"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:textSize="24sp" />
+        android:orientation="horizontal"
+        android:layoutDirection="ltr">
+        <TextView
+            android:id="@+id/idTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="24sp"
+            android:layout_weight="1"
+            android:layout_gravity="start|center_vertical" />
+
+        <ImageButton
+            android:id="@+id/idCancelDialog"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="@drawable/ic_baseline_cancel_48"
+            android:contentDescription="@string/cancel"
+            android:layout_margin="8dp"
+            app:backgroundTint="#aaaaaa"
+            android:layout_gravity="end|center_vertical" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/idNoMatch"
