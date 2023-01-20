@@ -182,7 +182,7 @@ class EditFragment: BookFragment() {
             TextEditor(this, inflater, book, null, R.string.summaryLabel,
                 Book::summary.getter, Book::summary.setter),
             YearEditor(this, inflater, book, null,
-                Book::yearPublished.getter, Book::yearPublished.setter),
+                Book::yearPublished),
         ))
         editors.forEach {
             it.setup(binding.editView)?.let { view -> binding.editView.addView(view) }
