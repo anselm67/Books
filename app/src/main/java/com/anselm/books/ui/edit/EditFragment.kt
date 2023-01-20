@@ -144,7 +144,7 @@ class EditFragment: BookFragment() {
         titleEditor = TextEditor(this, inflater, book,
             { updateMagicButton() },
             R.string.titleLabel,
-            Book::title.getter, Book::title.setter) {
+            Book::title) {
             it.isNotEmpty()
         }
         authorsEditor = MultiLabelEditor(this, inflater, book,
@@ -154,13 +154,13 @@ class EditFragment: BookFragment() {
         isbnEditor = TextEditor(this, inflater, book,
             { updateMagicButton() },
             R.string.isbnLabel,
-            Book::isbn.getter, Book::isbn.setter) {
+            Book::isbn) {
                 it.isEmpty() || ISBN.isValidEAN13(it)
         }
         editors.addAll(arrayListOf(
             titleEditor,
             TextEditor(this, inflater, book, null, R.string.subtitleLabel,
-                Book::subtitle.getter, Book::subtitle.setter),
+                Book::subtitle),
             authorsEditor,
             SingleLabelEditor(this, inflater, book, null,
                 Label.Type.Publisher, R.string.publisherLabel,
@@ -176,11 +176,11 @@ class EditFragment: BookFragment() {
                 Label.Type.Language, R.string.languageLabel,
                 Book::language.getter, Book::language.setter),
             TextEditor(this, inflater, book, null, R.string.numberOfPagesLabel,
-                Book::numberOfPages.getter, Book::numberOfPages.setter) {
+                Book::numberOfPages) {
                 isValidNumber(it)
             },
             TextEditor(this, inflater, book, null, R.string.summaryLabel,
-                Book::summary.getter, Book::summary.setter),
+                Book::summary),
             YearEditor(this, inflater, book, null,
                 Book::yearPublished),
         ))
