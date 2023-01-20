@@ -166,14 +166,12 @@ class LookupService {
      * empty values.
      */
     fun lookup(
-        isbn: String,
+        like: Book,
         stopAt: List<(Book) -> Any?>? = defaultStopAt,
         onDone: (book: Book?) -> Unit,
     ): String {
         val tag = nextTag()
-        val book = app.repository.newBook(isbn)
-        onCompletion(0, tag, book, stopAt, onDone)
+        onCompletion(0, tag, like, stopAt, onDone)
         return tag
     }
-
 }

@@ -3,6 +3,7 @@ package com.anselm.books.lookup
 import android.util.Log
 import android.util.Xml
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.ISBN
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
@@ -249,6 +250,10 @@ class BnfClient: XmlClient() {
     }
 
     override fun lookup(tag: String, book: Book, onCompletion: () -> Unit) {
+        if (! ISBN.isValidEAN13(book.isbn) ) {
+            onCompletion()
+            return
+        }
         val url = "https://catalogue.bnf.fr/api/SRU?version=1.2&operation=searchRetrieve&query=bib.isbn%20adj%20%22${book.isbn}%22&recordSchema=unimarcXchange&maximumRecords=100&startRecord=1"
         request(tag, url)
             .onResponse {

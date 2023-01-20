@@ -516,12 +516,13 @@ class IsbnArrayAdapter(
     fun removeDuplicates(): Boolean = filter { it.isDuplicate }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun insertFirst(isbn: String) {
-        val lookup = LookupResult(isbn)
+    fun insertFirst(isbn13: String) {
+        val lookup = LookupResult(isbn13)
         dataSource.add(0, lookup)
         notifyItemInserted(0)
         stats.lookupCount.incrementAndGet()
-        lookup.tag = app.lookupService.lookup(isbn) { book ->
+        val like = app.repository.newBook(isbn13)
+        lookup.tag = app.lookupService.lookup(like) { book ->
             if (book == null) {
                 stats.noMatchCount.incrementAndGet()
             } else {

@@ -199,5 +199,4 @@ class CoverImageEditor(
             .load(uri)
             .into(editor.idCoverImage)
     }
-
 }

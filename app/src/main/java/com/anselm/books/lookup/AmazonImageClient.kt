@@ -1,6 +1,7 @@
 package com.anselm.books.lookup
 
 import android.util.Log
+import com.anselm.books.ISBN
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import okhttp3.internal.headersContentLength
@@ -8,7 +9,7 @@ import okhttp3.internal.headersContentLength
 class AmazonImageClient: SimpleClient() {
 
     override fun lookup(tag: String, book: Book, onCompletion: () -> Unit) {
-        if (book.imgUrl.isNotEmpty() || book.isbn.length <= 3) {
+        if (book.imgUrl.isNotEmpty() || ! ISBN.isValidEAN13(book.isbn)) {
             onCompletion()
         } else {
             val key = book.isbn.substring(3)

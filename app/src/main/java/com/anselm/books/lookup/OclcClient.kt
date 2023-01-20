@@ -126,7 +126,7 @@ class OclcClient: XmlClient() {
         book: Book,
         onCompletion: () -> Unit,
     ) {
-        if (hasAllProperties(book, properties)) {
+        if (hasAllProperties(book, properties) || ! ISBN.isValidEAN13(book.isbn)) {
             onCompletion()
             return
         }

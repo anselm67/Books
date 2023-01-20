@@ -55,7 +55,13 @@ interface BookDao {
     @Query("SELECT * FROM label_table WHERE id = :id")
     suspend fun label(id: Long): Label?
 
-    @Query("SELECT labelId from book_labels WHERE bookId = :bookId ORDER BY sortKey ASC")
+    /*
+     * The JOIN in the query below ensures we will only get back labels that exist.
+     * That should always be the case but on occasion spurious stuff will happen.
+     */
+    @Query("SELECT labelId FROM book_labels AS bl" +
+            " JOIN label_table AS lt ON lt.id = bl.labelId " +
+            "WHERE bookId = :bookId ORDER BY sortKey ASC")
     suspend fun labels(bookId: Long): List<Long>
 
     @Query("DELETE FROM book_labels WHERE bookId = :bookId")

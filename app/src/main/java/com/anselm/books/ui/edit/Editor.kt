@@ -13,9 +13,9 @@ import com.anselm.books.R
 import com.anselm.books.database.Book
 
 abstract class Editor(
-    open val fragment: Fragment,
-    open val inflater: LayoutInflater,
-    open val book: Book,
+    val fragment: Fragment,
+    val inflater: LayoutInflater,
+    val book: Book,
 ) {
     private val context by lazy { fragment.requireContext() }
     private var validBorder: Drawable? = null

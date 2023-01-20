@@ -16,10 +16,7 @@ class ISBN {
         }
 
         fun isValidEAN13(isbn: String): Boolean {
-            // Quick checks: empty is fine.
-            if (isbn.isEmpty()) {
-                return true
-            } else if (isbn.length != 13) {
+            if (isbn.length != 13) {
                 return false
             }
             // Verifies the checksum.

@@ -144,7 +144,8 @@ class HomeFragment : ListFragment() {
             return
         }
         app.loading(true, "$TAG.handleISBN")
-        app.lookupService.lookup(input) { book ->
+        val like = app.repository.newBook(input)
+        app.lookupService.lookup(like) { book ->
             if (book == null) {
                 app.toast("Book not found.")
             } else {

@@ -3,7 +3,6 @@ package com.anselm.books.ui.edit
 import android.app.Activity
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -20,7 +19,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
-import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.BookDao
 import com.anselm.books.database.Label
@@ -71,7 +69,6 @@ private class LabelArrayAdapter(
                 )
                 results.count = histos.size
                 results.values = histos.map { repository.label(it.labelId) }
-                Log.d(TAG, "Returning ${histos.size} results.")
             }
             return results
         }
@@ -236,6 +233,10 @@ class MultiLabelEditor(
         }
         editor.autoComplete.setText("")
         app.hideKeyboard(editor.root)
+    }
+
+    fun getValue(): List<Label> {
+        return dndlist.getLabels()
     }
 }
 

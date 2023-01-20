@@ -2,6 +2,7 @@ package com.anselm.books.lookup
 
 import android.util.Log
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.ISBN
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
@@ -59,7 +60,7 @@ class iTuneClient: JsonClient() {
         book: Book,
         onCompletion: () -> Unit,
     ) {
-        if (hasAllProperties(book, properties)) {
+        if (hasAllProperties(book, properties) || ! ISBN.isValidEAN13(book.isbn)) {
             onCompletion()
             return
         }

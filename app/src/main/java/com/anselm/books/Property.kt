@@ -17,6 +17,10 @@ class Property {
             }
         }
 
+        fun isNotEmpty(propertyValue: Any?): Boolean {
+            return ! isEmpty(propertyValue)
+        }
+
         fun setIfEmpty(prop: KMutableProperty0<*>, value: Any?) {
             val currentValue = prop.getter()
             if (isEmpty(currentValue) && ! isEmpty(value)) {

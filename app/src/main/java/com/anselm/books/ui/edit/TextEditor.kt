@@ -123,4 +123,8 @@ open class TextEditor(
             }
         }
     }
+
+    fun getValue(): String {
+        return editor.idEditText.text.toString().trim()
+    }
 }

@@ -2,6 +2,7 @@ package com.anselm.books.lookup
 
 import android.util.Log
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.ISBN
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
@@ -233,7 +234,7 @@ class OpenLibraryClient: JsonClient() {
         book: Book,
         onCompletion: () -> Unit,
     ) {
-        if (hasAllProperties(book, allProperties)) {
+        if (hasAllProperties(book, allProperties) || ! ISBN.isValidEAN13(book.isbn)) {
             onCompletion()
             return
         }

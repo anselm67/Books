@@ -31,6 +31,8 @@ class EditFragment: BookFragment() {
     private var editors: MutableList<Editor> = emptyList<Editor>().toMutableList()
     private val coverImageEditor
         get() = (editors[0] as CoverImageEditor)
+    private lateinit var titleEditor: TextEditor
+    private lateinit var authorsEditor: MultiLabelEditor
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -101,7 +103,7 @@ class EditFragment: BookFragment() {
         binding.fabMagicButton.setOnClickListener {
             performMagic()
         }
-
+        binding.fabMagicButton.isEnabled = false
         editors = mutableListOf(CoverImageEditor(this@EditFragment, inflater, book))
         bind(inflater, book)
         return binding.root
@@ -133,16 +135,19 @@ class EditFragment: BookFragment() {
      */
     private fun bind(inflater: LayoutInflater, book: Book) {
         // Creates and sets up an editor for every book property.
+        titleEditor = TextEditor(this, inflater, book, R.string.titleLabel,
+            Book::title.getter, Book::title.setter) {
+            it.isNotEmpty()
+        }
+        authorsEditor = MultiLabelEditor(this, inflater, book,
+            Label.Type.Authors, R.string.authorLabel,
+            Book::authors.getter, Book::authors.setter)
+
         editors.addAll(arrayListOf(
-            TextEditor(this, inflater, book, R.string.titleLabel,
-                Book::title.getter, Book::title.setter) {
-                it.isNotEmpty()
-            },
+            titleEditor,
             TextEditor(this, inflater, book, R.string.subtitleLabel,
                 Book::subtitle.getter, Book::subtitle.setter),
-            MultiLabelEditor(this, inflater, book,
-                Label.Type.Authors, R.string.authorLabel,
-                Book::authors.getter, Book::authors.setter),
+            authorsEditor,
             SingleLabelEditor(this, inflater, book,
                 Label.Type.Publisher, R.string.publisherLabel,
                 Book::publisher.getter, Book::publisher.setter),
@@ -153,7 +158,9 @@ class EditFragment: BookFragment() {
                 Label.Type.Location, R.string.physicalLocationLabel,
                 Book::location.getter, Book::location.setter),
             TextEditor(this, inflater, book, R.string.isbnLabel,
-                Book::isbn.getter, Book::isbn.setter, ISBN::isValidEAN13),
+                Book::isbn.getter, Book::isbn.setter) {
+                it.isEmpty() || ISBN.isValidEAN13(it)
+            },
             SingleLabelEditor(this, inflater, book,
                 Label.Type.Language, R.string.languageLabel,
                 Book::language.getter, Book::language.setter),
@@ -266,13 +273,30 @@ class EditFragment: BookFragment() {
         }
     }
 
+    private fun getTitleValue(): String {
+        return titleEditor.getValue()
+    }
+
+    private fun getAuthorsValue(): List<Label> {
+        return authorsEditor.getValue()
+    }
+
     private fun performMagic() {
-        if (book.isbn.isEmpty()) {
-            app.toast("I need an ISBN number.")
+        val title = getTitleValue()
+        val authors = getAuthorsValue()
+        if (book.isbn.isEmpty() && (title.isEmpty() || authors.isEmpty())) {
+            app.toast("Magic requires at least an ISBN or a title/author.")
             return
         }
+        val like = app.repository.newBook(book.isbn)
+        if (book.id > 0) {
+            // Clears the default 'like' location it doesn't apply on editing.
+            like.location = null
+        }
+        like.title = title
+        like.authors = authors
         app.loading(true, "performMagic")
-        app.lookupService.lookup(book.isbn, stopAt = null) {
+        app.lookupService.lookup(like, stopAt = null) {
             app.loading(false, "performMagic")
             if (it == null) {
                 app.toast("No match found, no magic!")

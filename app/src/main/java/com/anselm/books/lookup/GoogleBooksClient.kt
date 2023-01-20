@@ -2,12 +2,14 @@ package com.anselm.books.lookup
 
 import android.util.Log
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.ISBN
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
 import org.json.JSONObject
+import java.net.URLEncoder
 
-
+// https://developers.google.com/books/docs/v1/using
 class GoogleBooksClient: JsonClient() {
     val repository by lazy { app.repository }
 
@@ -106,7 +108,18 @@ class GoogleBooksClient: JsonClient() {
             onCompletion()
             return
         }
-        val url = "https://www.googleapis.com/books/v1/volumes?q=isbn:${book.isbn}"
+        val url = if ( ISBN.isValidEAN13(book.isbn) ) {
+            "https://www.googleapis.com/books/v1/volumes?q=isbn:${book.isbn}"
+        } else if (book.title.isNotEmpty() && book.authors.isNotEmpty()){
+            @Suppress("DEPRECATION") // Min is 31, and it doesn't have the right version.
+            val title = URLEncoder.encode(book.title /* , Charsets.UTF_8 */)
+            @Suppress("DEPRECATION")
+            val author = URLEncoder.encode(book.authors[0].name /* , Charsets.UTF_8 */)
+            "https://www.googleapis.com/books/v1/volumes?q=intitle:$title+inauthor:${author}"
+        } else {
+            onCompletion()
+            return
+        }
         request(tag, url)
             .onResponse { response ->
                 parse(response)?.let { convertResponse(book, it) }
