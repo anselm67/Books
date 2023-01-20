@@ -31,14 +31,22 @@ class ImageRepository(
     val imageDirectoryName = "images"
     val imageDirectory = File(basedir, "images")
 
-    fun getCoverUri(book: Book): Uri? {
-        return if (book.imageFilename != "") {
-            File(basedir, book.imageFilename).toUri()
-        } else if (book.imgUrl != "") {
-            Uri.parse(book.imgUrl)
+    private fun getCoverUri(imageFilename: String, imgUrl: String): Uri? {
+        return if (imageFilename != "") {
+            File(basedir, imageFilename).toUri()
+        } else if (imgUrl != "") {
+            Uri.parse(imgUrl)
         } else {
             null
         }
+    }
+
+    fun getCoverUri(image: Book.Image): Uri? {
+        return getCoverUri(image.imageFilename, image.imgUrl)
+    }
+
+    fun getCoverUri(book: Book): Uri? {
+        return getCoverUri(book.imageFilename, book.imgUrl)
     }
 
     fun getCoverPath(book: Book): String {
@@ -192,6 +200,7 @@ class ImageRepository(
      * This can be used during import to fix image filenames to use the convetions described
      * in save() above.
      */
+    @Suppress("unused")
     fun fix(book: Book) {
         if (book.imageFilename.isNotEmpty() && book.imgUrl.isNotEmpty()) {
             val correctImageFilename = getImageFilename(book)

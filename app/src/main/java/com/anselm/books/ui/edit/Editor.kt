@@ -10,13 +10,15 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
-import com.anselm.books.database.Book
+import kotlin.reflect.KMutableProperty1
 
-abstract class Editor<T>(
+abstract class Editor<T, V>(
     val fragment: Fragment,
     val inflater: LayoutInflater,
-    val book: Book,
-    val onChange: ((Editor<T>) -> Unit)? = null,
+    val target: T,
+    val property: KMutableProperty1<T, V>,
+    val labelResourceId: Int = 0,
+    val onChange: ((Editor<T, V>) -> Unit)? = null,
 ) {
     private val context by lazy { fragment.requireContext() }
     private var validBorder: Drawable? = null
@@ -68,10 +70,9 @@ abstract class Editor<T>(
 
     abstract fun isChanged(): Boolean
     abstract fun saveChange()
-    abstract fun extractValue(from: Book)
 
     open fun isValid(): Boolean = true
 
-    abstract fun getValue(): T
+    abstract var value: V
 }
 

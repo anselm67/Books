@@ -11,39 +11,38 @@ import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.anselm.books.BooksApplication.Companion.app
-import com.anselm.books.database.Book
 import com.anselm.books.databinding.EditFieldLayoutBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.reflect.KMutableProperty1
 
-open class TextEditor(
+open class TextEditor<T>(
     fragment: Fragment,
     inflater: LayoutInflater,
-    book: Book,
-    onChange: ((Editor<String>) -> Unit)? = null,
-    val labelId: Int,
-    val textProperty: KMutableProperty1<Book, String>,
-    val checker: ((String) -> Boolean)? = null
-): Editor<String>(fragment, inflater, book, onChange) {
+    target: T,
+    property: KMutableProperty1<T, String>,
+    labelResourceId: Int,
+    onChange: ((Editor<T, String>) -> Unit)? = null,
+    val validator: ((String) -> Boolean)? = null,
+): Editor<T, String>(fragment, inflater, target, property, labelResourceId, onChange) {
     private var _binding: EditFieldLayoutBinding? = null
     protected val editor get() = _binding!!
 
     override fun setup(container: ViewGroup?): View {
         super.setup(container)
         _binding = EditFieldLayoutBinding.inflate(inflater, container, false)
-        editor.idEditLabel.text = fragment.getText(labelId)
+        editor.idEditLabel.text = fragment.getText(labelResourceId)
         editor.idEditText.let {
-            it.setText(textProperty.getter(book))
+            it.setText(property.getter(target))
             it.addTextChangedListener(object: TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { }
 
                 override fun afterTextChanged(s: Editable?) {
                     val value = s.toString().trim()
-                    if (checker != null && ! checker.invoke(value)) {
+                    if (validator?.invoke(value) == false) {
                         setInvalid(it, editor.idUndoEdit)
-                    } else if (value != textProperty.getter(book) ) {
+                    } else if (value != property.getter(target) ) {
                         setChanged(it, editor.idUndoEdit)
                     } else {
                         setUnchanged(it, editor.idUndoEdit)
@@ -54,12 +53,12 @@ open class TextEditor(
             setupScrollEnableListener(it)
         }
         editor.idUndoEdit.setOnClickListener {
-            editor.idEditText.setText(textProperty.getter(book))
+            editor.idEditText.setText(property.getter(target))
         }
         // Marks the field invalid immediately. This is for books that are being
         // manually inserted which have empty mandatory fields such as title.
         fragment.lifecycleScope.launch(Dispatchers.Main) {
-            if (checker != null && !checker.invoke(textProperty.getter(book))) {
+            if (validator?.invoke(property.getter(target)) == false) {
                 setInvalid(editor.idEditText, editor.idUndoEdit)
             }
         }
@@ -92,38 +91,30 @@ open class TextEditor(
 
     override fun isChanged(): Boolean {
         val value = editor.idEditText.text.toString().trim()
-        return value != textProperty.getter(book)
+        return value != property.getter(target)
     }
 
     override fun saveChange() {
-        textProperty.setter(book, editor.idEditText.text.toString().trim())
+        property.setter(target, editor.idEditText.text.toString().trim())
     }
 
     override fun isValid(): Boolean {
-        return if (checker != null) {
-            val value = editor.idEditText.text.toString().trim()
-            checker.invoke(value)
-        } else {
-            true
-        }
+        return validator?.invoke(value) != false
     }
 
-    override fun extractValue(from: Book) {
-        val thisValue = editor.idEditText.text.trim().toString()
-        val fromValue = textProperty.getter(from)
-        if (fromValue.isNotEmpty() && thisValue != fromValue) {
-            app.postOnUiThread {
-                editor.idEditText.setText(fromValue)
-                if (fromValue != textProperty.getter(book)) {
-                    setChanged(editor.idEditText, editor.idUndoEdit)
-                } else {
-                    setUnchanged(editor.root, editor.idUndoEdit)
+    override var value: String
+        get() = editor.idEditText.text.toString().trim()
+        set(value) {
+            val thisValue = editor.idEditText.text.trim().toString()
+            if (value.isNotEmpty() && thisValue != value) {
+                app.postOnUiThread {
+                    editor.idEditText.setText(value)
+                    if (value != property.getter(target)) {
+                        setChanged(editor.idEditText, editor.idUndoEdit)
+                    } else {
+                        setUnchanged(editor.root, editor.idUndoEdit)
+                    }
                 }
             }
         }
-    }
-
-    override fun getValue(): String {
-        return editor.idEditText.text.toString().trim()
-    }
 }

@@ -13,29 +13,31 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
+import androidx.fragment.app.Fragment
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.BuildConfig
 import com.anselm.books.GlideApp
 import com.anselm.books.MainActivity
 import com.anselm.books.database.Book
 import com.anselm.books.databinding.EditCoverImageLayoutBinding
-import com.anselm.books.ui.widgets.BookFragment
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import java.io.File
 import java.io.FileInputStream
+import kotlin.reflect.KMutableProperty1
 
 /**
  * Editor for the book's cover image.
  * This really doesn't fit well the Editor framework, but it looks nicer this
  * way than a full exception. May be.
  */
-class CoverImageEditor(
-    fragment: BookFragment,
+class CoverImageEditor<T>(
+    fragment: Fragment,
     inflater: LayoutInflater,
-    book: Book,
-    onChange: ((Editor<String?>) -> Unit)? = null,
-) : Editor<String?>(fragment, inflater, book, onChange) {
+    target: T,
+    property: KMutableProperty1<T, Book.Image>,
+    onChange: ((Editor<T, Book.Image>) -> Unit)? = null,
+) : Editor<T, Book.Image>(fragment, inflater, target, property, 0, onChange) {
     private var _binding: EditCoverImageLayoutBinding? = null
     private val editor get() = _binding!!
     private lateinit var coverCameraLauncher: ActivityResultLauncher<Uri>
@@ -79,10 +81,10 @@ class CoverImageEditor(
             cameraImageFile = null
             editCoverBitmap = null
             editCoverImgUrl = null
-            loadCoverImage(app.imageRepository.getCoverUri(book))
+            loadCoverImage(app.imageRepository.getCoverUri(property.getter(target)))
             setUnchanged(editor.idCoverImage, editor.idUndoEdit)
         }
-        loadCoverImage(app.imageRepository.getCoverUri(book))
+        loadCoverImage(app.imageRepository.getCoverUri(property.getter(target)))
         return editor.root
     }
 
@@ -91,26 +93,7 @@ class CoverImageEditor(
     override fun saveChange() {
         check(editCoverBitmap != null)
         // Setting these fields will trigger saving of the cover.
-        book.bitmap = editCoverBitmap
-        book.imgUrl = editCoverImgUrl ?: ""
-    }
-
-    override fun extractValue(from: Book) {
-        if (from.imgUrl.isEmpty() || book.imgUrl == from.imgUrl) {
-            return
-        }
-        // We're going to suggest this image.
-        GlideApp.with(app.applicationContext)
-            .asBitmap()
-            .load(from.imgUrl)
-            .into(object: CustomTarget<Bitmap>() {
-                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                    editCoverBitmap = resource
-                    editCoverImgUrl = from.imgUrl
-                    loadCoverImage(resource)
-                }
-                override fun onLoadCleared(placeholder: Drawable?) { }
-            })
+        property.setter(target, Book.Image(editCoverBitmap, editCoverImgUrl ?: ""))
     }
 
     private fun setupCoverCameraLauncher() {
@@ -195,8 +178,23 @@ class CoverImageEditor(
             .into(editor.idCoverImage)
     }
 
-    override fun getValue(): String {
-        return editCoverImgUrl ?: ""
-    }
-
+    override var value
+        get() =  property.getter(target)
+        set(value) {
+            if (value.imgUrl.isEmpty() || property.getter(target).imgUrl == value.imgUrl) {
+                return
+            }
+            // We're going to suggest this image.
+            GlideApp.with(app.applicationContext)
+                .asBitmap()
+                .load(value.imgUrl)
+                .into(object: CustomTarget<Bitmap>() {
+                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                        editCoverBitmap = resource
+                        editCoverImgUrl = value.imgUrl
+                        loadCoverImage(resource)
+                    }
+                    override fun onLoadCleared(placeholder: Drawable?) { }
+                })
+        }
 }

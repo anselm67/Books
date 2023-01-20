@@ -313,6 +313,22 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
      */
     @Ignore
     var bitmap: Bitmap? = null
+
+    data class Image(
+        val imageFilename: String = "",
+        val bitmap: Bitmap? = null,
+        val imgUrl: String = ""
+    ) {
+        constructor(bitmap: Bitmap?, imgUrl: String) : this("", bitmap, imgUrl)
+    }
+
+    var image: Image
+        get() = Image(imageFilename, bitmap, imgUrl)
+        set(value) {
+            imageFilename = value.imageFilename
+            bitmap = value.bitmap
+            imgUrl = value.imgUrl
+        }
 }
 
 @Entity(tableName = "book_fts")

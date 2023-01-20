@@ -16,7 +16,6 @@ import androidx.navigation.fragment.navArgs
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.Property
 import com.anselm.books.R
-import com.anselm.books.database.Book
 import com.anselm.books.database.Label
 import com.anselm.books.databinding.BottomSheetMultiEditDialogBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -25,7 +24,7 @@ import kotlinx.coroutines.launch
 class EditMultiDialogFragment: BottomSheetDialogFragment() {
     private var _binding: BottomSheetMultiEditDialogBinding? = null
     private val binding get() = _binding!!
-    private val editors = mutableListOf<Editor<*>>()
+    private val editors = emptyList<Editor<*, *>>().toMutableList()
     private lateinit var bookIds: List<Long>
 
     override fun onCreateView(
@@ -72,16 +71,13 @@ class EditMultiDialogFragment: BottomSheetDialogFragment() {
         app.applicationScope.launch {
             bookIds.map { bookId ->
                 val target = app.repository.load(bookId, true) ?: return@launch
-                if (book.genres.isNotEmpty())
-                    target.genres = book.genres
-                if (book.authors.isNotEmpty())
-                    target.authors = book.authors
-                if (book.publisher != null)
-                    target.publisher = book.publisher
-                if (book.language != null)
-                    target.language = book.language
-                if (book.location != null)
-                    target.location = book.location
+                Property.setIfEmpty(
+                    Pair(target::authors, values.authors),
+                    Pair(target::genres, values.genres),
+                    Pair(target::publisher, values.publisher),
+                    Pair(target::language, values.language),
+                    Pair(target::location, values.location),
+                )
                 app.repository.save(target)
             }
             app.loading(false)
@@ -105,30 +101,32 @@ class EditMultiDialogFragment: BottomSheetDialogFragment() {
 
     private fun updateApplyButton() {
         binding.idApplyButton.isEnabled = editors.firstOrNull {
-            Property.isNotEmpty(it.getValue())
+            Property.isNotEmpty(it.value)
         } != null
     }
 
     // This is just a holder for the values we want to collect.
-    private val book = Book()
+    class Values(
+        var authors: List<Label> = emptyList(),
+        var genres: List<Label> = emptyList(),
+        var publisher: Label? = null,
+        var language: Label? = null,
+        var location: Label? = null,
+    )
+    private val values = Values()
 
     private fun bind(inflater: LayoutInflater) {
         editors.addAll(arrayListOf(
-            MultiLabelEditor(this, inflater, book, {  updateApplyButton() },
-                Label.Type.Authors, R.string.authorLabel,
-                Book::authors),
-            MultiLabelEditor(this, inflater, book, {  updateApplyButton() },
-                Label.Type.Genres, R.string.genreLabel,
-                Book::genres),
-            SingleLabelEditor(this, inflater, book, {  updateApplyButton() },
-                Label.Type.Publisher, R.string.publisherLabel,
-                Book::publisher),
-            SingleLabelEditor(this, inflater, book, {  updateApplyButton() },
-                Label.Type.Language, R.string.languageLabel,
-                Book::language),
-            SingleLabelEditor(this, inflater, book, {  updateApplyButton() },
-                Label.Type.Location, R.string.physicalLocationLabel,
-                Book::location),
+            MultiLabelEditor(this, inflater, values, Values::authors,
+                R.string.authorLabel, Label.Type.Authors) { updateApplyButton() },
+            MultiLabelEditor(this, inflater, values, Values::genres,
+                R.string.genreLabel, Label.Type.Genres) { updateApplyButton() },
+            SingleLabelEditor(this, inflater, values, Values::publisher,
+                R.string.publisherLabel, Label.Type.Publisher) { updateApplyButton() },
+            SingleLabelEditor(this, inflater, values, Values::language,
+                R.string.languageLabel, Label.Type.Language) { updateApplyButton() },
+            SingleLabelEditor(this, inflater, values, Values::location,
+                    R.string.physicalLocationLabel, Label.Type.Location) { updateApplyButton() }
         ))
         editors.forEach {
             it.setup(binding.idEditorContainer)?.let {

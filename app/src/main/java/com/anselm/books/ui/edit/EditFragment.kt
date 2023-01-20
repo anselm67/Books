@@ -28,10 +28,10 @@ class EditFragment: BookFragment() {
     private lateinit var book: Book
     val binding get() = _binding!!
 
-    private var editors = emptyList<Editor<*>>().toMutableList()
-    private lateinit var titleEditor: TextEditor
-    private lateinit var authorsEditor: MultiLabelEditor
-    private lateinit var isbnEditor: TextEditor
+    private var editors = emptyList<Editor<*, *>>().toMutableList()
+    private lateinit var titleEditor: TextEditor<Book>
+    private lateinit var authorsEditor: MultiLabelEditor<Book>
+    private lateinit var isbnEditor: TextEditor<Book>
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -102,7 +102,7 @@ class EditFragment: BookFragment() {
         binding.fabMagicButton.setOnClickListener {
             performMagic()
         }
-        editors = mutableListOf(CoverImageEditor(this@EditFragment, inflater, book))
+        editors = mutableListOf(CoverImageEditor(this@EditFragment, inflater, book, Book::image))
         bind(inflater, book)
         updateMagicButton()
         return binding.root
@@ -110,8 +110,8 @@ class EditFragment: BookFragment() {
 
     private fun updateMagicButton() {
         binding.fabMagicButton.isEnabled =
-            (titleEditor.getValue().isNotEmpty() && authorsEditor.getValue().isNotEmpty())
-                    ||  isbnEditor.getValue().isNotEmpty()
+            (titleEditor.value.isNotEmpty() && authorsEditor.value.isNotEmpty())
+                    ||  isbnEditor.value.isNotEmpty()
     }
 
     private fun deleteBook() {
@@ -139,48 +139,34 @@ class EditFragment: BookFragment() {
      * registerForActivityResult.
      */
     private fun bind(inflater: LayoutInflater, book: Book) {
-        titleEditor = TextEditor(this, inflater, book,
-            { updateMagicButton() },
+        titleEditor = TextEditor(this, inflater, book, Book::title,
             R.string.titleLabel,
-            Book::title) {
-            it.isNotEmpty()
-        }
-        authorsEditor = MultiLabelEditor(this, inflater, book,
-            { updateMagicButton() },
-            Label.Type.Authors, R.string.authorLabel,
-            Book::authors)
-        isbnEditor = TextEditor(this, inflater, book,
-            { updateMagicButton() },
-            R.string.isbnLabel,
-            Book::isbn) {
-                it.isEmpty() || ISBN.isValidEAN13(it)
-        }
+            onChange = { updateMagicButton() },
+            validator = { it.isNotEmpty() })
+        authorsEditor = MultiLabelEditor(this, inflater, book, Book::authors,
+            R.string.authorLabel, Label.Type.Authors) { updateMagicButton() }
+        isbnEditor = TextEditor(this, inflater, book, Book::isbn, R.string.isbnLabel,
+            onChange = { updateMagicButton() },
+            validator = { it.isEmpty() || ISBN.isValidEAN13(it) })
         editors.addAll(arrayListOf(
             titleEditor,
-            TextEditor(this, inflater, book, null, R.string.subtitleLabel,
-                Book::subtitle),
+            TextEditor(this, inflater, book, Book::subtitle, R.string.subtitleLabel),
             authorsEditor,
-            SingleLabelEditor(this, inflater, book, null,
-                Label.Type.Publisher, R.string.publisherLabel,
-                Book::publisher),
-            MultiLabelEditor(this, inflater, book, null,
-                Label.Type.Genres, R.string.genreLabel,
-                Book::genres),
-            SingleLabelEditor(this, inflater, book, null,
-                Label.Type.Location, R.string.physicalLocationLabel,
-                Book::location),
+            SingleLabelEditor(this, inflater, book, Book::publisher,
+                R.string.publisherLabel,
+                Label.Type.Publisher),
+            MultiLabelEditor(this, inflater, book, Book::genres,
+                R.string.genreLabel, Label.Type.Genres),
+            SingleLabelEditor(this, inflater, book, Book::location,
+                R.string.physicalLocationLabel,
+                Label.Type.Location),
             isbnEditor,
-            SingleLabelEditor(this, inflater, book, null,
-                Label.Type.Language, R.string.languageLabel,
-                Book::language),
-            TextEditor(this, inflater, book, null, R.string.numberOfPagesLabel,
-                Book::numberOfPages) {
-                isValidNumber(it)
-            },
-            TextEditor(this, inflater, book, null, R.string.summaryLabel,
-                Book::summary),
-            YearEditor(this, inflater, book, null,
-                Book::yearPublished),
+            SingleLabelEditor(this, inflater, book, Book::language,
+                R.string.languageLabel, Label.Type.Language,),
+            TextEditor(this, inflater, book, Book::numberOfPages, R.string.numberOfPagesLabel,
+                validator = { isValidNumber(it) }),
+            TextEditor(this, inflater, book, Book::summary, R.string.summaryLabel),
+            YearEditor(this, inflater, book, Book::yearPublished),
         ))
         editors.forEach {
             it.setup(binding.editView)?.let { view -> binding.editView.addView(view) }
@@ -276,21 +262,14 @@ class EditFragment: BookFragment() {
 
     private fun mergeFrom(match: Book) {
         editors.forEach {
-            it.extractValue(match)
+            @Suppress("UNCHECKED_CAST")
+            (it as Editor<Book, Any>).value = it.property.getter(match)
         }
     }
 
-    private fun getTitleValue(): String {
-        return titleEditor.getValue()
-    }
-
-    private fun getAuthorsValue(): List<Label> {
-        return authorsEditor.getValue()
-    }
-
     private fun performMagic() {
-        val title = getTitleValue()
-        val authors = getAuthorsValue()
+        val title = titleEditor.value
+        val authors = authorsEditor.value
         if (book.isbn.isEmpty() && (title.isEmpty() || authors.isEmpty())) {
             app.toast("Magic requires at least an ISBN or a title/author.")
             return

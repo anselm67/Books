@@ -19,7 +19,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
-import com.anselm.books.database.Book
 import com.anselm.books.database.BookDao
 import com.anselm.books.database.Label
 import com.anselm.books.databinding.AutocompleteLabelLayoutBinding
@@ -157,15 +156,15 @@ private class LabelAutoComplete(
     }
 }
 
-class MultiLabelEditor(
+class MultiLabelEditor<T>(
     fragment: Fragment,
     inflater: LayoutInflater,
-    book: Book,
-    onChange: ((Editor<List<Label>>) -> Unit)? = null,
+    target: T,
+    property: KMutableProperty1<T, List<Label>>,
+    labelResourceId: Int,
     val type: Label.Type,
-    val labelId: Int,
-    val multiLabelProperty: KMutableProperty1<Book, List<Label>>,
-) : Editor<List<Label>>(fragment, inflater, book, onChange) {
+    onChange: ((Editor<T, List<Label>>) -> Unit)? = null,
+) : Editor<T, List<Label>>(fragment, inflater, target, property, labelResourceId, onChange) {
     private var _binding: EditMultiLabelLayoutBinding? = null
     private val editor get() = _binding!!
     private lateinit var dndlist: DnDList
@@ -173,15 +172,15 @@ class MultiLabelEditor(
     override fun setup(container: ViewGroup?): View {
         super.setup(container)
         _binding = EditMultiLabelLayoutBinding.inflate(inflater, container, false)
-        editor.idEditLabel.text = fragment.getText(labelId)
+        editor.idEditLabel.text = fragment.getText(labelResourceId)
         editor.labels.layoutManager = LinearLayoutManager(editor.labels.context)
 
         // Sets up te drag and drop list view for displaying the existing labels.
         dndlist = DnDList(
             editor.labels,
-            multiLabelProperty.getter(book).toMutableList(),
+            property.getter(target).toMutableList(),
             onChange = { newLabels ->
-                if (newLabels != multiLabelProperty.getter(book)) {
+                if (newLabels != property.getter(target)) {
                     setChanged(editor.root, editor.idUndoEdit)
                 } else {
                     setUnchanged(editor.root, editor.idUndoEdit)
@@ -198,32 +197,17 @@ class MultiLabelEditor(
         // Sets up the undo button.
         editor.idUndoEdit.setOnClickListener {
             setUnchanged(editor.root, editor.idUndoEdit)
-            dndlist.setLabels(multiLabelProperty.getter(book))
+            dndlist.setLabels(property.getter(target))
         }
         return editor.root
     }
 
     override fun isChanged(): Boolean {
-        return dndlist.getLabels() != multiLabelProperty.getter(book)
+        return dndlist.getLabels() != property.getter(target)
     }
 
     override fun saveChange() {
-        multiLabelProperty.setter(book, dndlist.getLabels())
-    }
-
-    override fun extractValue(from: Book) {
-        val thisValue = dndlist.getLabels()
-        val fromValue = multiLabelProperty.getter(from)
-        if (fromValue.isNotEmpty() && thisValue != fromValue) {
-            dndlist.setLabels(fromValue)
-            app.postOnUiThread {
-                if (fromValue != multiLabelProperty.getter(book)) {
-                    setChanged(editor.root, editor.idUndoEdit)
-                } else {
-                    setUnchanged(editor.root, editor.idUndoEdit)
-                }
-            }
-        }
+        property.setter(target, dndlist.getLabels())
     }
 
     private fun addLabel(label: Label) {
@@ -234,42 +218,50 @@ class MultiLabelEditor(
         app.hideKeyboard(editor.root)
     }
 
-    override fun getValue(): List<Label> {
-        return dndlist.getLabels()
-    }
+    override var value
+        get() = dndlist.getLabels()
+        set(value) {
+            val thisValue = dndlist.getLabels()
+            if (value.isNotEmpty() && thisValue != value) {
+                dndlist.setLabels(value)
+                app.postOnUiThread {
+                    if (value != property.getter(target)) {
+                        setChanged(editor.root, editor.idUndoEdit)
+                    } else {
+                        setUnchanged(editor.root, editor.idUndoEdit)
+                    }
+                }
+            }
+        }
 }
 
-class SingleLabelEditor(
+class SingleLabelEditor<T>(
     fragment: Fragment,
     inflater: LayoutInflater,
-    book: Book,
-    onChange: ((Editor<Label?>) -> Unit)? = null,
+    target: T,
+    property: KMutableProperty1<T, Label?>,
+    labelResourceId: Int,
     val type: Label.Type,
-    val labelId: Int,
-    private val singleLabelProperty: KMutableProperty1<Book, Label?>,
-): Editor<Label?>(fragment, inflater, book, onChange) {
+    onChange: ((Editor<T, Label?>) -> Unit)? = null,
+): Editor<T, Label?>(fragment, inflater, target, property, labelResourceId, onChange) {
     private var _binding: EditSingleLabelLayoutBinding? = null
     private val editor get() = _binding!!
     private var editLabel: Label? = null
-    private val origText = if (singleLabelProperty.getter(book) == null) {
+    private val origText = if (property.getter(target) == null) {
             ""
         } else {
-            singleLabelProperty.getter(book)!!.name
+            property.getter(target)!!.name
         }
-
-    override fun getValue(): Label? {
-        return editLabel
-    }
 
     override fun setup(container: ViewGroup?): View {
         super.setup(container)
         _binding = EditSingleLabelLayoutBinding.inflate(inflater, container, false)
-        editor.idEditLabel.text = fragment.getString(labelId)
+        editor.idEditLabel.text = fragment.getString(labelResourceId)
 
         // Sets up the auto-complete for entering new labels.
         LabelAutoComplete(
             fragment,
-            editor.autoComplete, type, singleLabelProperty.getter(book),
+            editor.autoComplete, type, property.getter(target),
             handleLabel = { setLabel(it) },
             onChange = {
                 setChanged(editor.root, editor.idUndoEdit)
@@ -284,29 +276,18 @@ class SingleLabelEditor(
     }
 
     override fun isChanged(): Boolean {
-        return (editLabel != null) && (singleLabelProperty.getter(book) != editLabel)
+        return (editLabel != null) && (property.getter(target) != editLabel)
     }
 
     override fun saveChange() {
         check(editLabel != null)
-        editLabel?.let { singleLabelProperty.setter(book, it) }
-    }
-
-    override fun extractValue(from: Book) {
-        val thisValue = singleLabelProperty.getter(book)
-        val fromValue = singleLabelProperty.getter(from)
-        if (fromValue != null && thisValue != fromValue) {
-            app.postOnUiThread {
-                editor.autoComplete.setText(fromValue.name, false)
-                setLabel(fromValue)
-            }
-        }
+        editLabel?.let { property.setter(target, it) }
     }
 
     private fun setLabel(label: Label) {
-        if (label != singleLabelProperty.getter(book)) {
+        if (label != property.getter(target)) {
             editLabel = label
-            if (label != singleLabelProperty.getter(book)) {
+            if (label != property.getter(target)) {
                 setChanged(editor.root, editor.idUndoEdit)
             } else {
                 setUnchanged(editor.root, editor.idUndoEdit)
@@ -314,4 +295,16 @@ class SingleLabelEditor(
         }
         app.hideKeyboard(editor.root)
     }
+
+    override var value
+        get() = editLabel
+        set(value) {
+            val thisValue = property.getter(target)
+            if (value != null && thisValue != value) {
+                app.postOnUiThread {
+                    editor.autoComplete.setText(value.name, false)
+                    setLabel(value)
+                }
+            }
+        }
 }

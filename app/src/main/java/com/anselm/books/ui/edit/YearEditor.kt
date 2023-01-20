@@ -5,19 +5,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.NumberPicker
 import androidx.fragment.app.Fragment
-import com.anselm.books.BooksApplication.Companion.app
-import com.anselm.books.database.Book
 import com.anselm.books.database.BookFields
 import com.anselm.books.databinding.EditYearLayoutBinding
 import kotlin.reflect.KMutableProperty1
 
-class YearEditor(
+class YearEditor<T>(
     fragment: Fragment,
     inflater: LayoutInflater,
-    book: Book,
-    onChange: ((Editor<String>) -> Unit)? = null,
-    private val yearProperty: KMutableProperty1<Book, String>,
-): Editor<String>(fragment, inflater, book, onChange) {
+    target: T,
+    property: KMutableProperty1<T, String>,
+    onChange: ((Editor<T, String>) -> Unit)? = null,
+): Editor<T, String>(fragment, inflater, target, property, 0, onChange) {
     private var _binding: EditYearLayoutBinding? = null
     private val editor get() = _binding!!
 
@@ -47,10 +45,10 @@ class YearEditor(
         editor.yearPublished10Picker.maxValue = 9
         editor.yearPublished1Picker.minValue = 0
         editor.yearPublished1Picker.maxValue = 9
-        setEditorValue(yearProperty.getter(book).toIntOrNull() ?: 0)
+        setEditorValue(property.getter(target).toIntOrNull() ?: 0)
         val onValueChanged = NumberPicker.OnValueChangeListener { _, _, _ ->
             val newValue = getEditorValue()
-            if (newValue != yearProperty.getter(book).toIntOrNull()) {
+            if (newValue != property.getter(target).toIntOrNull()) {
                 setChanged(editor.yearPublishedView, editor.idUndoEdit)
             } else {
                 setUnchanged(editor.yearPublishedView, editor.idUndoEdit)
@@ -60,7 +58,7 @@ class YearEditor(
         editor.yearPublished10Picker.setOnValueChangedListener(onValueChanged)
         editor.yearPublished1Picker.setOnValueChangedListener(onValueChanged)
         editor.idUndoEdit.setOnClickListener {
-            setEditorValue(yearProperty.getter(book).toIntOrNull() ?: 0)
+            setEditorValue(property.getter(target).toIntOrNull() ?: 0)
             setUnchanged(editor.yearPublishedView, editor.idUndoEdit)
         }
 
@@ -69,30 +67,26 @@ class YearEditor(
 
     override fun isChanged(): Boolean {
         val value = getEditorValue()
-        return (yearProperty.getter(book).toIntOrNull() ?: 0) != value
+        return (property.getter(target).toIntOrNull() ?: 0) != value
     }
 
     override fun saveChange() {
         val value = getEditorValue()
-        yearProperty.setter(book, value.toString())
+        property.setter(target, value.toString())
     }
 
-    override fun extractValue(from: Book) {
-        val thisValue = getEditorValue()
-        val fromValue = yearProperty.getter(from).toIntOrNull()
-        if (fromValue != null && fromValue != thisValue) {
-            app.postOnUiThread {
-                setEditorValue(fromValue)
-                if (yearProperty.getter(from) != yearProperty.getter(book)) {
+    override var value
+        get() = getEditorValue().toString()
+        set(stringValue) {
+            val value = stringValue.toIntOrNull()
+            val thisValue = getEditorValue()
+            if (value != null && value != thisValue) {
+                setEditorValue(value)
+                if (stringValue != property.getter(target)) {
                     setChanged(editor.yearPublishedView, editor.idUndoEdit)
                 } else {
                     setUnchanged(editor.yearPublishedView, editor.idUndoEdit)
                 }
             }
         }
-    }
-
-    override fun getValue(): String {
-        return getEditorValue().toString()
-    }
 }
