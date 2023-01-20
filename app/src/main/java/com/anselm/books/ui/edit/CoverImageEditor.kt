@@ -90,8 +90,9 @@ class CoverImageEditor(
 
     override fun saveChange() {
         check(editCoverBitmap != null)
-        // We do nothing, that's intended: we'll save our changes right before
-        // the book itself is saved.
+        // Setting these fields will trigger saving of the cover.
+        book.bitmap = editCoverBitmap
+        book.imgUrl = editCoverImgUrl ?: ""
     }
 
     override fun extractValue(from: Book) {
@@ -177,13 +178,6 @@ class CoverImageEditor(
         coverPickerLauncher.launch(
             PickVisualMediaRequest(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly)
         )
-    }
-
-    suspend fun saveCoverImage(book: Book) {
-        if (editCoverBitmap != null) {
-            book.imageFilename = app.imageRepository.convertAndSave(book, editCoverBitmap!!)
-            book.imgUrl = editCoverImgUrl ?: ""
-        }
     }
 
     private fun loadCoverImage(bitmap: Bitmap) {

@@ -82,7 +82,7 @@ class EditMultiDialogFragment: BottomSheetDialogFragment() {
                     target.language = book.language
                 if (book.location != null)
                     target.location = book.location
-                app.repository.save(target, false)
+                app.repository.save(target)
             }
             app.loading(false)
             app.postOnUiThread { findNavController().popBackStack() }

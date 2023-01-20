@@ -49,6 +49,13 @@ class ImportExport(private val repository: BookRepository,
                  * through its listeners - such as lastLocation - which is intended.
                  */
                 val book = Book(obj)
+                /**
+                 * If your zip file doesn't follow the imageFilename convention described in
+                 * ImageRepository.save() you can call
+                 * app.imageRepository.fix(book)
+                 * here, which will rename the image file properly and update the books's
+                 * imageFilename accordingly.
+                 */
                 repository.save(book)
                 count++
             } catch (e: Exception) {

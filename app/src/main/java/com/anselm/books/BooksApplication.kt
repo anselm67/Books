@@ -80,7 +80,7 @@ class BooksApplication : Application() {
     }
 
     val imageRepository by lazy {
-        ImageRepository(applicationContext, basedir)
+        ImageRepository(basedir)
     }
 
     val displayMetrics: DisplayMetrics by lazy { resources.displayMetrics }

@@ -1,22 +1,29 @@
 package com.anselm.books
 
-import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.heifwriter.HeifWriter
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.database.Book
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Request
+import okhttp3.Response
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
 class ImageRepository(
-    private val context: Context,
     private val basedir: File,
 ) {
     // Name of the directory in which images are saved.
@@ -44,70 +51,132 @@ class ImageRepository(
      * Checks if the book's cover has already been loaded; If not fetches it, converts it
      * to the HEIF format, and stores it locally so it'll be included if you exportZip.
      */
-    suspend fun fetchCover(book: Book, onImageSaved: (Book, String) -> Unit) {
-        // Finds the book URL, if none we're done.
-        if (book.imgUrl.isEmpty()) {
-            return
-        }
-        // Finds the book's image filename and checks it, we might have it already.
-        if (book.imageFilename.isNotEmpty() && File(basedir, book.imageFilename).exists()) {
-            return
-        }
-        // Gets the work done.
-        withContext(Dispatchers.IO) {
-            // We ignore errors, cause quite frankly we don't know what to do anyways.
-            // We have some other chances to fetch the cover, e.g. through data cleansing.
-            val bitmap = GlideApp.with(context)
-                .asBitmap()
-                .load(book.imgUrl)
-                .submit()
-                .get()
-            val path = convertAndSave(book, bitmap)
-            onImageSaved(book, path)
-        }
+    private suspend fun fetchCover(book: Book, onCompletion: () -> Unit): Call {
+        check(book.imgUrl.isNotEmpty()) { "Cannot fetch a cover without a URL, bookId: ${book.id}."}
+        val call = app.okHttp.newCall(Request.Builder().url(book.imgUrl).build())
+        call.enqueue(object: Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e(TAG, "fetchCover $book.imgUrl failed.", e)
+                onCompletion()
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                try {
+                    if (response.isSuccessful && response.body != null) {
+                        val bitmap = BitmapFactory.decodeStream(response.body!!.byteStream())
+                        if (bitmap != null) {
+                            app.applicationScope.launch {
+                                saveBitmap(book, bitmap, onCompletion)
+                            }
+                            return
+                        }
+                    } else {
+                        Log.e(TAG, "fetchCover ${book.imgUrl} failed code ${response.code}")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "fetchCover $book.imgUrl failed to load.", e)
+                }
+                onCompletion()
+            }
+
+        })
+        return call
     }
 
-    suspend fun convertAndSave(book: Book, origBitmap: Bitmap): String {
-        val file = getFileFor(book)
-        file.parentFile?.mkdirs()
+    private suspend fun saveBitmap(
+        book: Book,
+        origBitmap: Bitmap,
+        onCompletion: () -> Unit,
+    ) {
+        val (imageFilename, file) = getFileFor(book)
+        try {
+            file.parentFile?.mkdirs()
 
-        val bitmap = resize(origBitmap)
-        withContext(Dispatchers.IO) {
-            FileOutputStream(file).use { outputStream ->
-                HeifWriter.Builder(
-                    outputStream.fd,
-                    bitmap.width, bitmap.height,
-                    HeifWriter.INPUT_MODE_BITMAP
-                )
-                .build().apply {
-                    start()
-                    addBitmap(resize(bitmap))
-                    stop(0)
-                    close()
+            val bitmap = resize(origBitmap)
+            withContext(Dispatchers.IO) {
+                FileOutputStream(file).use { outputStream ->
+                    HeifWriter.Builder(
+                        outputStream.fd,
+                        bitmap.width, bitmap.height,
+                        HeifWriter.INPUT_MODE_BITMAP
+                    ).build().apply {
+                        start()
+                        addBitmap(resize(bitmap))
+                        stop(0)
+                        close()
+                    }
                 }
             }
+            book.imageFilename = imageFilename
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save bitmap to $imageFilename")
         }
-        if ( book.imageFilename.isNotEmpty() ) {
-            File(basedir, book.imageFilename).delete()
+        onCompletion()
+    }
+
+    /**
+     * Do whatever it takes to save this book's image, if needed. Several cases:
+     * a. If the book has no bitmap and an imageFilename and no imgUrl, we do nothing.
+     * b. If the book has no bitmap an imgUrl and the matching file - md5(imgUrl) - exists, we do
+     *   nothing.
+     * Otherwise:
+     * 1. bitmap and imgUrl: the bitmap must corresponds to the imgUrl, we save it in md5(imgUrl)
+     *    as if we fetched it.
+     * 2. imgUrl and no bitmap: we fetch the bitmap, and save it in a file named md5(imgUrl)
+     * 3. bitmap and no imgUrl: could be either camera or media pick. we save it under a new filename
+     */
+    suspend fun save(book: Book, onCompletion: () -> Unit): Call? {
+        // Are we provided with a new bitmap image for this book?
+        if (book.bitmap != null) {
+            // Cases 1 and 3 here.
+            saveBitmap(book, book.bitmap!!, onCompletion)
+            return null
+        } else if ( book.imgUrl.isNotEmpty() ) {
+            val (imageFilename, imageFile) = getFileFor(book)
+            if (imageFilename == book.imageFilename && imageFile.exists()) {
+                // Case b.
+            } else {
+                // Case 2. here:
+                return fetchCover(book, onCompletion)
+            }
+        } else {
+            // Case a. here
         }
-        return file.relativeTo(basedir).path
+        onCompletion()
+        return null
     }
 
     /**
      * Computes a unique image filename for this book.
-     * We change the imageFilename every time this function is called. this is intended.
-     * This is intended to defeat the Glide cache that doesn't offer a way to invalidate a
-     * cache entry.
+     * If the book has an imgUrl, then it is used to drive a filename, otherwise - when the cover
+     * is taken from the camera or the media picker - we only have a bitmap. In that case,
+     * the image filename changes for every new bitmap. This ensures the Glide cache doesn't mess
+     * with us.
      */
-    private fun getFileFor(book: Book): File {
-        // Doing our best to generate a random string id for this book.
-        val now = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
-        val input = "$now:${book.title}:${book.authors.joinToString { it.name }}"
+
+    private fun getImageFilename(book: Book): String {
+        val input = if (book.imgUrl.isNotEmpty()) {
+            book.imgUrl
+        } else {
+            val now = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+            "$now:${book.title}:${book.authors.joinToString { it.name }}"
+        }
         val md = MessageDigest.getInstance("MD5")
         val path = BigInteger(1, md.digest(input.toByteArray()))
             .toString(16).padStart(32, '0').uppercase()
         val sep = File.separator
-        return File(basedir, "$imageDirectoryName${sep}${path.substring(0, 2)}${sep}${path}")
+        return "$imageDirectoryName${sep}${path.substring(0, 2)}${sep}${dash(path)}"
+    }
+
+    private fun getFileFor(book: Book): Pair<String, File> {
+        val imageFilename = getImageFilename(book)
+        return Pair(imageFilename, File(basedir, imageFilename))
+    }
+
+    private fun dash(md5: String): String {
+        return "${md5.substring(0,8)}-${md5.substring(8, 12)}" +
+                "-${md5.substring(12, 16)}-${md5.substring(16, 20)}" +
+                "-${md5.substring(20)}"
     }
 
     private fun resize(bitmap:Bitmap): Bitmap {
@@ -117,5 +186,21 @@ class ImageRepository(
             Constants.IMAGE_SIZE.height,
             true
         )
+    }
+
+    /**
+     * This can be used during import to fix image filenames to use the convetions described
+     * in save() above.
+     */
+    fun fix(book: Book) {
+        if (book.imageFilename.isNotEmpty() && book.imgUrl.isNotEmpty()) {
+            val correctImageFilename = getImageFilename(book)
+            if (correctImageFilename != book.imageFilename) {
+                val src = File(basedir, book.imageFilename)
+                val dst = File(basedir, correctImageFilename)
+                src.renameTo(dst)
+                book.imageFilename = correctImageFilename
+            }
+        }
     }
 }

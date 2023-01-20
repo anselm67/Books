@@ -158,7 +158,7 @@ class BookRepository(
     /**
      * Saves - inserts or updates - keeps track of dateAdded and last modified timestamps.
      */
-    suspend fun save(book: Book, saveCover: Boolean = true) {
+    private suspend fun doSave(book: Book) {
         var bookId = book.id
         val timestamp = System.currentTimeMillis() / 1000
         if (book.id <= 0) {
@@ -183,18 +183,17 @@ class BookRepository(
                 BookLabels(bookId, label.id, sortKey++)
             }.toTypedArray())
         }
-        if (book.id <= 0 && book.imageFilename.isEmpty() && saveCover) {
-            // Fetches the image cover right away.
-            // - The saveCover flag will avoid an infinite loop. For sure.
-            // - We *have* - sigh - to load the book again so that book.id is set which allows us
-            //   to update the book using save(Book).
-            app.imageRepository.fetchCover(book) { _, filename ->
-                app.applicationScope.launch {
-                    load(bookId, true)?.let { book ->
-                        book.imageFilename = filename
-                        save(book, false)
-                    }
-                }
+    }
+
+    /**
+     * Saves this book and its image.
+     * The work is done within the application main scope, so it doesn't get canceled as the user
+     * switches fragment during save.
+     */
+    suspend fun save(book: Book) {
+        app.imageRepository.save(book) {
+            app.applicationScope.launch {
+                doSave(book)
             }
         }
     }

@@ -29,8 +29,6 @@ class EditFragment: BookFragment() {
     val binding get() = _binding!!
 
     private var editors = emptyList<Editor<*>>().toMutableList()
-    private val coverImageEditor
-        get() = (editors[0] as CoverImageEditor)
     private lateinit var titleEditor: TextEditor
     private lateinit var authorsEditor: MultiLabelEditor
     private lateinit var isbnEditor: TextEditor
@@ -259,8 +257,6 @@ class EditFragment: BookFragment() {
     private fun doSave() {
         app.loading(true)
         activity?.lifecycleScope?.launch {
-            // saveCoverImage makes additional changes to the book, it needs to come first.
-            coverImageEditor.saveCoverImage(book)
             app.repository.save(book)
         }?.invokeOnCompletion {
             app.toast("${book.title} saved.")

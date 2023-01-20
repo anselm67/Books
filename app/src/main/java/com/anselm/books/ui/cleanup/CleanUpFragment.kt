@@ -1,6 +1,5 @@
 package com.anselm.books.ui.cleanup
 
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
@@ -21,10 +20,6 @@ import com.anselm.books.databinding.FragmentCleanupBinding
 import com.anselm.books.ui.widgets.BookFragment
 import kotlinx.coroutines.launch
 import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Request
-import okhttp3.Response
-import java.io.IOException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -276,63 +271,33 @@ class CleanUpFragment: BookFragment() {
         }
     }
 
-    private fun saveCover(book:Book, bitmap: Bitmap) {
-        app.applicationScope.launch {
-            book.imageFilename = app.imageRepository.convertAndSave(book, bitmap)
-            app.repository.save(book)
-        }
-    }
-
-    private fun fixCover(stats: FixCoverStats, book: Book): Call? {
+    private fun fixCover(stats: FixCoverStats, book: Book) {
         // If the book doesn't have a URL, there's nothing we can do.
         if (book.imgUrl.isEmpty()) {
-            return null
+            return
         }
-
-        // Fetches the bitmap, and re-save the image back to a (new) file.
-        val call = app.okHttp.newCall(
-            Request.Builder()
-                .header("Accept", "*/*")
-                .url(book.imgUrl)
-                .build()
-        )
+        // By emptying the imageFilename property we force a fresh load/save of the imgUrl.
+        book.imageFilename = ""
         stats.fetchCount++
-        stats.addCall(call)
-        call.enqueue(object: Callback {
-            // By doing nothing, we're doing all that needs get done.
-            override fun onFailure(call: Call, e: IOException) {
-                stats.removeCall(call)
-                stats.fetchFailedCount++
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    stats.removeCall(call)
-                    if (response.isSuccessful && response.body != null) {
-                        val bitmap = BitmapFactory.decodeStream(response.body!!.byteStream())
-                        if (bitmap != null) {
-                            saveCover(book, bitmap)
-                        } else {
-                            stats.fetchFailedCount++
-                        }
-                    } else {
-                        stats.fetchFailedCount++
-                    }
+        app.applicationScope.launch {
+            val call = app.imageRepository.save(book) {
+                if (book.imageFilename.isNotEmpty()) {
+                    stats.fetchFailedCount++
                 }
             }
-        })
-        return call
+            stats.addCall(call)
+        }
     }
 
-    private fun checkImage(stats: FixCoverStats, book: Book): Call? {
+    private fun checkImage(stats: FixCoverStats, book: Book) {
         // Nothing we can do without an url to fetch the image from.
         if (book.imgUrl.isEmpty()) {
-            return null
+            return
         }
         if (book.imageFilename.isEmpty()) {
             // The book's image was never loaded, we can fix this.
             stats.unfetchedCount++
-            return fixCover(stats, book)
+            fixCover(stats, book)
         } else /* book.imageFilename.isNotEmpty() */ {
             // Verifies we can load this bitmap and fix if we can't.
             val path = app.imageRepository.getCoverPath(book)
@@ -344,10 +309,9 @@ class CleanUpFragment: BookFragment() {
             }
             if (failed) {
                 stats.brokenCount++
-                return fixCover(stats, book)
+                fixCover(stats, book)
             }
         }
-        return null
     }
 
     private suspend fun checkImages() {

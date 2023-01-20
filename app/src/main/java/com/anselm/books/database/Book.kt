@@ -1,5 +1,6 @@
 package com.anselm.books.database
 
+import android.graphics.Bitmap
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.room.ColumnInfo
@@ -305,6 +306,13 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
     @Ignore
     var status: Status = Status.Created
 
+    /**
+     * When changing the cover of a book, you can either provide a bitmap via this property and
+     * call BookRepository.save(book) or set an imgUrl on the book and call save(). If you set both
+     * an imgUrl and a bitmap, the bitmap is assumed to be the imgUrl's content.
+     */
+    @Ignore
+    var bitmap: Bitmap? = null
 }
 
 @Entity(tableName = "book_fts")
