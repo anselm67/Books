@@ -58,7 +58,7 @@ class CoverImageEditor(
     )
 
     /*
-     We do this right away, cause by the time setup is reached, views have been created in the
+     * We do this right away, cause by the time setup is reached, views have been created in the
      * EditFragment, and its to late to registerForActivityResult.
      */
     init {
