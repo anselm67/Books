@@ -272,7 +272,7 @@ class EditFragment: BookFragment() {
             return
         }
         app.loading(true, "performMagic")
-        app.lookupService.lookup(book.isbn) {
+        app.lookupService.lookup(book.isbn, stopAt = null) {
             app.loading(false, "performMagic")
             if (it == null) {
                 app.toast("No match found, no magic!")
