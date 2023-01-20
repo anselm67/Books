@@ -30,7 +30,6 @@ import com.anselm.books.ui.widgets.DnDList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.KProperty1
 
 
 private class LabelArrayAdapter(
@@ -165,8 +164,7 @@ class MultiLabelEditor(
     onChange: ((Editor<List<Label>>) -> Unit)? = null,
     val type: Label.Type,
     val labelId: Int,
-    val getter: KProperty1.Getter<Book, List<Label>>,
-    val setter: KMutableProperty1.Setter<Book, List<Label>>
+    val multiLabelProperty: KMutableProperty1<Book, List<Label>>,
 ) : Editor<List<Label>>(fragment, inflater, book, onChange) {
     private var _binding: EditMultiLabelLayoutBinding? = null
     private val editor get() = _binding!!
@@ -181,9 +179,9 @@ class MultiLabelEditor(
         // Sets up te drag and drop list view for displaying the existing labels.
         dndlist = DnDList(
             editor.labels,
-            getter(book).toMutableList(),
+            multiLabelProperty.getter(book).toMutableList(),
             onChange = { newLabels ->
-                if (newLabels != getter(book)) {
+                if (newLabels != multiLabelProperty.getter(book)) {
                     setChanged(editor.root, editor.idUndoEdit)
                 } else {
                     setUnchanged(editor.root, editor.idUndoEdit)
@@ -200,26 +198,26 @@ class MultiLabelEditor(
         // Sets up the undo button.
         editor.idUndoEdit.setOnClickListener {
             setUnchanged(editor.root, editor.idUndoEdit)
-            dndlist.setLabels(getter(book))
+            dndlist.setLabels(multiLabelProperty.getter(book))
         }
         return editor.root
     }
 
     override fun isChanged(): Boolean {
-        return dndlist.getLabels() != getter(book)
+        return dndlist.getLabels() != multiLabelProperty.getter(book)
     }
 
     override fun saveChange() {
-        setter(book, dndlist.getLabels())
+        multiLabelProperty.setter(book, dndlist.getLabels())
     }
 
     override fun extractValue(from: Book) {
         val thisValue = dndlist.getLabels()
-        val fromValue = getter(from)
+        val fromValue = multiLabelProperty.getter(from)
         if (fromValue.isNotEmpty() && thisValue != fromValue) {
             dndlist.setLabels(fromValue)
             app.postOnUiThread {
-                if (fromValue != getter(book)) {
+                if (fromValue != multiLabelProperty.getter(book)) {
                     setChanged(editor.root, editor.idUndoEdit)
                 } else {
                     setUnchanged(editor.root, editor.idUndoEdit)
@@ -248,13 +246,16 @@ class SingleLabelEditor(
     onChange: ((Editor<Label?>) -> Unit)? = null,
     val type: Label.Type,
     val labelId: Int,
-    val getter: KProperty1.Getter<Book, Label?>,
-    val setter: KMutableProperty1.Setter<Book, Label?>
+    private val singleLabelProperty: KMutableProperty1<Book, Label?>,
 ): Editor<Label?>(fragment, inflater, book, onChange) {
     private var _binding: EditSingleLabelLayoutBinding? = null
     private val editor get() = _binding!!
     private var editLabel: Label? = null
-    private val origText = if (getter(book) == null) "" else getter(book)!!.name
+    private val origText = if (singleLabelProperty.getter(book) == null) {
+            ""
+        } else {
+            singleLabelProperty.getter(book)!!.name
+        }
 
     override fun getValue(): Label? {
         return editLabel
@@ -268,7 +269,7 @@ class SingleLabelEditor(
         // Sets up the auto-complete for entering new labels.
         LabelAutoComplete(
             fragment,
-            editor.autoComplete, type, getter(book),
+            editor.autoComplete, type, singleLabelProperty.getter(book),
             handleLabel = { setLabel(it) },
             onChange = {
                 setChanged(editor.root, editor.idUndoEdit)
@@ -283,17 +284,17 @@ class SingleLabelEditor(
     }
 
     override fun isChanged(): Boolean {
-        return (editLabel != null) && (getter(book) != editLabel)
+        return (editLabel != null) && (singleLabelProperty.getter(book) != editLabel)
     }
 
     override fun saveChange() {
         check(editLabel != null)
-        editLabel?.let { setter(book, it) }
+        editLabel?.let { singleLabelProperty.setter(book, it) }
     }
 
     override fun extractValue(from: Book) {
-        val thisValue = getter(book)
-        val fromValue = getter(from)
+        val thisValue = singleLabelProperty.getter(book)
+        val fromValue = singleLabelProperty.getter(from)
         if (fromValue != null && thisValue != fromValue) {
             app.postOnUiThread {
                 editor.autoComplete.setText(fromValue.name, false)
@@ -303,9 +304,9 @@ class SingleLabelEditor(
     }
 
     private fun setLabel(label: Label) {
-        if (label != getter(book)) {
+        if (label != singleLabelProperty.getter(book)) {
             editLabel = label
-            if (label != getter(book)) {
+            if (label != singleLabelProperty.getter(book)) {
                 setChanged(editor.root, editor.idUndoEdit)
             } else {
                 setUnchanged(editor.root, editor.idUndoEdit)

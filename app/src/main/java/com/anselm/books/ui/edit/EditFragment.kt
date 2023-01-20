@@ -150,7 +150,7 @@ class EditFragment: BookFragment() {
         authorsEditor = MultiLabelEditor(this, inflater, book,
             { updateMagicButton() },
             Label.Type.Authors, R.string.authorLabel,
-            Book::authors.getter, Book::authors.setter)
+            Book::authors)
         isbnEditor = TextEditor(this, inflater, book,
             { updateMagicButton() },
             R.string.isbnLabel,
@@ -164,17 +164,17 @@ class EditFragment: BookFragment() {
             authorsEditor,
             SingleLabelEditor(this, inflater, book, null,
                 Label.Type.Publisher, R.string.publisherLabel,
-                Book::publisher.getter, Book::publisher.setter),
+                Book::publisher),
             MultiLabelEditor(this, inflater, book, null,
                 Label.Type.Genres, R.string.genreLabel,
-                Book::genres.getter, Book::genres.setter),
+                Book::genres),
             SingleLabelEditor(this, inflater, book, null,
                 Label.Type.Location, R.string.physicalLocationLabel,
-                Book::location.getter, Book::location.setter),
+                Book::location),
             isbnEditor,
             SingleLabelEditor(this, inflater, book, null,
                 Label.Type.Language, R.string.languageLabel,
-                Book::language.getter, Book::language.setter),
+                Book::language),
             TextEditor(this, inflater, book, null, R.string.numberOfPagesLabel,
                 Book::numberOfPages) {
                 isValidNumber(it)

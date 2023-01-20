@@ -116,19 +116,19 @@ class EditMultiDialogFragment: BottomSheetDialogFragment() {
         editors.addAll(arrayListOf(
             MultiLabelEditor(this, inflater, book, {  updateApplyButton() },
                 Label.Type.Authors, R.string.authorLabel,
-                Book::authors.getter, Book::authors.setter),
+                Book::authors),
             MultiLabelEditor(this, inflater, book, {  updateApplyButton() },
                 Label.Type.Genres, R.string.genreLabel,
-                Book::genres.getter, Book::genres.setter),
+                Book::genres),
             SingleLabelEditor(this, inflater, book, {  updateApplyButton() },
                 Label.Type.Publisher, R.string.publisherLabel,
-                Book::publisher.getter, Book::publisher.setter),
+                Book::publisher),
             SingleLabelEditor(this, inflater, book, {  updateApplyButton() },
                 Label.Type.Language, R.string.languageLabel,
-                Book::language.getter, Book::language.setter),
+                Book::language),
             SingleLabelEditor(this, inflater, book, {  updateApplyButton() },
                 Label.Type.Location, R.string.physicalLocationLabel,
-                Book::location.getter, Book::location.setter),
+                Book::location),
         ))
         editors.forEach {
             it.setup(binding.idEditorContainer)?.let {
