@@ -34,7 +34,8 @@ class CoverImageEditor(
     fragment: BookFragment,
     inflater: LayoutInflater,
     book: Book,
-) : Editor(fragment, inflater, book) {
+    onChange: ((Editor<String?>) -> Unit)? = null,
+) : Editor<String?>(fragment, inflater, book, onChange) {
     private var _binding: EditCoverImageLayoutBinding? = null
     private val editor get() = _binding!!
     private lateinit var coverCameraLauncher: ActivityResultLauncher<Uri>
@@ -199,4 +200,9 @@ class CoverImageEditor(
             .load(uri)
             .into(editor.idCoverImage)
     }
+
+    override fun getValue(): String {
+        return editCoverImgUrl ?: ""
+    }
+
 }

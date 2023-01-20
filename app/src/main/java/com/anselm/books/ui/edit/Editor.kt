@@ -12,10 +12,11 @@ import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
 import com.anselm.books.database.Book
 
-abstract class Editor(
+abstract class Editor<T>(
     val fragment: Fragment,
     val inflater: LayoutInflater,
     val book: Book,
+    val onChange: ((Editor<T>) -> Unit)? = null,
 ) {
     private val context by lazy { fragment.requireContext() }
     private var validBorder: Drawable? = null
@@ -33,6 +34,7 @@ abstract class Editor(
     }
 
     fun setChanged(editor: View, undoButton: ImageButton) {
+        onChange?.invoke(this)
         app.postOnUiThread {
             editor.background = changedBorder
             undoButton.visibility = View.VISIBLE
@@ -43,6 +45,7 @@ abstract class Editor(
     }
 
     fun setInvalid(editor: View, undoButton: ImageButton) {
+        onChange?.invoke(this)
         app.postOnUiThread {
             editor.background = invalidBorder
             undoButton.visibility = View.VISIBLE
@@ -53,6 +56,7 @@ abstract class Editor(
     }
 
     fun setUnchanged(editor: View, undoButton: ImageButton) {
+        onChange?.invoke(this)
         app.postOnUiThread {
             editor.background = validBorder
             undoButton.visibility = View.GONE
@@ -67,5 +71,7 @@ abstract class Editor(
     abstract fun extractValue(from: Book)
 
     open fun isValid(): Boolean = true
+
+    abstract fun getValue(): T
 }
 

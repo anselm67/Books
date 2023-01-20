@@ -28,11 +28,12 @@ class EditFragment: BookFragment() {
     private lateinit var book: Book
     val binding get() = _binding!!
 
-    private var editors: MutableList<Editor> = emptyList<Editor>().toMutableList()
+    private var editors = emptyList<Editor<*>>().toMutableList()
     private val coverImageEditor
         get() = (editors[0] as CoverImageEditor)
     private lateinit var titleEditor: TextEditor
     private lateinit var authorsEditor: MultiLabelEditor
+    private lateinit var isbnEditor: TextEditor
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -103,10 +104,16 @@ class EditFragment: BookFragment() {
         binding.fabMagicButton.setOnClickListener {
             performMagic()
         }
-        binding.fabMagicButton.isEnabled = false
         editors = mutableListOf(CoverImageEditor(this@EditFragment, inflater, book))
         bind(inflater, book)
+        updateMagicButton()
         return binding.root
+    }
+
+    private fun updateMagicButton() {
+        binding.fabMagicButton.isEnabled =
+            (titleEditor.getValue().isNotEmpty() && authorsEditor.getValue().isNotEmpty())
+                    ||  isbnEditor.getValue().isNotEmpty()
     }
 
     private fun deleteBook() {
@@ -134,43 +141,47 @@ class EditFragment: BookFragment() {
      * registerForActivityResult.
      */
     private fun bind(inflater: LayoutInflater, book: Book) {
-        // Creates and sets up an editor for every book property.
-        titleEditor = TextEditor(this, inflater, book, R.string.titleLabel,
+        titleEditor = TextEditor(this, inflater, book,
+            { updateMagicButton() },
+            R.string.titleLabel,
             Book::title.getter, Book::title.setter) {
             it.isNotEmpty()
         }
         authorsEditor = MultiLabelEditor(this, inflater, book,
+            { updateMagicButton() },
             Label.Type.Authors, R.string.authorLabel,
             Book::authors.getter, Book::authors.setter)
-
+        isbnEditor = TextEditor(this, inflater, book,
+            { updateMagicButton() },
+            R.string.isbnLabel,
+            Book::isbn.getter, Book::isbn.setter) {
+                it.isEmpty() || ISBN.isValidEAN13(it)
+        }
         editors.addAll(arrayListOf(
             titleEditor,
-            TextEditor(this, inflater, book, R.string.subtitleLabel,
+            TextEditor(this, inflater, book, null, R.string.subtitleLabel,
                 Book::subtitle.getter, Book::subtitle.setter),
             authorsEditor,
-            SingleLabelEditor(this, inflater, book,
+            SingleLabelEditor(this, inflater, book, null,
                 Label.Type.Publisher, R.string.publisherLabel,
                 Book::publisher.getter, Book::publisher.setter),
-            MultiLabelEditor(this, inflater, book,
+            MultiLabelEditor(this, inflater, book, null,
                 Label.Type.Genres, R.string.genreLabel,
                 Book::genres.getter, Book::genres.setter),
-            SingleLabelEditor(this, inflater, book,
+            SingleLabelEditor(this, inflater, book, null,
                 Label.Type.Location, R.string.physicalLocationLabel,
                 Book::location.getter, Book::location.setter),
-            TextEditor(this, inflater, book, R.string.isbnLabel,
-                Book::isbn.getter, Book::isbn.setter) {
-                it.isEmpty() || ISBN.isValidEAN13(it)
-            },
-            SingleLabelEditor(this, inflater, book,
+            isbnEditor,
+            SingleLabelEditor(this, inflater, book, null,
                 Label.Type.Language, R.string.languageLabel,
                 Book::language.getter, Book::language.setter),
-            TextEditor(this, inflater, book, R.string.numberOfPagesLabel,
+            TextEditor(this, inflater, book, null, R.string.numberOfPagesLabel,
                 Book::numberOfPages.getter, Book::numberOfPages.setter) {
                 isValidNumber(it)
             },
-            TextEditor(this, inflater, book, R.string.summaryLabel,
+            TextEditor(this, inflater, book, null, R.string.summaryLabel,
                 Book::summary.getter, Book::summary.setter),
-            YearEditor(this, inflater, book,
+            YearEditor(this, inflater, book, null,
                 Book::yearPublished.getter, Book::yearPublished.setter),
         ))
         editors.forEach {

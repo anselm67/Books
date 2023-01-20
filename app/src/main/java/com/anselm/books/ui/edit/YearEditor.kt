@@ -16,9 +16,10 @@ class YearEditor(
     fragment: Fragment,
     inflater: LayoutInflater,
     book: Book,
+    onChange: ((Editor<String>) -> Unit)? = null,
     val getter: KProperty1.Getter<Book, String>,
     val setter: KMutableProperty1.Setter<Book, String>
-): Editor(fragment, inflater, book) {
+): Editor<String>(fragment, inflater, book, onChange) {
     private var _binding: EditYearLayoutBinding? = null
     private val editor get() = _binding!!
 
@@ -91,5 +92,9 @@ class YearEditor(
                 }
             }
         }
+    }
+
+    override fun getValue(): String {
+        return getEditorValue().toString()
     }
 }

@@ -162,11 +162,12 @@ class MultiLabelEditor(
     fragment: Fragment,
     inflater: LayoutInflater,
     book: Book,
+    onChange: ((Editor<List<Label>>) -> Unit)? = null,
     val type: Label.Type,
     val labelId: Int,
     val getter: KProperty1.Getter<Book, List<Label>>,
     val setter: KMutableProperty1.Setter<Book, List<Label>>
-) : Editor (fragment, inflater, book) {
+) : Editor<List<Label>>(fragment, inflater, book, onChange) {
     private var _binding: EditMultiLabelLayoutBinding? = null
     private val editor get() = _binding!!
     private lateinit var dndlist: DnDList
@@ -235,7 +236,7 @@ class MultiLabelEditor(
         app.hideKeyboard(editor.root)
     }
 
-    fun getValue(): List<Label> {
+    override fun getValue(): List<Label> {
         return dndlist.getLabels()
     }
 }
@@ -244,15 +245,20 @@ class SingleLabelEditor(
     fragment: Fragment,
     inflater: LayoutInflater,
     book: Book,
+    onChange: ((Editor<Label?>) -> Unit)? = null,
     val type: Label.Type,
     val labelId: Int,
     val getter: KProperty1.Getter<Book, Label?>,
     val setter: KMutableProperty1.Setter<Book, Label?>
-): Editor (fragment, inflater, book) {
+): Editor<Label?>(fragment, inflater, book, onChange) {
     private var _binding: EditSingleLabelLayoutBinding? = null
     private val editor get() = _binding!!
     private var editLabel: Label? = null
     private val origText = if (getter(book) == null) "" else getter(book)!!.name
+
+    override fun getValue(): Label? {
+        return editLabel
+    }
 
     override fun setup(container: ViewGroup?): View {
         super.setup(container)

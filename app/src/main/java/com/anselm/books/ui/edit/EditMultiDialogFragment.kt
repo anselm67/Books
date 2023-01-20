@@ -14,6 +14,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.Property
 import com.anselm.books.R
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
@@ -24,7 +25,7 @@ import kotlinx.coroutines.launch
 class EditMultiDialogFragment: BottomSheetDialogFragment() {
     private var _binding: BottomSheetMultiEditDialogBinding? = null
     private val binding get() = _binding!!
-    private val editors = mutableListOf<Editor>()
+    private val editors = mutableListOf<Editor<*>>()
     private lateinit var bookIds: List<Long>
 
     override fun onCreateView(
@@ -47,7 +48,7 @@ class EditMultiDialogFragment: BottomSheetDialogFragment() {
         bind(inflater)
 
         handleMenu(requireActivity())
-
+        updateApplyButton()
         return binding.root
     }
 
@@ -102,24 +103,30 @@ class EditMultiDialogFragment: BottomSheetDialogFragment() {
     }
 
 
+    private fun updateApplyButton() {
+        binding.idApplyButton.isEnabled = editors.firstOrNull {
+            Property.isNotEmpty(it.getValue())
+        } != null
+    }
+
     // This is just a holder for the values we want to collect.
     private val book = Book()
 
     private fun bind(inflater: LayoutInflater) {
         editors.addAll(arrayListOf(
-            MultiLabelEditor(this, inflater, book,
+            MultiLabelEditor(this, inflater, book, {  updateApplyButton() },
                 Label.Type.Authors, R.string.authorLabel,
                 Book::authors.getter, Book::authors.setter),
-            MultiLabelEditor(this, inflater, book,
+            MultiLabelEditor(this, inflater, book, {  updateApplyButton() },
                 Label.Type.Genres, R.string.genreLabel,
                 Book::genres.getter, Book::genres.setter),
-            SingleLabelEditor(this, inflater, book,
+            SingleLabelEditor(this, inflater, book, {  updateApplyButton() },
                 Label.Type.Publisher, R.string.publisherLabel,
                 Book::publisher.getter, Book::publisher.setter),
-            SingleLabelEditor(this, inflater, book,
+            SingleLabelEditor(this, inflater, book, {  updateApplyButton() },
                 Label.Type.Language, R.string.languageLabel,
                 Book::language.getter, Book::language.setter),
-            SingleLabelEditor(this, inflater, book,
+            SingleLabelEditor(this, inflater, book, {  updateApplyButton() },
                 Label.Type.Location, R.string.physicalLocationLabel,
                 Book::location.getter, Book::location.setter),
         ))

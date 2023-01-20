@@ -22,11 +22,12 @@ open class TextEditor(
     fragment: Fragment,
     inflater: LayoutInflater,
     book: Book,
+    onChange: ((Editor<String>) -> Unit)? = null,
     val labelId: Int,
     val getter: KProperty1.Getter<Book, String>,
     val setter: KMutableProperty1.Setter<Book, String>,
     val checker: ((String) -> Boolean)? = null
-): Editor(fragment, inflater, book) {
+): Editor<String>(fragment, inflater, book, onChange) {
     private var _binding: EditFieldLayoutBinding? = null
     protected val editor get() = _binding!!
 
@@ -124,7 +125,7 @@ open class TextEditor(
         }
     }
 
-    fun getValue(): String {
+    override fun getValue(): String {
         return editor.idEditText.text.toString().trim()
     }
 }
