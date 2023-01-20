@@ -62,7 +62,13 @@ class GlideErrorHandler : RequestListener<Any> {
         target: Target<Any>?,
         isFirstResource: Boolean
     ): Boolean {
-        Log.e(TAG, "Glide $model failed.", e)
+        /*
+         * We pass null uri to Glide whenever a book doesn't have an imageFilename or an imgUrl.
+         * This isn't really worth mentioning in the logs.
+         */
+        if (model != null) {
+            Log.e(TAG, "Glide $model failed.", e)
+        }
         return false
     }
 
