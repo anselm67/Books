@@ -95,7 +95,7 @@ class ScanFragment: BookFragment() {
          * results set before coming back here. This removes these handled entries before heading
          * to the recycler.
          */
-        if ( adapter.filter {
+        if ( modelInitialized && adapter.filter {
             val book = it.book
             (book != null)
                 && (book.status == Book.Status.Saved || book.status == Book.Status.Deleted)

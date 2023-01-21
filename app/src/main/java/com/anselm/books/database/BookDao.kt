@@ -756,7 +756,7 @@ interface BookDao {
             "        LEFT JOIN book_labels AS bl ON bl.bookId = b.id " +
             "             JOIN label_table as lt on lt.id = bl.labelId " +
             "            WHERE lt.type = 1 " +
-            "     GROUP BY title, name HAVING count(*) > 1) " +
+            "     GROUP BY title, subtitle, name HAVING count(*) > 1) " +
             "UNION " +
             "    SELECT id, title FROM book_table " +
             "     WHERE isbn != '' " +
@@ -774,7 +774,7 @@ interface BookDao {
             "        LEFT JOIN book_labels AS bl ON bl.bookId = b.id " +
             "             JOIN label_table as lt on lt.id = bl.labelId " +
             "            WHERE lt.type = 1 " +
-            "     GROUP BY title, name HAVING count(*) > 1) " +
+            "     GROUP BY title, subtitle, name HAVING count(*) > 1) " +
             "UNION " +
             "    SELECT id FROM book_table " +
             "     WHERE isbn != '' " +
