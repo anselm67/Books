@@ -194,6 +194,9 @@ class ScanFragment: BookFragment() {
             stats.matchCount.get(),
             stats.noMatchCount.get(),
         )
+        if (adapter.itemCount == 0) {
+            saveSaysDone()
+        }
     }
 
     private fun playSound() {
@@ -480,7 +483,14 @@ class IsbnArrayAdapter(
         if (result.tag != null) {
             app.cancelHttpRequests(result.tag!!)
         }
+        stats.lookupCount.decrementAndGet()
+        if (result.book == null && ! result.loading) {
+            stats.noMatchCount.decrementAndGet()
+        } else if (result.book != null) {
+            stats.matchCount.decrementAndGet()
+        }
         dataSource.removeAt(position)
+        statsListener(stats)
         notifyItemRemoved(position)
     }
 
