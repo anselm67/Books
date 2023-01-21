@@ -59,13 +59,13 @@ class ImageRepository(
      * Checks if the book's cover has already been loaded; If not fetches it, converts it
      * to the HEIF format, and stores it locally so it'll be included if you exportZip.
      */
-    private suspend fun fetchCover(book: Book, onCompletion: () -> Unit): Call {
+    private suspend fun fetchCover(book: Book, onCompletion: (Boolean) -> Unit): Call {
         check(book.imgUrl.isNotEmpty()) { "Cannot fetch a cover without a URL, bookId: ${book.id}."}
         val call = app.okHttp.newCall(Request.Builder().url(book.imgUrl).build())
         call.enqueue(object: Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e(TAG, "fetchCover $book.imgUrl failed.", e)
-                onCompletion()
+                onCompletion(false)
             }
 
             override fun onResponse(call: Call, response: Response) {
@@ -84,7 +84,7 @@ class ImageRepository(
                 } catch (e: Exception) {
                     Log.e(TAG, "fetchCover $book.imgUrl failed to load.", e)
                 }
-                onCompletion()
+                onCompletion(false)
             }
 
         })
@@ -94,9 +94,10 @@ class ImageRepository(
     private suspend fun saveBitmap(
         book: Book,
         origBitmap: Bitmap,
-        onCompletion: () -> Unit,
+        onCompletion: (Boolean) -> Unit,
     ) {
         val (imageFilename, file) = getFileFor(book)
+        var ok = false
         try {
             file.parentFile?.mkdirs()
 
@@ -116,10 +117,11 @@ class ImageRepository(
                 }
             }
             book.imageFilename = imageFilename
+            ok = true
         } catch (e: Exception) {
             Log.e(TAG, "Failed to save bitmap to $imageFilename")
         }
-        onCompletion()
+        onCompletion(ok)
     }
 
     /**
@@ -133,7 +135,7 @@ class ImageRepository(
      * 2. imgUrl and no bitmap: we fetch the bitmap, and save it in a file named md5(imgUrl)
      * 3. bitmap and no imgUrl: could be either camera or media pick. we save it under a new filename
      */
-    suspend fun save(book: Book, onCompletion: () -> Unit): Call? {
+    suspend fun save(book: Book, onCompletion: (Boolean) -> Unit): Call? {
         // Are we provided with a new bitmap image for this book?
         if (book.bitmap != null) {
             // Cases 1 and 3 here.
@@ -150,7 +152,7 @@ class ImageRepository(
         } else {
             // Case a. here
         }
-        onCompletion()
+        onCompletion(false)
         return null
     }
 

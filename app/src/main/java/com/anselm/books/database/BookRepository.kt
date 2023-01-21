@@ -175,7 +175,7 @@ class BookRepository(
             book.status = Book.Status.Saved
         }
         if (book.labelsChanged) {
-            dao.clearLabels(book.id)
+            dao.clearLabels(bookId)
             var sortKey = 0
             dao.insert(*book.labels!!.map {
                 // Saves the label to the database if needed, by going through the cache.
@@ -240,10 +240,16 @@ class BookRepository(
             label = dao.label(type, name)
             if (label == null) {
                 val id = dao.insert(Label(type, name))
-                label = Label(id, type, name)
+                if (id < 0) {
+                    // It must have been inserted while we weren't looking.
+                    label = labelsByValue[key]
+                    check(label != null) { "This should not happen. Period & Lol." }
+                } else {
+                    label = Label(id, type, name)
+                    labelsByValue[key] = label
+                    labelsById[label.id] = label
+                }
             }
-            labelsByValue[key] = label
-            labelsById[label.id] = label
         }
         return label
     }
