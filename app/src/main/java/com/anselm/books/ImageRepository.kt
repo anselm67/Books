@@ -42,7 +42,7 @@ class ImageRepository(
     }
 
     fun getCoverUri(image: Book.Image): Uri? {
-        return getCoverUri(image.imageFilename, image.imgUrl)
+        return getCoverUri(image.imageFilename ?: "", image.imgUrl)
     }
 
     fun getCoverUri(book: Book): Uri? {

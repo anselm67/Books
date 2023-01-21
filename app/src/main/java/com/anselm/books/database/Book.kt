@@ -315,17 +315,17 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
     var bitmap: Bitmap? = null
 
     data class Image(
-        val imageFilename: String = "",
+        val imageFilename: String? = null,  // null mens don't change.
         val bitmap: Bitmap? = null,
         val imgUrl: String = ""
     ) {
-        constructor(bitmap: Bitmap?, imgUrl: String) : this("", bitmap, imgUrl)
+        constructor(bitmap: Bitmap?, imgUrl: String) : this(null, bitmap, imgUrl)
     }
 
     var image: Image
         get() = Image(imageFilename, bitmap, imgUrl)
         set(value) {
-            imageFilename = value.imageFilename
+            value.imageFilename?.let { imageFilename = it }
             bitmap = value.bitmap
             imgUrl = value.imgUrl
         }
