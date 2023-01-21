@@ -287,12 +287,10 @@ class CleanUpFragment: BookFragment() {
         if (book.imgUrl.isEmpty()) {
             return
         }
-        // By emptying the imageFilename property we force a fresh load/save of the imgUrl.
-        book.imageFilename = ""
         stats.fetchCount++
         app.applicationScope.launch {
             stats.addUrl(book.imgUrl)
-            val call = app.imageRepository.save(book) {
+            val call = app.imageRepository.save(book, force = true) {
                 stats.removeUrl(book.imgUrl)
                 if (it) {
                     app.applicationScope.launch {

@@ -54,6 +54,13 @@ class ImageRepository(
         return File(basedir, book.imageFilename).path
     }
 
+    private fun deleteImageFile(book: Book) {
+        if (book.imageFilename.isNotEmpty()) {
+            File(basedir, book.imageFilename).delete()
+        }
+        book.imageFilename = ""
+    }
+
     /**
      * Fetches the book cover from its URL when needed.
      * Checks if the book's cover has already been loaded; If not fetches it, converts it
@@ -116,6 +123,7 @@ class ImageRepository(
                     }
                 }
             }
+            deleteImageFile(book)
             book.imageFilename = imageFilename
             ok = true
         } catch (e: Exception) {
@@ -135,7 +143,11 @@ class ImageRepository(
      * 2. imgUrl and no bitmap: we fetch the bitmap, and save it in a file named md5(imgUrl)
      * 3. bitmap and no imgUrl: could be either camera or media pick. we save it under a new filename
      */
-    suspend fun save(book: Book, onCompletion: (Boolean) -> Unit): Call? {
+    suspend fun save(book: Book, force: Boolean = false, onCompletion: (Boolean) -> Unit): Call? {
+        // By resetting imageFilename, we force ourselves into case 2. below.
+        if (force && book.imgUrl.isNotEmpty()) {
+            deleteImageFile(book)
+        }
         // Are we provided with a new bitmap image for this book?
         if (book.bitmap != null) {
             // Cases 1 and 3 here.
