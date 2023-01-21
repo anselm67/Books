@@ -144,7 +144,7 @@ class ImportExport(private val repository: BookRepository,
         jsonRoot.put("books", jsonBooks)
         // Write it all to the given URI.
         val text = jsonRoot.toString(2)
-        val writer =  OutputStreamWriter(out, Charsets.UTF_8)
+        val writer = OutputStreamWriter(out, Charsets.UTF_8)
         withContext(Dispatchers.IO) {
             writer.write(text)
             writer.flush()
@@ -165,7 +165,7 @@ class ImportExport(private val repository: BookRepository,
                 val path = file.relativeTo(basedir).path
                 if (file.isFile) {
                     it.putNextEntry(ZipEntry(path))
-                    FileInputStream(file).copyTo(it)
+                    FileInputStream(file).use { inputStream -> inputStream.copyTo(it) }
                 }
             }
         }

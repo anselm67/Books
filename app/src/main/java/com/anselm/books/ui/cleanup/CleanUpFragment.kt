@@ -220,6 +220,14 @@ class CleanUpFragment: BookFragment() {
                 checkImages()
             }
         })
+        container.addView(item(
+            inflater, container,
+            "Delete unused images."
+        ) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                deleteUnusedImages()
+            }
+        })
     }
 
     class FixCoverStats(
@@ -231,6 +239,7 @@ class CleanUpFragment: BookFragment() {
         var fetchFailedCount: Int = 0   // Number of failed cover fetches.
     ) {
         private val calls = emptyList<Call>().toMutableList()
+        private val urls = emptyList<String>().toMutableList()
         private val lock = ReentrantLock()
         private val cond = lock.newCondition()
 
@@ -238,18 +247,20 @@ class CleanUpFragment: BookFragment() {
             calls.forEach { it.cancel() }
         }
 
-        fun addCall(call: Call?) {
-            call?.let {
-                lock.withLock {
-                    calls.add(it)
-                }
+        fun addCall(call: Call) {
+            calls.add(call)
+        }
+
+        fun addUrl(url: String) {
+            lock.withLock {
+                urls.add(url)
             }
         }
 
-        fun removeCall(call: Call) {
+        fun removeUrl(url: String) {
             lock.withLock {
-                calls.remove(call)
-                if (calls.isEmpty()) {
+                urls.remove(url)
+                if (urls.isEmpty()) {
                     Log.d(TAG, "cond signaled.")
                     cond.signalAll()
                 }
@@ -259,7 +270,7 @@ class CleanUpFragment: BookFragment() {
         fun join() {
             while (true) {
                 lock.withLock {
-                    if (calls.isEmpty()) {
+                    if (urls.isEmpty()) {
                         return@join
                     }
                     try {
@@ -280,12 +291,19 @@ class CleanUpFragment: BookFragment() {
         book.imageFilename = ""
         stats.fetchCount++
         app.applicationScope.launch {
+            stats.addUrl(book.imgUrl)
             val call = app.imageRepository.save(book) {
-                if (book.imageFilename.isNotEmpty()) {
+                stats.removeUrl(book.imgUrl)
+                if (it) {
+                    app.applicationScope.launch {
+                        app.repository.save(book)
+                    }
+                }
+                if (book.imageFilename.isEmpty()) {
                     stats.fetchFailedCount++
                 }
             }
-            stats.addCall(call)
+            call?.let { stats.addCall(call) }
         }
     }
 
@@ -338,5 +356,17 @@ class CleanUpFragment: BookFragment() {
                 "broken: ${stats.brokenCount}, unfetched: ${stats.unfetchedCount} " +
                 "fetched: ${stats.fetchCount} of which ${stats.fetchFailedCount} failed."
         )
+    }
+
+    private suspend fun deleteUnusedImages() {
+        val bookIds = app.repository.getIdsList(Query())
+        val seen = mutableSetOf<String>()
+        bookIds.forEach {
+            val book = app.repository.load(it, decorate = true)
+            if ( book?.imageFilename?.isNotEmpty() == true) {
+                seen.add(book.imageFilename)
+            }
+        }
+        app.imageRepository.garbageCollect(seen)
     }
 }
