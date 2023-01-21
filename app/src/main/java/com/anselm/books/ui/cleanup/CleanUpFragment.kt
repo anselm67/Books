@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import okhttp3.Call
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 import kotlin.math.roundToInt
 
@@ -356,15 +357,25 @@ class CleanUpFragment: BookFragment() {
         )
     }
 
-    private suspend fun deleteUnusedImages() {
+    private suspend fun doDeleteUnusedImages() {
         val bookIds = app.repository.getIdsList(Query())
         val seen = mutableSetOf<String>()
         bookIds.forEach {
             val book = app.repository.load(it, decorate = true)
-            if ( book?.imageFilename?.isNotEmpty() == true) {
+            if (book?.imageFilename?.isNotEmpty() == true) {
                 seen.add(book.imageFilename)
             }
         }
         app.imageRepository.garbageCollect(seen)
+    }
+
+    private fun deleteUnusedImages() {
+        thread {
+            app.loading(true, "cleanUp.deleteUnusedImages")
+            app.applicationScope.launch {
+                doDeleteUnusedImages()
+                app.loading(false, "cleanUp.deleteUnusedImages")
+            }
+        }
     }
 }
