@@ -57,6 +57,9 @@ class DetailsFragment : BookFragment() {
             _book = safeArgs.book
         }
         if (_book == null || book.status == Book.Status.Deleted) {
+            findNavController().previousBackStackEntry?.savedStateHandle?.set(
+                "bookDeleted", true
+            )
             requireActivity().onBackPressedDispatcher.onBackPressed()
             return binding.root
         }
@@ -94,6 +97,9 @@ class DetailsFragment : BookFragment() {
         } else {
             book.status = Book.Status.Deleted
         }
+        findNavController().previousBackStackEntry?.savedStateHandle?.set(
+            "bookDeleted", true
+        )
         requireActivity().onBackPressedDispatcher.onBackPressed()
     }
 

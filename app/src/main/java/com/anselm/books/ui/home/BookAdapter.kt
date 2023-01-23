@@ -9,8 +9,8 @@ import com.anselm.books.database.Book
 import com.anselm.books.databinding.RecyclerviewBookItemBinding
 
 class BookAdapter (
-    private val onClick: (Book) -> Unit,
-    private val onEditClick: ((Book) -> Unit)? = null,
+    private val onClick: (position: Int, Book) -> Unit,
+    private val onEditClick: ((position: Int, Book) -> Unit)? = null,
     private val selectionListener: SelectionListener,
 ) : PagingDataAdapter<Book, BookViewHolder>(BooksComparator())
 {
@@ -22,7 +22,7 @@ class BookAdapter (
         val editClick: ((Int) -> Unit)? =
             if (onEditClick != null) {
                 { position ->
-                    getItem(position)?.let { this@BookAdapter.onEditClick.invoke(it) }
+                    getItem(position)?.let { this@BookAdapter.onEditClick.invoke(position, it) }
                 }
             } else {
                 null
@@ -32,16 +32,17 @@ class BookAdapter (
                 LayoutInflater.from(parent.context),
                 parent,
                 false,
-            ), { // onClick
+            ),
+            { position ->       // onClick
                 if ( selected.size > 0 ) {
-                    select(it)
+                    select(position)
                 } else {
-                    getItem(it)?.let { onClick(it) }
+                    getItem(position)?.let { onClick(position, it) }
                 }
-            }
-        , { // Long click handler for selection.
-            select(it)
-        }, editClick)
+            },
+            { position -> select(position) },     // onLongClick
+            editClick,
+        )
     }
     override fun onBindViewHolder(holder: BookViewHolder, position: Int) {
         val book = getItem(position)

@@ -179,7 +179,7 @@ class CleanUpFragment: BookFragment() {
         item.idItemText.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 val action = CleanUpFragmentDirections.toPagerFragment(
-                    getItemIds().toLongArray(), 0
+                    bookIds = getItemIds().toLongArray(),
                 )
                 findNavController().navigate(action)
             }
