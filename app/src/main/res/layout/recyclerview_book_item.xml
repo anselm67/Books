@@ -55,10 +55,24 @@
             android:layout_marginTop="10dp"
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
-            card_view:layout_constraintBottom_toTopOf="@id/authorView"
+            card_view:layout_constraintBottom_toTopOf="@id/subtitleView"
             card_view:layout_constraintEnd_toEndOf="parent"
             card_view:layout_constraintStart_toEndOf="@id/coverImageView"
             card_view:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/subtitleView"
+            android:scrollHorizontally="true"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="12sp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            card_view:layout_constraintEnd_toEndOf="parent"
+            card_view:layout_constraintStart_toEndOf="@id/coverImageView"
+            card_view:layout_constraintTop_toBottomOf="@id/titleView" />
 
         <TextView
             android:id="@+id/authorView"
@@ -68,12 +82,11 @@
             style="@style/BookCardFieldValue"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/default_author_string"
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
             card_view:layout_constraintEnd_toEndOf="parent"
             card_view:layout_constraintStart_toEndOf="@id/coverImageView"
-            card_view:layout_constraintTop_toBottomOf="@id/titleView" />
+            card_view:layout_constraintTop_toBottomOf="@id/subtitleView" />
 
         <TextView
             android:id="@+id/dateAddedView"
@@ -85,6 +98,7 @@
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/coverImageView"
+            app:layout_constraintTop_toBottomOf="@id/authorView"
             app:layout_constraintBottom_toBottomOf="parent"
             />
 
