@@ -90,8 +90,7 @@ open class TextEditor<T>(
     }
 
     override fun isChanged(): Boolean {
-        val value = editor.idEditText.text.toString().trim()
-        return value != property.getter(target)
+        return value != property.getter(target).trim()
     }
 
     override fun saveChange() {

@@ -50,13 +50,14 @@ class DetailsFragment : BookFragment() {
 
         if (safeArgs.bookId > 0) {
             runBlocking {
-                _book = repository.load(safeArgs.bookId, decorate = true)!!
+                _book = repository.load(safeArgs.bookId, decorate = true)
             }
         } else {
             _book = safeArgs.book
         }
         if (_book == null || book.status == Book.Status.Deleted) {
             navController.popBackStack()
+            return binding.root
         }
 
         binding.bind(inflater, book)
