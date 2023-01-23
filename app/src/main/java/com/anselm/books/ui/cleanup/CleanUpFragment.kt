@@ -223,7 +223,7 @@ class CleanUpFragment: BookFragment() {
         })
         container.addView(item(
             inflater, container,
-            "Delete unused images."
+            getString(R.string.check_gc_images),
         ) {
             viewLifecycleOwner.lifecycleScope.launch {
                 deleteUnusedImages()

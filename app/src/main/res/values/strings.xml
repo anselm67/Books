@@ -122,7 +122,8 @@
     <string name="discard_changes_prompt">Discard changes?</string>
     <string name="edit_no_book_error">An error occurred, no book to edit.</string>
 
-    <string name="check_for_broken_images">Check and fix broken book covers.</string>
+    <string name="check_for_broken_images">Check and fix broken book covers</string>
+    <string name="check_gc_images">Delete unused images</string>
     <string name="cleanup_book_cover_section">Book covers</string>
     <string name="reset_preference_title">Reset database</string>
     <string name="reset_database_confirmation">This will remove all books, are you sure you want to proceed?</string>

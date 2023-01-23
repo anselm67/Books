@@ -210,12 +210,11 @@ class DetailsFragment : BookFragment() {
     }
 
     private fun FragmentDetailsBinding.bind(inflater: LayoutInflater, book: Book) {
-        val app = BooksApplication.app
         val uri = app.imageRepository.getCoverUri(book)
         // Main part of the details.
         titleView.text = book.title
         subtitleView.text = book.subtitle
-        GlideApp.with(BooksApplication.app.applicationContext)
+        GlideApp.with(app.applicationContext)
             .load(uri)
             .into(coverImageView)
         // Authors and Genres.
