@@ -1,15 +1,12 @@
 package com.anselm.books.ui.pager
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.anselm.books.BooksApplication.Companion.app
@@ -26,43 +23,6 @@ class PagerFragment: Fragment() {
     private val binding get() = _binding!!
     private lateinit var adapter: BookPagerAdapter
     private lateinit var viewModel: PagerViewModel
-
-    private fun deleteCurrentAndContinue() {
-        val position = viewModel.position
-        if (position >= 0 && position < viewModel.bookIds.size) {
-            viewModel.bookIds.removeAt(position)
-            binding.idPager.adapter?.notifyItemRemoved(position)
-        }
-        var newPosition = position
-        if (newPosition >= viewModel.bookIds.size) {
-            if (viewModel.bookIds.isEmpty()) {
-                findNavController().popBackStack()
-            } else {
-                newPosition = viewModel.bookIds.size - 1
-            }
-        }
-        binding.idPager.currentItem = newPosition
-        updatePosition()
-    }
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        requireActivity().onBackPressedDispatcher.addCallback(
-            this,
-            object: OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    val savedStateHandle =  findNavController()
-                            .previousBackStackEntry
-                            ?.savedStateHandle
-                    if (savedStateHandle?.contains("bookDeleted") == true) {
-                        deleteCurrentAndContinue()
-                        savedStateHandle.remove("bookDeleted")
-                    } else {
-                        findNavController().popBackStack()
-                    }
-                }
-            })
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
