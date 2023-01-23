@@ -64,20 +64,18 @@ class CleanUpFragment: BookFragment() {
             container.addView(bookItem(
                 inflater,
                 container,
-                getString(R.string.duplicate_books_cleanup, count)
-            ) {
-                app.repository.getDuplicateBookIds()
-            })
+                getString(R.string.duplicate_books_cleanup, count),
+                Query(type = Query.Type.Duplicates)
+            ))
         }
         // Books without cover images.
         count = app.repository.getWithoutCoverBookCount()
         if (count > 0) {
             container.addView(bookItem(
                 inflater, container,
-                getString(R.string.without_cover_books_cleanup, count)
-            ) {
-                app.repository.getWithoutCoverBookIds()
-            })
+                getString(R.string.without_cover_books_cleanup, count),
+                Query(type = Query.Type.NoCover),
+            ))
         }
         // Books without certain label type.
         count = app.repository.getWithoutLabelBookCount(Label.Type.Authors)
@@ -172,14 +170,14 @@ class CleanUpFragment: BookFragment() {
         inflater: LayoutInflater,
         container : ViewGroup,
         text: String,
-        getItemIds: suspend () -> List<Long>,
+        query: Query,
     ): View {
         val item = CleanupItemLayoutBinding.inflate(inflater, container, false)
         item.idItemText.text = text
         item.idItemText.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 val action = CleanUpFragmentDirections.toPagerFragment(
-                    bookIds = getItemIds().toLongArray(),
+                    query = query,
                 )
                 findNavController().navigate(action)
             }

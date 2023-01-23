@@ -87,13 +87,7 @@ class PagerFragment: Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                if (safeArgs.bookIds != null) {
-                    viewModel.bookIds = safeArgs.bookIds!!.toMutableList()
-                } else if (safeArgs.query != null) {
-                    viewModel.bookIds = app.repository.getIdsList(safeArgs.query!!).toMutableList()
-                } else {
-                    check(false) { "PagerFragment requires a bookIds or a Query." }
-                }
+                viewModel.bookIds = app.repository.getIdsList(safeArgs.query).toMutableList()
                 if (!isModelInitialized) {
                     viewModel.position = safeArgs.position
                 }

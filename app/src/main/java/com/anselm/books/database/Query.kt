@@ -6,6 +6,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Query(
+    var type: Type = Type.Regular,
     var query: String? = null,
     var partial: Boolean = false,
     var filters: MutableList<Filter> = mutableListOf(),
@@ -35,6 +36,12 @@ data class Query(
             filters.removeAt(index)
         }
         filters.add(filter)
+    }
+
+    enum class Type {
+        Regular,            // Full featured, using all the Query fields,
+        Duplicates,         // Fake, get all duplicates.
+        NoCover,            // Fake, get books without a cover.
     }
 
     companion object {

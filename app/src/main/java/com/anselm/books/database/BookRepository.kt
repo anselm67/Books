@@ -20,7 +20,7 @@ class BookRepository(
     }
 
     suspend fun getPagedList(query: Query, limit: Int, offset: Int): List<Book> {
-        check(query.filters.size <= 5)
+        check(query.type == Query.Type.Regular)
         Log.d(TAG, "getPagedList [$offset, $limit] ${query.query}/${query.partial}," +
                 " filters: '${query.filters}'," +
                 " withoutLabelOfType: ${query.withoutLabelOfType}" +
@@ -45,7 +45,7 @@ class BookRepository(
     }
 
     suspend fun getPagedListCount(query: Query): Int {
-        check(query.filters.size <= 5)
+        check(query.type == Query.Type.Regular)
         Log.d(TAG, "getPagedListCount ${query.query}/${query.partial}," +
                 " filters: '${query.filters}'," +
                 " withoutLabelOfType: ${query.withoutLabelOfType}"
@@ -66,18 +66,21 @@ class BookRepository(
     }
 
     suspend fun getIdsList(query: Query): List<Long> {
-        check(query.filters.size <= 5)
-        return if ( query.query.isNullOrEmpty() ) {
-            dao.getFilteredIdsList(
-                query.filters.map { it -> it.labelId },
-                query.withoutLabelOfType, query.sortBy,
-            )
-        } else /* Requests text matching. */ {
-            dao.getTitleIdsList(
-                if (query.partial) query.query!! + '*' else query.query!!,
-                query.filters.map { it -> it.labelId },
-                query.withoutLabelOfType, query.sortBy,
-            )
+        when (query.type) {
+            Query.Type.Regular -> return if (query.query.isNullOrEmpty()) {
+                    dao.getFilteredIdsList(
+                        query.filters.map { it -> it.labelId },
+                        query.withoutLabelOfType, query.sortBy,
+                    )
+                } else /* Requests text matching. */ {
+                    dao.getTitleIdsList(
+                        if (query.partial) query.query!! + '*' else query.query!!,
+                        query.filters.map { it -> it.labelId },
+                        query.withoutLabelOfType, query.sortBy,
+                    )
+                }
+            Query.Type.Duplicates -> return getDuplicateBookIds()
+            Query.Type.NoCover -> return getWithoutCoverBookIds()
         }
     }
 
@@ -302,7 +305,7 @@ class BookRepository(
         return dao.getDuplicateBookCount()
     }
 
-    suspend fun getDuplicateBookIds(): List<Long> {
+    private suspend fun getDuplicateBookIds(): List<Long> {
         return dao.getDuplicateBookIds()
     }
 
@@ -310,7 +313,7 @@ class BookRepository(
         return dao.getWithoutCoverBookCount()
     }
 
-    suspend fun getWithoutCoverBookIds(): List<Long> {
+    private suspend fun getWithoutCoverBookIds(): List<Long> {
         return dao.getWithoutCoverBooksIds()
     }
 
