@@ -4,7 +4,10 @@ import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.SearchView
 import androidx.core.content.ContextCompat
@@ -15,11 +18,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.anselm.books.*
+import com.anselm.books.BookViewModel
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.R
+import com.anselm.books.TAG
 import com.anselm.books.database.BookDao
 import com.anselm.books.database.Label
 import com.anselm.books.database.Query
+import com.anselm.books.hideKeyboard
 import com.anselm.books.ui.widgets.MenuItemHandler
 import kotlinx.coroutines.launch
 
@@ -241,7 +247,6 @@ class SearchFragment : ListFragment() {
                 val result =
                     navBackStackEntry.savedStateHandle.get<Query.Filter>("filter")
                 if (result != null) {
-                    Log.d(TAG, "Setting filter $result")
                     val query = bookViewModel.query.copy()
                     query.setOrReplace(result)
                     changeQueryAndUpdateUI(query)

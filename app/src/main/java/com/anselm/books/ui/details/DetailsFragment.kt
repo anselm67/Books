@@ -14,6 +14,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.BooksApplication
+import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.GlideApp
 import com.anselm.books.R
 import com.anselm.books.database.Book
@@ -45,7 +46,7 @@ class DetailsFragment : BookFragment() {
         _binding = FragmentDetailsBinding.inflate(inflater, container, false)
         navController = findNavController()
 
-        val repository = BooksApplication.app.repository
+        val repository = app.repository
         val safeArgs: DetailsFragmentArgs by navArgs()
 
         if (safeArgs.bookId > 0) {
@@ -56,11 +57,16 @@ class DetailsFragment : BookFragment() {
             _book = safeArgs.book
         }
         if (_book == null || book.status == Book.Status.Deleted) {
-            navController.popBackStack()
+            findNavController().previousBackStackEntry?.savedStateHandle?.set(
+                "bookDeleted", true)
+            requireActivity().onBackPressedDispatcher.onBackPressed()
             return binding.root
         }
 
         binding.bind(inflater, book)
+        if ( safeArgs.displayTitle ) {
+            app.title = book.title
+        }
 
         handleMenu(
             MenuItemHandler(R.id.idDeleteBook, {
@@ -90,9 +96,9 @@ class DetailsFragment : BookFragment() {
         } else {
             book.status = Book.Status.Deleted
         }
-        app.postOnUiThread {
-            findNavController().popBackStack()
-        }
+        findNavController().previousBackStackEntry?.savedStateHandle?.set(
+            "bookDeleted", true)
+        requireActivity().onBackPressedDispatcher.onBackPressed()
     }
 
     override fun onDestroyView() {
@@ -206,7 +212,6 @@ class DetailsFragment : BookFragment() {
     private fun FragmentDetailsBinding.bind(inflater: LayoutInflater, book: Book) {
         val app = BooksApplication.app
         val uri = app.imageRepository.getCoverUri(book)
-        app.title = book.title
         // Main part of the details.
         titleView.text = book.title
         subtitleView.text = book.subtitle

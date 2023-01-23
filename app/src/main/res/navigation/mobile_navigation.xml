@@ -94,7 +94,6 @@
             app:destination="@id/nav_search" />
     </fragment>
 
-
     <fragment
         android:id="@id/nav_settings"
         android:name="com.anselm.books.ui.settings.SettingsFragment"
@@ -114,6 +113,9 @@
             app:argType="com.anselm.books.database.Book"
             app:nullable="true"
             android:defaultValue="@null" />
+        <argument android:name="displayTitle"
+            app:argType="boolean"
+            android:defaultValue="true" />
 
         <action android:id="@+id/toEditFragment"
             app:destination="@id/nav_edit" />
