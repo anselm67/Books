@@ -1,24 +1,16 @@
 package com.anselm.books.ui.cleanup
 
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Rect
-import android.graphics.drawable.Drawable
 import android.util.Log
-import android.view.View
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.DOWN
 import androidx.recyclerview.widget.ItemTouchHelper.END
+import androidx.recyclerview.widget.ItemTouchHelper.LEFT
 import androidx.recyclerview.widget.ItemTouchHelper.RIGHT
 import androidx.recyclerview.widget.ItemTouchHelper.START
-import androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback
 import androidx.recyclerview.widget.ItemTouchHelper.UP
 import androidx.recyclerview.widget.RecyclerView
-import com.anselm.books.BooksApplication
-import com.anselm.books.R
 import com.anselm.books.TAG
+import com.anselm.books.ui.widgets.TrashItemTouchHelper
 
 /**
  * For merging items in recycler view:
@@ -27,12 +19,7 @@ import com.anselm.books.TAG
 
 class CleanUpLabelItemTouchHelper(
     private val fragment: CleanUpLabelFragment,
-) :  SimpleCallback(UP or DOWN or START or END, RIGHT) {
-    private var icon: Drawable = ContextCompat.getDrawable(
-        BooksApplication.app.applicationContext,
-        R.drawable.ic_baseline_delete_24
-    )!!
-
+) :  TrashItemTouchHelper(UP or DOWN or START or END, RIGHT or LEFT) {
     var target: RecyclerView.ViewHolder? = null
     var moving: RecyclerView.ViewHolder? = null
 
@@ -69,45 +56,6 @@ class CleanUpLabelItemTouchHelper(
         target = null
         moving = null
         viewHolder.itemView.alpha = 1f
-    }
-
-    override fun onChildDraw(
-        c: Canvas,
-        recyclerView: RecyclerView,
-        viewHolder: RecyclerView.ViewHolder,
-        dX: Float,
-        dY: Float,
-        actionState: Int,
-        isCurrentlyActive: Boolean
-    ) {
-        super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-
-        if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-            // Get RecyclerView item from the ViewHolder
-            val item: View = viewHolder.itemView
-
-            val rect = if ( dX > 0) {
-
-                val dx = dX.toInt()
-                val padding = (2 /* dp */ * BooksApplication.app.displayMetrics.density).toInt()
-                val width = item.bottom - item.top - 2 * padding
-                Rect(
-                    dx - width, item.top + padding, dx, item.bottom - padding
-                )
-            } else {
-                // Draw Rect with varying left side, equal to the item's right side plus negative displacement dX
-                // THIS HASN't BEEN TESTED AS WE SWIPE RIGHT ONLY FOR NOW.
-                Rect(
-                    item.right + dX.toInt(),
-                    item.top,
-                    item.right,
-                    item.bottom,
-                )
-            }
-            DrawableCompat.setTint(icon, Color.RED)
-            icon.bounds = rect
-            icon.draw(c)
-        }
     }
 }
 
