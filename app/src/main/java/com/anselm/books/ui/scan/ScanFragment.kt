@@ -102,7 +102,7 @@ class ScanFragment: BookFragment() {
             } ) {
             saveSaysDone()
         }
-        updateLookupStats(viewModel.stats)
+        updateLookupStats(viewModel.stats, updateSaveButton = false)
 
         binding.idRecycler.adapter = adapter
         binding.idRecycler.layoutManager = LinearLayoutManager(binding.idRecycler.context)
@@ -185,7 +185,7 @@ class ScanFragment: BookFragment() {
         binding.idRecycler.scrollToPosition(0)
     }
 
-    private fun updateLookupStats(stats: LookupStats) {
+    private fun updateLookupStats(stats: LookupStats, updateSaveButton: Boolean = true) {
         // Updates the display of the stats.
         viewModel.stats = stats
         binding.idMessageText.text = app.getString(
@@ -194,7 +194,7 @@ class ScanFragment: BookFragment() {
             stats.matchCount.get(),
             stats.noMatchCount.get(),
         )
-        if (adapter.itemCount == 0) {
+        if (updateSaveButton && adapter.itemCount == 0) {
             saveSaysDone()
         }
     }
@@ -398,12 +398,10 @@ class IsbnArrayAdapter(
             loading: Boolean = false,
             checked: Boolean = false,
             error: Boolean = false,
-            duplicate: Boolean = false,
         ) {
             binding.idLoadProgress.visibility = if (loading) View.VISIBLE else View.GONE
             binding.idCheckMark.visibility = if (checked) View.VISIBLE else View.GONE
             binding.idErrorMark.visibility = if (error) View.VISIBLE else View.GONE
-            binding.idDuplicateMark.visibility = if (duplicate) View.VISIBLE else View.GONE
         }
 
         fun bind(result: LookupResult) {
@@ -411,6 +409,8 @@ class IsbnArrayAdapter(
             binding.idISBNText.text = result.isbn
             binding.root.setOnClickListener { onClick(result) }
             if (result.loading) {
+                binding.idTitleText.isVisible = false
+                binding.idAuthorText.isVisible = false
                 updateStatus(loading = true)
                 return
             }
@@ -431,11 +431,14 @@ class IsbnArrayAdapter(
                     updateStatus(checked = true)
                 } else {
                     result.isDuplicate = true
-                    updateStatus(duplicate = true)
+                    binding.idStatusText.text = app.getString(R.string.scan_status_duplicate)
+                    updateStatus()
                 }
             }
             // Fills in the bindings.
+            binding.idTitleText.isVisible = true
             binding.idTitleText.text = result.book!!.title
+            binding.idAuthorText.isVisible = true
             binding.idAuthorText.text = result.book!!.authors.joinToString { it.name }
             val uri = app.imageRepository.getCoverUri(result.book!!)
             GlideApp.with(app.applicationContext)
@@ -450,10 +453,9 @@ class IsbnArrayAdapter(
                 .into(binding.idCoverImage)
             // Some kind of error occurred: no match or a real error.
             if ( result.errorMessage != null ) {
-                binding.idTitleText.text = result.errorMessage ?: result.exception!!.message
+                binding.idStatusText.text = app.getString(R.string.scan_failed, result.errorMessage)
             } else {
-                binding.idTitleText.text = app.getString(R.string.no_match_found)
-                binding.idAuthorText.text = app.getString(R.string.manual_input_required)
+                binding.idStatusText.text = app.getString(R.string.no_match_found)
             }
             updateStatus(error = true)
         }
@@ -533,12 +535,12 @@ class IsbnArrayAdapter(
         stats.lookupCount.incrementAndGet()
         val like = app.repository.newBook(isbn13)
         lookup.tag = app.lookupService.lookup(like) { book ->
+            lookup.tag = null
             if (book == null) {
                 stats.noMatchCount.incrementAndGet()
             } else {
                 stats.matchCount.incrementAndGet()
             }
-            lookup.tag = null
             lookup.book = book
             app.postOnUiThread {
                 notifyDataSetChanged()

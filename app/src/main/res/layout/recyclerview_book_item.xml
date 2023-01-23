@@ -22,7 +22,6 @@
             android:scaleType="centerCrop"
             android:src="@mipmap/ic_book_cover"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintVertical_bias="1.0"
             card_view:layout_constraintEnd_toStartOf="@id/authorView"
             card_view:layout_constraintStart_toStartOf="parent"
             card_view:layout_constraintTop_toTopOf="parent" />

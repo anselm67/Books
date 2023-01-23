@@ -125,7 +125,7 @@ class LookupService {
         tag: String,
         book: Book,
         stopAt: List<(Book) -> Any?>? = defaultStopAt,
-        onDone: (Book?) -> Unit) {
+        onDone: (Book?) -> Unit): Boolean {
         for (i in index until clients.size) {
             val service = clients[i]
             if (stopNow(stopAt, book)) {
@@ -144,10 +144,11 @@ class LookupService {
                     }
                     onCompletion(i + 1, tag, book, stopAt, onDone)
                 }
-                return
+                return false
             }
         }
         onDone(if (book.title.isNotEmpty()) book else null)
+        return true
     }
 
     private val defaultStopAt = listOf(
@@ -161,7 +162,7 @@ class LookupService {
      * Lookup services errors are logged and simply considered no match, we only take in a
      * match callback.
      * Returns an okHttp tag that can be given to cancelHttpRequests to cancel all pending lookups
-     * for the given ISBN.
+     * for the given ISBN; Or null if no requests were made and the lookup has finished.
      * When [stopAt] is not null, we end the lookup once all provided getters return non
      * empty values.
      */
@@ -169,9 +170,8 @@ class LookupService {
         like: Book,
         stopAt: List<(Book) -> Any?>? = defaultStopAt,
         onDone: (book: Book?) -> Unit,
-    ): String {
+    ): String? {
         val tag = nextTag()
-        onCompletion(0, tag, like, stopAt, onDone)
-        return tag
+        return if ( onCompletion(0, tag, like, stopAt, onDone) ) null else tag
     }
 }

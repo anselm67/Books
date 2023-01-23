@@ -20,9 +20,7 @@
             android:contentDescription="@string/book_image_description"
             android:scaleType="centerCrop"
             android:src="@mipmap/ic_book_cover"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintVertical_bias="1.0"
-            app:layout_constraintEnd_toStartOf="@id/idAuthorText"
+            app:layout_constraintEnd_toStartOf="@id/idISBNText"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -40,7 +38,7 @@
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
             app:layout_constraintBottom_toTopOf="@id/idAuthorText"
-            app:layout_constraintEnd_toStartOf="@id/idLoadProgress"
+            app:layout_constraintEnd_toStartOf="@id/idImageBarrier"
             app:layout_constraintStart_toEndOf="@id/idCoverImage"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -55,82 +53,83 @@
             android:text="@string/default_author_string"
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
-            app:layout_constraintEnd_toStartOf="@id/idLoadProgress"
+            app:layout_constraintEnd_toStartOf="@id/idImageBarrier"
             app:layout_constraintStart_toEndOf="@id/idCoverImage"
             app:layout_constraintTop_toBottomOf="@id/idTitleText"
             app:layout_constraintBottom_toTopOf="@id/idISBNText"/>
 
         <TextView
             android:id="@+id/idISBNText"
-            android:scrollHorizontally="true"
-            android:ellipsize="end"
             android:maxLines="1"
+            android:ellipsize="end"
             style="@style/BookCardFieldValue"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/default_isbn_string"
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
-            app:layout_constraintEnd_toStartOf="@id/idLoadProgress"
+            app:layout_constraintEnd_toStartOf="@id/idImageBarrier"
             app:layout_constraintStart_toEndOf="@id/idCoverImage"
-            app:layout_constraintTop_toBottomOf="@id/idAuthorText" />
+            app:layout_constraintTop_toBottomOf="@id/idAuthorText"
+            app:layout_constraintBottom_toTopOf="@id/idStatusText"/>
+
+        <TextView
+            android:id="@+id/idStatusText"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:textSize="12sp"
+            android:textColor="@color/red"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/idCoverImage"
+            app:layout_constraintTop_toBottomOf="@id/idISBNText"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/idImageBarrier"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:barrierDirection="start"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/idStatusText"
+            app:constraint_referenced_ids="idErrorMark,idCheckMark,idLoadProgress" />
 
         <ProgressBar
             android:id="@+id/idLoadProgress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
+            app:layout_constraintStart_toEndOf="@id/idImageBarrier"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/idISBNText"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-
-        />
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <ImageView
             android:id="@+id/idCheckMark"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
             android:src="@drawable/ic_baseline_check_24"
             app:tint="#44AA44"
+            app:layout_constraintStart_toEndOf="@id/idImageBarrier"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/idISBNText"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:visibility="gone"
-            android:contentDescription="@string/scan_status_matched"
-        />
+            android:contentDescription="@string/scan_status_matched" />
 
         <ImageView
             android:id="@+id/idErrorMark"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
             android:src="@drawable/ic_baseline_error_outline_24"
             app:tint="#AA4444"
+            app:layout_constraintStart_toEndOf="@id/idImageBarrier"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/idISBNText"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:visibility="gone"
-            android:contentDescription="@string/scan_status_error"
-            />
-
-        <ImageView
-            android:id="@+id/idDuplicateMark"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
-            android:src="@drawable/ic_baseline_duplicate_24"
-            app:tint="#AA4444"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/idISBNText"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:visibility="gone"
-            android:contentDescription="@string/scan_status_duplicate"
-            />
+            android:contentDescription="@string/scan_status_error" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
