@@ -25,11 +25,11 @@ import java.io.File
 class BooksApplication : Application() {
     val applicationScope = CoroutineScope(SupervisorJob())
 
-    private val basedir by lazy {
-        File(applicationContext?.filesDir, "import")
+    val basedir by lazy {
+        File(applicationContext?.filesDir, "books")
     }
 
-    fun toast(resId: Int) {
+   fun toast(resId: Int) {
         toast(applicationContext.getString(resId))
     }
 

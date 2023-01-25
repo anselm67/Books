@@ -36,6 +36,9 @@ android {
     buildFeatures {
         viewBinding true
     }
+    packagingOptions {
+        resources.excludes.add("META-INF/DEPENDENCIES")
+    }
 }
 
 dependencies {
@@ -92,6 +95,13 @@ dependencies {
 
     // Barcode scanning with mlkit, including the model.
     implementation 'com.google.mlkit:barcode-scanning:17.0.3'
+
+    // Google drive logging in.
+    implementation "com.google.android.gms:play-services-auth:$play_services_drive"
+    implementation "com.google.android.gms:play-services-drive:17.0.0"
+    implementation 'com.google.apis:google-api-services-drive:v3-rev197-1.25.0'
+    implementation 'com.google.api-client:google-api-client-android:2.1.3'
+    implementation 'com.google.auth:google-auth-library-oauth2-http:1.14.0'
 
     // Testing
     testImplementation "junit:junit:$rootProject.junitVersion"

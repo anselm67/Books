@@ -159,6 +159,7 @@ class ImageRepository(
                 // Case b.
             } else {
                 // Case 2. here:
+                Log.d(TAG, "${book.title}: $imageFilename vs ${book.imageFilename} exists ${imageFile.path} : ${imageFile.exists()}")
                 return fetchCover(book, onCompletion)
             }
         } else {

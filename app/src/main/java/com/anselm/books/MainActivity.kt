@@ -90,5 +90,4 @@ class MainActivity : AppCompatActivity() {
         cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         return false
     }
-
 }

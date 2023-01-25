@@ -85,14 +85,14 @@ class ImportExport(private val repository: BookRepository,
 
     private suspend fun importZipInputStream(zipInputStream: ZipInputStream): Pair<Int, Int> {
         var entry: ZipEntry? = zipInputStream.nextEntry
-        var bookCount = -1
         var imageCount = 0
+        var jsonText: String? = null
         while (entry != null) {
             val file = File(basedir, entry.name)
             if (entry.name == app.imageRepository.imageDirectoryName  && entry.isDirectory) {
                 file.mkdirs()
             } else if (entry.name == "books.json") {
-                bookCount = importJsonText(readText(zipInputStream))
+                jsonText = readText(zipInputStream)
             } else if (entry.name.startsWith(app.imageRepository.imageDirectoryName)) {
                 file.parentFile?.mkdirs()
                 withContext(Dispatchers.IO) {
@@ -109,6 +109,7 @@ class ImportExport(private val repository: BookRepository,
             }
             entry = zipInputStream.nextEntry
         }
+        val bookCount = importJsonText(jsonText ?: "")
         return Pair(bookCount, imageCount)
     }
 
@@ -127,7 +128,7 @@ class ImportExport(private val repository: BookRepository,
         return ret
     }
 
-    private suspend fun exportJson(out: OutputStream): Int {
+    suspend fun exportJson(out: OutputStream): Int {
         // Convert all books to JSON, hold them tight(!)
         val jsonBooks = JSONArray()
         var offset = 0
