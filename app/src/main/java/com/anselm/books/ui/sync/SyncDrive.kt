@@ -9,6 +9,7 @@ Bearer ya29.a0AVvZVspof_MqeP87fIunVZ200zXfxd3I2J7rSmIQhTlWVk4I07u6cik2bDyGS-KnIo
 import android.util.Log
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.Constants
+import com.anselm.books.ProgressReporter
 import com.anselm.books.TAG
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -128,10 +129,15 @@ private class Node(
 
 class SyncDrive(
     private val authToken: String,
+    private val progressReporter: ProgressReporter? = null
 ) {
     private val config = SyncConfig.get()
 
-    private fun createRoot(job: SyncJob, onDone: () -> Unit) {
+    private fun createRoot(
+        job: SyncJob,
+        progress: ((String?, Int) -> Unit)? = null,
+        onDone: () -> Unit) {
+        progress?.invoke("Checking target folder.", 10)
         if (config.folderId.isEmpty()) {
             job.createFolder(Constants.DRIVE_FOLDER_NAME) {
                 config.folderId = it.id
@@ -146,7 +152,7 @@ class SyncDrive(
         val file = File(app.applicationContext.cacheDir, "books.json")
         file.deleteOnExit()
         file.outputStream().use {
-            app.importExport.exportJson(it)
+            app.importExport.exportJson(progressReporter, it)
         }
         if (config.jsonFileId.isNotEmpty()) {
             job.delete(config.jsonFileId) {
@@ -170,10 +176,13 @@ class SyncDrive(
         job.done()
     }
 
-    fun sync(onDone: (SyncJob) -> Unit): SyncJob {
+    fun sync(
+        progress: ((String?, Int) -> Unit)? = null,
+        onDone: (SyncJob) -> Unit
+    ): SyncJob {
         val job = SyncJob(authToken)
         job.start {
-            createRoot(job) {
+            createRoot(job, progress) {
                 app.applicationScope.launch(Dispatchers.IO) {
                     syncJson(job) {
                         syncImages(job)

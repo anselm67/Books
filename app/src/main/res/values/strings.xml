@@ -146,5 +146,12 @@
     <string name="sync_login">Log In</string>
     <string name="sync_do_sync">Sync</string>
     <string name="sync_log_out">Log Out</string>
+    <string name="cleanup_check_image_progress_title">Checking images&#8230;</string>
+    <string name="sync_dialog_progress_title">Sync in progress</string>
+    <string name="sync_cancelled">Sync cancelled.</string>
+    <string name="sync_failed">Sync failed, try again.</string>
+    <string name="sync_success">Sync completed successfully.</string>
+    <string name="export_images_progress">Copying images&#8230;</string>
+    <string name="export_database_progress">Backing up database&#8230;</string>
 
 </resources>

@@ -13,15 +13,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.ProgressReporter
 import com.anselm.books.R
 import com.anselm.books.TAG
 import com.anselm.books.databinding.FragmentSyncBinding
 import com.anselm.books.ui.widgets.BookFragment
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+
 
 class SyncFragment: BookFragment() {
     private var _binding: FragmentSyncBinding? = null
@@ -122,24 +123,25 @@ class SyncFragment: BookFragment() {
         )
     }
 
+    private var job: SyncJob? = null
+    private var progressReporter: ProgressReporter? = null
     private fun withToken(authToken: String) {
-        app.loading(true, "SyncFragment.sync")
-        binding.idCancelButton.isVisible = true
-        val job = SyncDrive(authToken).sync() { job ->
+        progressReporter = app.loadingDialog(
+            getString(R.string.sync_dialog_progress_title),
+            requireActivity()
+        ) { job?.cancel() }
+        job = SyncDrive(authToken, progressReporter).sync() { job ->
             app.postOnUiThread {
-                app.loading(false, "SyncFragment.sync")
                 if (job.isCancelled) {
-                    app.toast("Sync cancelled.")
+                    app.toast(getString(R.string.sync_cancelled))
                 } else if (job.exception != null) {
-                    app.toast("Sync failed, try again.")
+                    app.toast(getString(R.string.sync_failed))
                 } else {
-                    app.toast("Sync completed successfully.")
+                    app.toast(getString(R.string.sync_success))
                 }
-                binding.idCancelButton.isVisible = false
+                // Calling with 100/100 ensures the dialog closes.
+                progressReporter?.invoke(null, 100, 100)
             }
-        }
-        binding.idCancelButton.setOnClickListener {
-            job.cancel()
         }
     }
 

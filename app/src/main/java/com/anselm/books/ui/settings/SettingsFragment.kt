@@ -135,12 +135,15 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 app.toast("Select a file to export to.")
             } else {
                 Log.d(TAG, "Opening directory $uri")
-                app.loading(true, "$TAG.Export")
+                val progressReporter = app.loadingDialog(
+                    "Exporting books ...",
+                    requireActivity()
+                )
                 var count = 0
                 var msg: String? = null
                 app.applicationScope.launch {
                     try {
-                        count = importExport.exportZipFile(uri)
+                        count = importExport.exportZipFile(uri, progressReporter)
                     } catch (e: Exception) {
                         Log.e(TAG, "Export to $uri failed.", e)
                         msg = e.TAG

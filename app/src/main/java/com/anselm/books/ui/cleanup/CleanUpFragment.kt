@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
-import kotlin.math.roundToInt
 
 class CleanUpFragment: BookFragment() {
     private var _binding: FragmentCleanupBinding? = null
@@ -333,10 +332,10 @@ class CleanUpFragment: BookFragment() {
         val bookIds = app.repository.getIdsList(Query())
         val stats = FixCoverStats()
 
-        val progressSetter = app.loadingDialog(
-            requireActivity()) {
-            stats.cancel()
-        }
+        val progressReporter = app.loadingDialog(
+            getString(R.string.cleanup_check_image_progress_title),
+            requireActivity()
+        ) { stats.cancel() }
         bookIds.forEach { bookId ->
             val book = app.repository.load(bookId, decorate = true)
             stats.totalCount++
@@ -344,8 +343,7 @@ class CleanUpFragment: BookFragment() {
                 stats.checkedCount++
                 checkImage(stats, book)
             }
-            val done = stats.totalCount.toFloat() / bookIds.size.toFloat()
-            progressSetter((100.0F * done).roundToInt())
+            progressReporter(null, stats.totalCount, bookIds.size)
         }
         // Wait until al calls have returned.
         stats.join()

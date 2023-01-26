@@ -24,6 +24,9 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlin.math.roundToInt
+
+typealias ProgressReporter = (title: String?, count: Int, total: Int) -> Unit
 
 class BooksApplication : Application() {
     val applicationScope = CoroutineScope(SupervisorJob())
@@ -118,11 +121,15 @@ class BooksApplication : Application() {
         result
     }
 
+    val httpQueuedCount: Int
+        get() {
+            return (okHttp.dispatcher.runningCalls().size + okHttp.dispatcher.queuedCalls().size)
+        }
+
     fun flushOkHttp() {
         var pending: Int
         do {
-            pending = (okHttp.dispatcher.queuedCalls().size  +
-                    okHttp.dispatcher.runningCalls().size)
+            pending = httpQueuedCount
             Log.d(TAG, "okHttp: waiting for $pending calls.")
             if (pending > 0) {
                 try {
@@ -184,9 +191,14 @@ class BooksApplication : Application() {
         }
 
 
-    fun loadingDialog(activity: Activity, onCancel: (() -> Unit)? = null): (Int) -> Unit {
+    fun loadingDialog(
+        title: String,
+        activity: Activity,
+        onCancel: (() -> Unit)? = null
+    ): ProgressReporter {
         val binding = ProgressBarDialogBinding.inflate(activity.layoutInflater)
         val dialog = AlertDialog.Builder(activity)
+            .setTitle(title)
             .setCancelable(false)
             .setView(binding.root)
             .create()
@@ -200,10 +212,18 @@ class BooksApplication : Application() {
             binding.idCancelButton.isVisible = false
         }
         dialog.show()
-        return { percent ->
-            binding.idProgressBar.progress = percent
-            if (percent >= 100) {
-                dialog.dismiss()
+        return { progressTitle: String?, count: Int, total: Int ->
+            postOnUiThread {
+                if (!dialog.isShowing) {
+                    dialog.show()
+                }
+                if (count >= total) {
+                    dialog.dismiss()
+                } else if (total != 0){
+                    progressTitle?.let { dialog.setTitle(it) }
+                    val percent = 100.0F * count.toFloat() / total.toFloat()
+                    binding.idProgressBar.progress = percent.roundToInt()
+                }
             }
         }
     }

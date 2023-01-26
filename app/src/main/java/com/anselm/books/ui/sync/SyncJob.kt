@@ -44,8 +44,10 @@ class SyncJob(
                 cond.signalAll()
             }
         }
+    private val totalCount = AtomicInteger(0)
 
     private fun builder(): Request.Builder {
+
         return Request.Builder()
             .tag(tag)
             .header("Authorization", "Bearer $authToken")
@@ -217,6 +219,8 @@ class SyncJob(
             runnable.run()
         }
     }
+
+
     companion object {
         private val idCounter = AtomicInteger(0)
         private fun nextTag() = "syncjob-${idCounter.incrementAndGet()}"

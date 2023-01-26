@@ -17,7 +17,7 @@ val Any.TAG: String
         }
     }
 
-fun String.ifNotEmpty(f: (String) -> Unit) {
+fun String?.ifNotEmpty(f: (String?) -> Unit) {
     if (this != null && this.isNotEmpty()) {  f(this) }
 }
 

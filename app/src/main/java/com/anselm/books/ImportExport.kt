@@ -128,18 +128,26 @@ class ImportExport(private val repository: BookRepository,
         return ret
     }
 
-    suspend fun exportJson(out: OutputStream): Int {
+    suspend fun exportJson(
+        progressReporter: ProgressReporter?,
+        out: OutputStream
+    ): Pair<Int, Int> {
         // Convert all books to JSON, hold them tight(!)
+        val totalCount = app.repository.getTotalCount()
+        var imageCount = 0
         val jsonBooks = JSONArray()
         var offset = 0
         val limit = 250
+        progressReporter?.invoke(app.getString(R.string.export_database_progress), 0, totalCount)
         do {
             val books = repository.getPagedList(Query.emptyQuery, limit, offset)
             books.map {
                 repository.decorate(it)
+                it.imageFilename.ifNotEmpty { imageCount++ }
                 jsonBooks.put(it.toJson())
             }
             offset += books.size
+            progressReporter?.invoke(null, offset, totalCount)
         } while (books.isNotEmpty())
         val jsonRoot = JSONObject()
         jsonRoot.put("books", jsonBooks)
@@ -150,23 +158,35 @@ class ImportExport(private val repository: BookRepository,
             writer.write(text)
             writer.flush()
         }
-        return offset
+        return Pair(offset, imageCount)
     }
 
-    private suspend fun exportZipFile(zipFile: File, dest:Uri): Int {
+    private suspend fun exportZipFile(
+        zipFile: File,
+        dest:Uri,
+        progressReporter: ProgressReporter? = null,
+    ): Int {
         // Collects all the files that need to be included.
         val zipOut = ZipOutputStream(zipFile.outputStream())
         var bookCount: Int
         zipOut.use {
             // Writes out the json file.
             it.putNextEntry(ZipEntry("books.json"))
-            bookCount = exportJson(it)
+            val counts = exportJson(progressReporter, it)
+            bookCount = counts.first
+            val totalImageCount = counts.second
+            var imageCount = 0
             // And all the images.
+            progressReporter?.invoke(
+                app.getString(R.string.export_images_progress), 
+                0, totalImageCount
+            )
             app.imageRepository.imageDirectory.walk().forEach { file ->
                 val path = file.relativeTo(basedir).path
                 if (file.isFile) {
                     it.putNextEntry(ZipEntry(path))
                     FileInputStream(file).use { inputStream -> inputStream.copyTo(it) }
+                    progressReporter?.invoke(null, imageCount++, totalImageCount)
                 }
             }
         }
@@ -179,12 +199,16 @@ class ImportExport(private val repository: BookRepository,
         return bookCount
     }
 
-    suspend fun exportZipFile(dest: Uri): Int {
+    suspend fun exportZipFile(
+        dest: Uri,
+        progressReporter: ProgressReporter? = null
+    ): Int {
         val zipFile = File(app.cacheDir, "books.zip")
         try {
-            return exportZipFile(zipFile, dest)
+            return exportZipFile(zipFile, dest, progressReporter)
         } finally {
             zipFile.delete()
+            progressReporter?.invoke(null, 0, 0)
         }
     }
 }
