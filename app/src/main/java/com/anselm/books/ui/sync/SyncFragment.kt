@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.R
@@ -71,7 +72,6 @@ class SyncFragment: BookFragment() {
                 Log.d(TAG, "Fully logged out.")
             }
         }
-
         handleMenu()
 
         return binding.root
@@ -124,9 +124,22 @@ class SyncFragment: BookFragment() {
 
     private fun withToken(authToken: String) {
         app.loading(true, "SyncFragment.sync")
-        val syncDrive = SyncDrive(authToken)
-        syncDrive.sync() {
-            app.loading(false, "SyncFragment.sync")
+        binding.idCancelButton.isVisible = true
+        val job = SyncDrive(authToken).sync() { job ->
+            app.postOnUiThread {
+                app.loading(false, "SyncFragment.sync")
+                if (job.isCancelled) {
+                    app.toast("Sync cancelled.")
+                } else if (job.exception != null) {
+                    app.toast("Sync failed, try again.")
+                } else {
+                    app.toast("Sync completed successfully.")
+                }
+                binding.idCancelButton.isVisible = false
+            }
+        }
+        binding.idCancelButton.setOnClickListener {
+            job.cancel()
         }
     }
 

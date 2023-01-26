@@ -129,9 +129,7 @@ class BooksApplication : Application() {
                     flushLock.withLock {
                         flushCond.await(2000, TimeUnit.MILLISECONDS)
                     }
-                } catch (e: InterruptedException) {
-                    Log.e(TAG, "flushOkHttp: interrupted while waiting.", e)
-                }
+                } catch (_: InterruptedException) { }
             }
         } while (pending > 0)
     }
