@@ -76,7 +76,7 @@ class SyncFragment: BookFragment() {
         // Create a folder.
         run({
             app.loading(true, "SyncFragment.sync")
-            val syncDrive = SyncDrive(drive)
+            val syncDrive = SyncDrive(drive, credential.token)
             syncDrive.sync() {
                 app.loading(false, "SyncFragment.sync")
             }

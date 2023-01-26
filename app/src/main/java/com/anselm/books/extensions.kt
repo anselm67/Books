@@ -17,6 +17,10 @@ val Any.TAG: String
         }
     }
 
+fun String.ifNotEmpty(f: (String) -> Unit) {
+    if (this != null && this.isNotEmpty()) {  f(this) }
+}
+
 fun Context.hideKeyboard(view: View) {
     val inputMethodManager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
     inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
