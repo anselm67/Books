@@ -1,8 +1,13 @@
 package com.anselm.books.ui.sync
 
-import android.accounts.Account
+import android.accounts.AccountManager
+import android.accounts.AccountManagerCallback
+import android.accounts.AccountManagerFuture
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -10,25 +15,26 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
 import com.anselm.books.BooksApplication.Companion.app
-import com.anselm.books.Constants
 import com.anselm.books.R
 import com.anselm.books.TAG
 import com.anselm.books.databinding.FragmentSyncBinding
 import com.anselm.books.ui.widgets.BookFragment
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
-import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException
-import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.gson.GsonFactory
-import com.google.api.services.drive.Drive
-import com.google.api.services.drive.DriveScopes
-import kotlin.concurrent.thread
 
 class SyncFragment: BookFragment() {
     private var _binding: FragmentSyncBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SyncViewModel by viewModels()
+    private val signInClient by lazy {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .build()
+        GoogleSignIn.getClient(requireActivity(), gso)
+    }
+    private val accountManager by lazy {
+        AccountManager.get(requireContext())
+    }
 
     private var logInLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -52,7 +58,18 @@ class SyncFragment: BookFragment() {
             binding.idSyncButton.setOnClickListener { logIn() }
         } else {
             binding.idSyncButton.text = getString(R.string.sync_do_sync)
-            binding.idSyncButton.setOnClickListener { work(viewModel.account!!) }
+            binding.idSyncButton.setOnClickListener { auth() }
+        }
+
+        binding.idLogoutButton.setOnClickListener {
+            signInClient.signOut().addOnCompleteListener {
+                viewModel.account = null
+                binding.idSyncButton.text = getString(R.string.sync_login)
+                binding.idSyncButton.setOnClickListener { logIn() }
+            }
+            signInClient.revokeAccess().addOnCompleteListener {
+                Log.d(TAG, "Fully logged out.")
+            }
         }
 
         handleMenu()
@@ -60,37 +77,60 @@ class SyncFragment: BookFragment() {
         return binding.root
     }
 
-    private fun work(account: Account) {
-        val credential = GoogleAccountCredential.usingOAuth2(
-            context,
-            listOf(DriveScopes.DRIVE_FILE, DriveScopes.DRIVE_APPDATA)
-        )
-        credential.selectedAccount = account
+    private var authLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        Log.d(TAG, "result: $result.")
+        auth(fromIntent = true)
+    }
 
+    // https://developer.android.com/training/id-auth/authenticate
+    private fun auth(fromIntent: Boolean = false) {
+        val account = viewModel.account!!
+        val options = Bundle()
+        // "https://www.googleapis.com/auth/drive.file",
+        accountManager.getAuthToken(
+            account,
+            "oauth2: https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata",
+            options,
+            requireActivity(),
+            object : AccountManagerCallback<Bundle> {
+                override fun run(result: AccountManagerFuture<Bundle>?) {
+                    if (result != null && result.result != null) {
+                        val bundle = result.result
+                        // If the bundle has an intent, we need to run it.
+                        val intent = bundle.get(AccountManager.KEY_INTENT) as? Intent
+                        if (intent != null && ! fromIntent) {
+                            authLauncher.launch(intent)
+                        } else {
+                            withToken(bundle.getString(AccountManager.KEY_AUTHTOKEN)!!)
+                        }
+                    } else {
+                        Log.d(TAG, "Auth failed, user feedback needed.")
+                    }
+                }
+            },
+            Looper.myLooper()?.let {
+                Handler(it, object : Handler.Callback {
+                    override fun handleMessage(msg: Message): Boolean {
+                        Log.d(TAG, "An error occurred: $msg")
+                        return true
+                    }
 
-        val drive = Drive.Builder(
-            NetHttpTransport(),
-            GsonFactory.getDefaultInstance(),
-            credential,
-        ).setApplicationName(Constants.APP_NAME).build()
-        // Create a folder.
-        run({
-            app.loading(true, "SyncFragment.sync")
-            val syncDrive = SyncDrive(drive, credential.token)
-            syncDrive.sync() {
-                app.loading(false, "SyncFragment.sync")
+                })
             }
-        }) {
+        )
+    }
+
+    private fun withToken(authToken: String) {
+        app.loading(true, "SyncFragment.sync")
+        val syncDrive = SyncDrive(authToken)
+        syncDrive.sync() {
             app.loading(false, "SyncFragment.sync")
-            app.toast("Sync failed, retry later.")
         }
     }
 
     private fun logIn() {
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
-            .build()
-        val signInClient = GoogleSignIn.getClient(requireActivity(), gso)
         logInLauncher.launch(signInClient.signInIntent)
     }
 
@@ -101,41 +141,14 @@ class SyncFragment: BookFragment() {
                     Log.d(TAG, "account ${it.result.account}")
                     Log.d(TAG, "displayName ${it.result.displayName}")
                     Log.d(TAG, "Email ${it.result.email}")
-                    work(it.result.account!!)
+                    viewModel.account = it.result.account!!
+                    binding.idSyncButton.text = getString(R.string.sync_do_sync)
+                    binding.idSyncButton.setOnClickListener { auth() }
                 } else {
                     // authentication failed
                     Log.e(TAG, "Failed to log in.", it.exception)
                 }
             }
-    }
-
-    private var resumeBlock: (() -> Unit)? = null
-    private var authLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        Log.d(TAG, "result: $result with resumeBlock? ${resumeBlock != null}")
-        // This dance allows for the invoked block to also fail.
-        val block = resumeBlock
-        resumeBlock = null
-        block?.invoke()
-    }
-
-    private fun run(
-        block: () -> Unit,
-        onError: (Exception) -> Unit
-    ) {
-        thread {
-            try {
-                block()
-            } catch (e: SyncException) {
-                if ((e.cause != null) && (e.cause is UserRecoverableAuthIOException)) {
-                    authLauncher.launch((e.cause as UserRecoverableAuthIOException).intent)
-                    return@thread
-                }
-                Log.e(TAG, "Failed to sync.", e)
-                onError(e)
-            }
-        }
     }
 
 }

@@ -11,14 +11,8 @@ import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.Constants
 import com.anselm.books.TAG
 import com.anselm.books.ifNotEmpty
-import com.anselm.books.ui.sync.SyncDrive.MimeType.FOLDER
-import com.google.api.client.googleapis.batch.BatchCallback
-import com.google.api.client.googleapis.batch.BatchRequest
-import com.google.api.client.googleapis.json.GoogleJsonError
-import com.google.api.client.http.FileContent
-import com.google.api.client.http.HttpHeaders
-import com.google.api.client.http.HttpRequest
-import com.google.api.services.drive.Drive
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -35,7 +29,7 @@ import java.io.File
 import java.io.IOException
 
 
-private data class GoogleFile(
+data class GoogleFile(
     val id: String,
     val name: String,
     val mimeType: String? = null,
@@ -85,16 +79,8 @@ private class Node(
         return localChildren.firstOrNull { name == it.localName }
     }
 
-    fun diff(drive: SyncDrive, parentFolderId: String? = null) {
-        val batch = drive.Batch()
-        if (folderId == null) {
-            require(parentFolderId != null) { "parentFolderId required to createFolder." }
-            batch.add(
-                drive.createFolderRequest(localName, parentFolderId).buildHttpRequest()
-            ) {
-                folderId = it.id
-            }
-        }
+    private fun diffChildren(drive: SyncDrive) {
+        check(folderId != null)
         remoteFiles.forEach {
             if ( ! localFiles.contains(it.name)) {
                 Log.d(TAG, "FETCH $localName/$it")
@@ -102,21 +88,33 @@ private class Node(
         }
         localFiles.forEach { name ->
             if ( remoteFiles.firstOrNull{ it.name == name } == null ) {
-                batch.add(
-                    drive.uploadFileRequest(File(localDirectory, name), "image/heic", folderId).buildHttpRequest(),
-                ) {
+                drive.uploadFile(File(localDirectory, name), "image/heic", folderId) {
                     Log.d(TAG, "$localName/$name uploaded.")
                 }
             }
         }
-        batch.run()
         localChildren.forEach { it.diff(drive, folderId) }
+    }
+
+    fun diff(
+        drive: SyncDrive,
+        parentFolderId: String? = null,
+    ) {
+        if (folderId == null) {
+            require(parentFolderId != null) { "parentFolderId required to createFolder." }
+            drive.createFolder(localName, parentFolderId) {
+                folderId = it.id
+                diffChildren(drive)
+            }
+        } else {
+            diffChildren(drive)
+        }
     }
 
     private fun collectChildren(list: List<GoogleFile>) {
         list.forEach {
             if (it.folderId == folderId) {
-                if (it.mimeType == FOLDER ) {
+                if (it.mimeType == SyncDrive.MimeType.APPLICATION_FOLDER) {
                     var localChild = getChild(it.name)
                     if (localChild != null) {
                         localChild.folderId = it.id
@@ -179,91 +177,50 @@ private class Node(
 }
 
 class SyncDrive(
-    private val drive: Drive,
     private val authToken: String,
 ) {
     private val config = SyncConfig.get()
 
     object MimeType {
-        const val FOLDER = "application/vnd.google-apps.folder"
+        val APPLICATION_JSON = "application/json".toMediaType()
+        val MULTIPART_RELATED = "multipart/related".toMediaType()
+        const val APPLICATION_FOLDER = "application/vnd.google-apps.folder"
     }
 
-    fun createFolderRequest(name: String, parentFolderId: String? = null): Drive.Files.Create {
-        val folderData = com.google.api.services.drive.model.File()
-        folderData.name = name
-        if (parentFolderId != null) {
-            folderData.parents = listOf(parentFolderId)
-        }
-        folderData.mimeType = FOLDER
-        return drive.files().create(folderData)
-    }
-
-    private fun createFolder(name: String, parentFolderId: String? = null): String {
-        val result = createFolderRequest(name, parentFolderId).execute()
-        if (result == null) {
-            throw SyncException("createFolder($name, $parentFolderId): empty response.")
-        } else {
-            return result.id
-        }
-    }
-
-    private fun okCreateFolder(
-        folder: GoogleFile,
+    fun createFolder(
+        name: String,
+        parentFolderId: String? = null,
         onResponse: (GoogleFile) -> Unit,
-    ) {
-        check(folder.mimeType == MimeType.FOLDER)
+    ): Call {
+        Log.d(TAG, "createFolder: $name, parent: $parentFolderId.")
         val url = "https://www.googleapis.com/drive/v3/files".toHttpUrlOrNull()!!.newBuilder()
-        val metadata = folder.toJson().toString()
+        val metadata = GoogleFile(
+            id = "",
+            name = name,
+            mimeType = MimeType.APPLICATION_FOLDER,
+            folderId = parentFolderId
+        ).toJson().toString()
         val req = Request.Builder()
             .url(url.build())
             .header("Authorization", "Bearer $authToken")
-            .post(metadata.toRequestBody("application/json".toMediaType()))
+            .post(metadata.toRequestBody(MimeType.APPLICATION_JSON))
             .build()
-        run(req) { onResponse(GoogleFile.fromJson(it)) }
+        return run(req) { onResponse(GoogleFile.fromJson(it)) }
     }
 
-    fun uploadFileRequest(file: File, type: String, folderId: String? = null): Drive.Files.Create {
-        val googleFile = com.google.api.services.drive.model.File()
-        googleFile.name = file.name
-        folderId?.let {
-            googleFile.parents = listOf(folderId)
-        }
-        val fileContent = FileContent(type, file)
-        return drive.Files().create(googleFile, fileContent)
-    }
-
-    private fun uploadFile(file: File, type: String, folderId: String? = null): String {
-        val result = uploadFileRequest(file, type, folderId).execute()
-        if (result == null) {
-            throw SyncException("uploadFile(${file.path}, $type, $folderId): empty response.")
-        } else {
-            return result.id
-        }
-    }
-
-    private fun bodyToString(request: Request): String? {
-        return try {
-            val copy = request.newBuilder().build()
-            val buffer = okio.Buffer()
-            copy.body!!.writeTo(buffer)
-            buffer.readUtf8()
-        } catch (e: IOException) {
-            "did not work"
-        }
-    }
-
-    private fun okUploadFile(
+    fun uploadFile(
         file: File,
         mimeType: String,
         folderId: String? = null,
         onResponse: (GoogleFile) -> Unit,
-    ): String? {
+    ): Call {
+        Log.d(TAG, "uploadFile: ${file.name} type: $mimeType.")
         val url = "https://www.googleapis.com/upload/drive/v3/files".toHttpUrlOrNull()!!.newBuilder()
             .addQueryParameter("uploadType", "multipart")
         val metadata = GoogleFile("", file.name, mimeType, folderId).toJson().toString()
         val multipartBody = MultipartBody.Builder()
-            .setType("multipart/related".toMediaType())
-            .addPart(metadata.toRequestBody("application/json".toMediaType()))
+            .setType(MimeType.MULTIPART_RELATED)
+            .addPart(metadata.toRequestBody(MimeType.APPLICATION_JSON))
             .addPart(file.asRequestBody(mimeType.toMediaType()))
             .build()
         val req = Request.Builder()
@@ -272,88 +229,15 @@ class SyncDrive(
             .header("Content-Length", multipartBody.contentLength().toString())
             .post(multipartBody)
             .build()
-
-        Log.d(TAG, "Here comes the request ...")
-        bodyToString(req)?.let { Log.d(TAG, it) }
-        run(req) {
-            onResponse(GoogleFile.fromJson(it))
-        }
-        return null
+        return run(req) { onResponse(GoogleFile.fromJson(it)) }
     }
 
-    private fun listFiles(): List<com.google.api.services.drive.model.File> {
-        var token: String? = null
-        val files = mutableListOf<com.google.api.services.drive.model.File>()
-        try {
-            do {
-                val request = drive.files().list()
-                    .setQ("trashed = false")
-                    .setFields("nextPageToken, files(id, name, mimeType, parents)")
-                    .setSpaces("drive")
-                if (token != null) {
-                    request.pageToken = token
-                }
-                val result = request.execute()
-                files.addAll(result.files)
-                token = result.nextPageToken
-            } while (token != null)
-            return files
-        } catch (e: Exception) {
-            throw SyncException("listFiles(): failed.", e)
-        }
-    }
-
-    private fun run(req: Request, onResponse: (JSONObject) -> Unit) {
-        val url = req.url
-        app.okHttp.newCall(req).enqueue(object: Callback{
-            override fun onFailure(call: Call, e: IOException) {
-                // FIXME
-                Log.e(TAG, "${call.request().url}: request failed.", e)
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    try {
-                        if (it.isSuccessful) {
-                            val tok = JSONTokener(response.body!!.string())
-                            val obj = tok.nextValue()
-                            if (obj !is JSONObject) {
-                                Log.e(TAG, "$url: parse failed got a ${obj.javaClass.name}.")
-                            } else {
-                                onResponse(obj)
-                            }
-                        } else {
-                            // FIXME
-                            Log.d(TAG, "$url: status ${response.code}.")
-                        }
-                    } catch (e: Exception) {
-                        // FIXME
-                        Log.e(TAG, "$url: handling failed.", e)
-                    }
-                }
-            }
-
-        })
-    }
-
-    // {
-    // "kind": "drive#fileList",
-    // "nextPageToken": "~!!~AI9FV7RDd1-hxSvk9KffIpsc7Tw0yzrL9jRRLr7G2awJMZPyeq1gheB9UA9z6h_Ph07XeMhAAenJzzHrId3p7NNep4IkdYW4k3T2DgGy3ulmTbi3jWvsrHx2TIjdEvB4Ii1-tzCxsMkPv4_337aiUit7H-YpiQGc4l0Vr2iNcJ-CEAysKQ6xehTGuIDVMo0pHWLpCprQEWvy_NbceZ6sUfLXe4SigUN5FVGHF8JU8Uifj9uqo6iFHtC5roAx1qS9YJHABp5EGuSSEZqvm1eLa6c3o5aU8bo3LdbSfB58VsqaeFRHJRalXIaqFEBq7jKHN7HNtszAuHxT",
-    // "incompleteSearch": false,
-    // "files": [
-    //  {
-    //   "kind": "drive#file",
-    //   "id": "19I_QaSGmjqePN66PN5yqKq0WhnV_dSbs",
-    //   "name": "images",
-    //   "mimeType": "application/vnd.google-apps.folder"
-    //  },
-    //}
-    private fun okListFiles(
+    private fun listFiles(
         onResponse: (List<GoogleFile>) -> Unit,
         pageToken: String? = null,
-        into: MutableList<GoogleFile>? = null)
-    {
-        val files = into ?: mutableListOf<GoogleFile>()
+        into: MutableList<GoogleFile>? = null,
+    ) : Call {
+        val files = into ?: mutableListOf()
         val url = "https://www.googleapis.com/drive/v3/files".toHttpUrlOrNull()!!.newBuilder()
             .addQueryParameter("q", "trashed = false")
             .addQueryParameter("fields", "nextPageToken, files(id, name, mimeType, parents)")
@@ -362,10 +246,10 @@ class SyncDrive(
         if (pageToken != null) {
             url.addQueryParameter("pageToken", pageToken)
         }
-        run(Request.Builder()
-                .url(url.build())
-                .header("Authorization", "Bearer $authToken")
-                .build()) { obj ->
+        return run(Request.Builder()
+            .url(url.build())
+            .header("Authorization", "Bearer $authToken")
+            .build()) { obj ->
             obj.optJSONArray("files")?.let { jsFileArray ->
                 (0 until jsFileArray.length()).map { position ->
                     val jsFile = jsFileArray.get(position) as JSONObject
@@ -376,98 +260,123 @@ class SyncDrive(
             if (nextToken.isEmpty()) {
                 onResponse(files)
             } else {
-                okListFiles(onResponse, nextToken, files)
+                listFiles(onResponse, nextToken, files)
             }
         }
     }
 
-    private fun deleteRequest(fileId: String): Drive.Files.Delete? {
-        return drive.Files().delete(fileId)
+    private fun delete(fileId: String, onResponse: (JSONObject) -> Unit): Call {
+        Log.d(TAG, "deleteFile: $fileId.")
+        val url = "https://www.googleapis.com/drive/v3/files/$fileId"
+        val req = Request.Builder()
+            .url(url)
+            .header("Authorization", "Bearer $authToken")
+            .method("DELETE", null)
+            .build()
+        return run(req) { onResponse(it) }
     }
 
-    fun delete(fileId: String) {
-        try {
-            drive.Files().delete(fileId).execute()
-        } catch (e: Exception) {
-            throw SyncException("delete($fileId) failed.", e)
+    private fun parseJson(response: Response): JSONObject? {
+        val text = response.body?.string()
+        if (text != null && text.isNotEmpty()) {
+            val obj = JSONTokener(text).nextValue()
+            if (obj !is JSONObject) {
+                Log.e(TAG, "${response.request.url}: parse failed got a ${obj.javaClass.name}.")
+            } else {
+                return obj
+            }
         }
+        return null
     }
 
-    private fun ensureFolder(): String {
+    private fun run(req: Request, onResponse: (JSONObject) -> Unit): Call {
+        val url = req.url
+        val call = app.okHttp.newCall(req)
+        call.enqueue(object: Callback{
+            override fun onFailure(call: Call, e: IOException) {
+                // FIXME
+                Log.e(TAG, "${call.request().url}: request failed.", e)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    try {
+                        if (it.isSuccessful) {
+                            val obj = parseJson(it)
+                            onResponse(obj ?: JSONObject())
+                        } else {
+                            Log.d(TAG, "$url: status ${response.code}.")
+                            val obj = parseJson(response)
+                            Log.e(TAG, "$url: error body $obj.")
+                        }
+                    } catch (e: Exception) {
+                        // FIXME
+                        Log.e(TAG, "$url: handling failed.", e)
+                    }
+                }
+            }
+        })
+        return call
+    }
+
+    private fun createRoot(onDone: () -> Unit) {
         if (config.folderId.isEmpty()) {
-            config.folderId = createFolder(Constants.DRIVE_FOLDER_NAME)
-            config.save()
+            createFolder(Constants.DRIVE_FOLDER_NAME) {
+                config.folderId = it.id
+                onDone()
+            }
+        } else {
+            onDone()
         }
-        return config.folderId
     }
 
-    private suspend fun syncJson() {
+    private suspend fun syncJson(onDone: () -> Unit) {
         val file = File(app.applicationContext.cacheDir, "books.json")
         file.deleteOnExit()
         file.outputStream().use {
             app.importExport.exportJson(it)
         }
         if (config.jsonFileId.isNotEmpty()) {
-            delete(config.jsonFileId)
-        }
-        config.jsonFileId = uploadFile(file, "application/json", config.folderId)
-    }
-
-    inner class Batch(
-        private val batch: BatchRequest = drive.batch()
-    ) {
-        fun add(request: HttpRequest, onFile: (com.google.api.services.drive.model.File) -> Unit) {
-            batch.queue(
-                request,
-                com.google.api.services.drive.model.File::class.java,
-                GoogleJsonError::class.java,
-                object: BatchCallback<com.google.api.services.drive.model.File, GoogleJsonError> {
-                    override fun onSuccess(googleFile: com.google.api.services.drive.model.File?, responseHeaders: HttpHeaders?) {
-                        if (googleFile != null) {
-                            onFile(googleFile)
-                        } else {
-                            // FIXME Error
-                        }
-                    }
-                    override fun onFailure(e: GoogleJsonError?, responseHeaders: HttpHeaders?) {
-                        TODO("Not yet implemented")
-                    }
-                }
-            )
-        }
-
-        fun run() {
-            if (batch.size() > 0) {
-                batch.execute()
+            delete(config.jsonFileId) {
+                Log.d(TAG, "Deleted previous json backup.")
             }
+        }
+        uploadFile(file, "application/json", config.folderId) {
+            config.jsonFileId = it.id
+            config.save()
+            onDone()
         }
     }
 
-    fun xxsync() {
-        val folderData = com.google.api.services.drive.model.File()
-        folderData.name = "BatchTest"
-        folderData.mimeType = FOLDER
-        val request = drive.files().create(folderData)
-
-        drive.batch().queue(
-            request.buildHttpRequest(),
-            GoogleFile::class.java,
-            GoogleJsonError::class.java,
-            object: BatchCallback<GoogleFile, GoogleJsonError> {
-                override fun onSuccess(t: GoogleFile?, responseHeaders: HttpHeaders?) {
-                    Log.d(TAG, "onSuccess: got $t")
-                }
-
-                override fun onFailure(e: GoogleJsonError?, responseHeaders: HttpHeaders?) {
-                    Log.e(TAG, "onFailure: $e")
-                }
-            }
-        ).execute()
-
+    private fun syncImages() {
+        val local = Node.fromFile(app.basedir)
+        listFiles({  remoteFiles ->
+            val root = local.merge(remoteFiles)
+            root.diff(this)
+        })
     }
 
     fun sync(onDone: () -> Unit) {
-        okCreateFolder(GoogleFile(
+        createRoot {
+            app.applicationScope.launch(Dispatchers.IO) {
+                syncJson() {
+                    syncImages()
+                }
+                app.flushOkHttp()
+                config.save()
+                onDone()
+            }
+        }
+
+/*
+ okCreateFolder(GoogleFile(
+            id = "",
+            name = "TestCreateFolder",
+            mimeType = MimeType.FOLDER,
+        )) {
+            Log.d(TAG, "Folder created: $it")
+        }
+        createFolder(GoogleFile(
             id = "",
             name = "TestCreateFolder",
             mimeType = MimeType.FOLDER,
@@ -475,7 +384,6 @@ class SyncDrive(
         )) {
             Log.d(TAG, "Folder created: $it")
         }
-        /*
         val file = File(app.applicationContext?.filesDir, "lookup_stats.json")
         okUploadFile(file, "text/plain", config.folderId) {
             Log.d(TAG, "Uploaded: $it")

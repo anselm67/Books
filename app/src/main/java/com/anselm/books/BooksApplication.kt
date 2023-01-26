@@ -21,6 +21,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import java.io.File
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class BooksApplication : Application() {
     val applicationScope = CoroutineScope(SupervisorJob())
@@ -85,8 +88,15 @@ class BooksApplication : Application() {
 
     val displayMetrics: DisplayMetrics by lazy { resources.displayMetrics }
 
+    val lookupService by lazy {
+        LookupService()
+    }
+
+    private val flushLock = ReentrantLock()
+    private val flushCond = flushLock.newCondition()
+
     val okHttp by lazy {
-        OkHttpClient.Builder()
+        val result = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 chain.proceed(
                     chain.request().newBuilder()
@@ -96,10 +106,34 @@ class BooksApplication : Application() {
                         .build()
                 )
             }.build()
+        result.dispatcher.idleCallback = Runnable {
+            Log.d(TAG, "okHttp: idle.")
+            flushLock.withLock {
+                flushCond.signalAll()
+            }
+        }
+        result.dispatcher.maxRequestsPerHost = 10
+        Log.d(TAG, "okHttp: maxReq=${result.dispatcher.maxRequests}, " +
+                "maxReq/Host=${result.dispatcher.maxRequestsPerHost}")
+        result
     }
 
-    val lookupService by lazy {
-        LookupService()
+    fun flushOkHttp() {
+        var pending: Int
+        do {
+            pending = (okHttp.dispatcher.queuedCalls().size  +
+                    okHttp.dispatcher.runningCalls().size)
+            Log.d(TAG, "okHttp: waiting for $pending calls.")
+            if (pending > 0) {
+                try {
+                    flushLock.withLock {
+                        flushCond.await(2000, TimeUnit.MILLISECONDS)
+                    }
+                } catch (e: InterruptedException) {
+                    Log.e(TAG, "flushOkHttp: interrupted while waiting.", e)
+                }
+            }
+        } while (pending > 0)
     }
 
     fun cancelHttpRequests(tag: String): Int {

@@ -145,5 +145,6 @@
     <string name="pager_position">%1$d of %2$d</string>
     <string name="sync_login">Log In</string>
     <string name="sync_do_sync">Sync</string>
+    <string name="sync_log_out">Log Out</string>
 
 </resources>
