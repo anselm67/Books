@@ -20,6 +20,7 @@
         app:navGraph="@navigation/mobile_navigation"
         tools:ignore="FragmentTagUsage" />
 
+    <!-- A horizontal ruler -->
     <View
         android:layout_width="0dp"
         android:id="@+id/idProgressRuler"

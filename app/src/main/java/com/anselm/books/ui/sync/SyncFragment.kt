@@ -13,7 +13,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.GlideApp
@@ -26,9 +25,12 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.roundToInt
 
-private val SIMPLE_DATE_FORMAT = SimpleDateFormat("EEE, MMM d hh:mm:ss", Locale.US)
+private val SIMPLE_DATE_FORMAT by lazy {
+    val format = SimpleDateFormat("EEE, MMM d hh:mm:ss", Locale.US)
+    format.timeZone = TimeZone.getDefault()
+    format
+}
 
 class SyncFragment: BookFragment() {
     private var _binding: FragmentSyncBinding? = null
@@ -85,18 +87,8 @@ class SyncFragment: BookFragment() {
         }
     }
 
-    private fun showHideProgress(onOff: Boolean) {
-        binding.idProgressBar.isVisible = onOff
-        binding.idProgressTitle.isVisible = onOff
-        binding.idCancelButton.isVisible = onOff
-    }
-
     private fun syncDone() {
         binding.idSyncButton.isEnabled = true
-        binding.idCancelButton.text = getString(R.string.ok)
-        binding.idCancelButton.setOnClickListener {
-            showHideProgress(false)
-        }
         displayStatus()
     }
 
@@ -111,7 +103,6 @@ class SyncFragment: BookFragment() {
         binding.idSyncButton.setOnClickListener {
             auth()
         }
-        showHideProgress(false)
         binding.idLogoutButton.isEnabled = true
     }
 
@@ -119,7 +110,6 @@ class SyncFragment: BookFragment() {
         binding.idSyncButton.text = getString(R.string.sync_login)
         binding.idSyncButton.setOnClickListener { logIn() }
         binding.idLogoutButton.isEnabled = false
-        showHideProgress(false)
     }
 
     private var authLauncher = registerForActivityResult(
@@ -171,24 +161,11 @@ class SyncFragment: BookFragment() {
     private var progressReporter: ProgressReporter? = null
     private fun withToken(authToken: String) {
         //Displays the progress dialog, and sets up the progress reporter.
-        showHideProgress(true)
-        progressReporter = { title: String?, count: Int, total: Int ->
-            app.postOnUiThread {
-                binding.idProgressTitle.text = title
-                if (count >= total) {
-                    Log.d(TAG, "FIXME - we're done $count of $total.")
-                } else if (total != 0) {
-                    title?.let { binding.idProgressTitle.text = it }
-                    val percent = 100.0F * count.toFloat() / total.toFloat()
-                    binding.idProgressBar.progress = percent.roundToInt()
-                }
-            }
-        }
-        binding.idCancelButton.setOnClickListener {
+        progressReporter = app.loadingDialog("Sync started") {
             job?.cancel()
         }
         binding.idSyncButton.isEnabled = false
-        // Proceeds.
+        // Proceeds. With care cause we might noo longer be in this fragment when the job completes.
         job = SyncDrive(authToken, progressReporter).sync { job ->
             app.postOnUiThread {
                 if (job.isCancelled) {
@@ -196,9 +173,12 @@ class SyncFragment: BookFragment() {
                 } else if (job.exception != null) {
                     app.toast(getString(R.string.sync_failed))
                 } else {
-                    app.toast(getString(R.string.sync_success))
+                    app.toast(app.getString(R.string.sync_success))
                 }
-                syncDone()
+                app.loading(onOff = false)
+                if ( ! this@SyncFragment.isDetached) {
+                    syncDone()
+                }
             }
         }
     }
@@ -244,4 +224,8 @@ class SyncFragment: BookFragment() {
             }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
 }

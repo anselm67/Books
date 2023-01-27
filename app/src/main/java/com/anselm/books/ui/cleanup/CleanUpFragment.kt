@@ -380,4 +380,9 @@ class CleanUpFragment: BookFragment() {
             }
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
 }
