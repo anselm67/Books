@@ -332,10 +332,7 @@ class CleanUpFragment: BookFragment() {
         val bookIds = app.repository.getIdsList(Query())
         val stats = FixCoverStats()
 
-        val progressReporter = app.loadingDialog(
-            getString(R.string.cleanup_check_image_progress_title),
-            requireActivity()
-        ) { stats.cancel() }
+        val progressReporter = app.loadingDialog(getString(R.string.cleanup_check_image_progress_title)) { stats.cancel() }
         bookIds.forEach { bookId ->
             val book = app.repository.load(bookId, decorate = true)
             stats.totalCount++
@@ -347,6 +344,7 @@ class CleanUpFragment: BookFragment() {
         }
         // Wait until al calls have returned.
         stats.join()
+        app.loading(onOff = false)
         Log.d(TAG, "Done ${stats.totalCount}: " +
                 "broken: ${stats.brokenCount}, unfetched: ${stats.unfetchedCount} " +
                 "fetched: ${stats.fetchCount} of which ${stats.fetchFailedCount} failed."
@@ -356,21 +354,29 @@ class CleanUpFragment: BookFragment() {
     private suspend fun doDeleteUnusedImages() {
         val bookIds = app.repository.getIdsList(Query())
         val seen = mutableSetOf<String>()
+        val progressReporter = app.loadingDialog(getString(R.string.listing_existing_images))
+        var count = 0
         bookIds.forEach {
             val book = app.repository.load(it, decorate = true)
             if (book?.imageFilename?.isNotEmpty() == true) {
                 seen.add(book.imageFilename)
             }
+            count++
+            progressReporter(null, count, bookIds.size)
         }
-        app.imageRepository.garbageCollect(seen)
+        app.imageRepository.garbageCollect(seen, progressReporter)
     }
 
     private fun deleteUnusedImages() {
         thread {
-            app.loading(true, "cleanUp.deleteUnusedImages")
+            app.loading(
+                getString(R.string.deleting_unused_images),
+                true,
+                "cleanUp.deleteUnusedImages"
+            )
             app.applicationScope.launch {
                 doDeleteUnusedImages()
-                app.loading(false, "cleanUp.deleteUnusedImages")
+                app.loading(onOff = false)
             }
         }
     }

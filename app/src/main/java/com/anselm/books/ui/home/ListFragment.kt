@@ -122,8 +122,12 @@ open class ListFragment: BookFragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 adapter.loadStateFlow.collect {
-                    app.loading(it.source.prepend is LoadState.Loading
-                            || it.source.append is LoadState.Loading, "$TAG.recycler")
+                    app.loading(
+                        getString(R.string.loading_books),
+                        it.source.prepend is LoadState.Loading
+                                || it.source.append is LoadState.Loading,
+                        "$TAG.recycler"
+                    )
                 }
             }
         }

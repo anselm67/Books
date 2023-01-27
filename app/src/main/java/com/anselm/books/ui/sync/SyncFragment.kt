@@ -13,8 +13,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.GlideApp
 import com.anselm.books.ProgressReporter
 import com.anselm.books.R
 import com.anselm.books.TAG
@@ -22,7 +24,11 @@ import com.anselm.books.databinding.FragmentSyncBinding
 import com.anselm.books.ui.widgets.BookFragment
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.math.roundToInt
 
+private val SIMPLE_DATE_FORMAT = SimpleDateFormat("EEE, MMM d hh:mm:ss", Locale.US)
 
 class SyncFragment: BookFragment() {
     private var _binding: FragmentSyncBinding? = null
@@ -30,7 +36,7 @@ class SyncFragment: BookFragment() {
     private val viewModel: SyncViewModel by viewModels()
     private val signInClient by lazy {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
+            .requestProfile()
             .build()
         GoogleSignIn.getClient(requireActivity(), gso)
     }
@@ -50,17 +56,9 @@ class SyncFragment: BookFragment() {
         super.onCreateView(inflater, container, savedInstanceState)
         _binding = FragmentSyncBinding.inflate(inflater)
         if (viewModel.account == null) {
-            val googleAccount = GoogleSignIn.getLastSignedInAccount(requireContext())
-            if (googleAccount != null) {
-                viewModel.account = googleAccount.account!!
-            }
-        }
-        if (viewModel.account == null) {
-            binding.idSyncButton.text = getString(R.string.sync_login)
-            binding.idSyncButton.setOnClickListener { logIn() }
+            silentSignIn()
         } else {
-            binding.idSyncButton.text = getString(R.string.sync_do_sync)
-            binding.idSyncButton.setOnClickListener { auth() }
+            bindWithoutAccount()
         }
 
         binding.idLogoutButton.setOnClickListener {
@@ -74,8 +72,54 @@ class SyncFragment: BookFragment() {
             }
         }
         handleMenu()
-
+        displayStatus()
         return binding.root
+    }
+
+    private fun displayStatus() {
+        val config = SyncConfig.get()
+        binding.idLastSyncDate.text = if (config.lastSync > 0) {
+            SIMPLE_DATE_FORMAT.format(Date(config.lastSync * 1000))
+        } else {
+            "No previous sync available."
+        }
+    }
+
+    private fun showHideProgress(onOff: Boolean) {
+        binding.idProgressBar.isVisible = onOff
+        binding.idProgressTitle.isVisible = onOff
+        binding.idCancelButton.isVisible = onOff
+    }
+
+    private fun syncDone() {
+        binding.idSyncButton.isEnabled = true
+        binding.idCancelButton.text = getString(R.string.ok)
+        binding.idCancelButton.setOnClickListener {
+            showHideProgress(false)
+        }
+        displayStatus()
+    }
+
+    private fun bindWithAccount() {
+        check(viewModel.account != null)
+        binding.idUserDisplayName.text = viewModel.displayName
+        GlideApp.with(app.applicationContext)
+            .load(viewModel.photoUrl)
+            .fallback(R.drawable.user_profile)
+            .into(binding.idUserPhoto)
+        binding.idSyncButton.text = getString(R.string.sync_do_sync)
+        binding.idSyncButton.setOnClickListener {
+            auth()
+        }
+        showHideProgress(false)
+        binding.idLogoutButton.isEnabled = true
+    }
+
+    private fun bindWithoutAccount() {
+        binding.idSyncButton.text = getString(R.string.sync_login)
+        binding.idSyncButton.setOnClickListener { logIn() }
+        binding.idLogoutButton.isEnabled = false
+        showHideProgress(false)
     }
 
     private var authLauncher = registerForActivityResult(
@@ -126,11 +170,26 @@ class SyncFragment: BookFragment() {
     private var job: SyncJob? = null
     private var progressReporter: ProgressReporter? = null
     private fun withToken(authToken: String) {
-        progressReporter = app.loadingDialog(
-            getString(R.string.sync_dialog_progress_title),
-            requireActivity()
-        ) { job?.cancel() }
-        job = SyncDrive(authToken, progressReporter).sync() { job ->
+        //Displays the progress dialog, and sets up the progress reporter.
+        showHideProgress(true)
+        progressReporter = { title: String?, count: Int, total: Int ->
+            app.postOnUiThread {
+                binding.idProgressTitle.text = title
+                if (count >= total) {
+                    Log.d(TAG, "FIXME - we're done $count of $total.")
+                } else if (total != 0) {
+                    title?.let { binding.idProgressTitle.text = it }
+                    val percent = 100.0F * count.toFloat() / total.toFloat()
+                    binding.idProgressBar.progress = percent.roundToInt()
+                }
+            }
+        }
+        binding.idCancelButton.setOnClickListener {
+            job?.cancel()
+        }
+        binding.idSyncButton.isEnabled = false
+        // Proceeds.
+        job = SyncDrive(authToken, progressReporter).sync { job ->
             app.postOnUiThread {
                 if (job.isCancelled) {
                     app.toast(getString(R.string.sync_cancelled))
@@ -139,9 +198,28 @@ class SyncFragment: BookFragment() {
                 } else {
                     app.toast(getString(R.string.sync_success))
                 }
-                // Calling with 100/100 ensures the dialog closes.
-                progressReporter?.invoke(null, 100, 100)
+                syncDone()
             }
+        }
+    }
+
+    private fun silentSignIn() {
+        signInClient.silentSignIn().addOnCompleteListener {
+            if (it.exception == null && it.result != null) {
+                val account = it.result
+                viewModel.account = account.account
+                viewModel.photoUrl = account.photoUrl
+                viewModel.displayName = account.displayName
+                bindWithAccount()
+            } else {
+                Log.e(TAG, "silentSignIn.onCompleteListener: failed.", it.exception)
+                bindWithoutAccount()
+            }
+        }.addOnFailureListener {
+            Log.e(TAG, "silentSignIn.onFailureListener: failed.", it)
+            bindWithoutAccount()
+        }.addOnCanceledListener {
+            bindWithoutAccount()
         }
     }
 
@@ -153,10 +231,10 @@ class SyncFragment: BookFragment() {
         GoogleSignIn.getSignedInAccountFromIntent(data)
             .addOnCompleteListener {
                 if (it.isSuccessful && it.result != null) {
-                    Log.d(TAG, "account ${it.result.account}")
-                    Log.d(TAG, "displayName ${it.result.displayName}")
-                    Log.d(TAG, "Email ${it.result.email}")
+                    viewModel.photoUrl = it.result.photoUrl
+                    viewModel.displayName = it.result.displayName
                     viewModel.account = it.result.account!!
+                    bindWithAccount()
                     binding.idSyncButton.text = getString(R.string.sync_do_sync)
                     binding.idSyncButton.setOnClickListener { auth() }
                 } else {

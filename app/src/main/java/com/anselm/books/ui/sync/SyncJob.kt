@@ -44,7 +44,8 @@ class SyncJob(
                 cond.signalAll()
             }
         }
-    private val totalCount = AtomicInteger(0)
+    val requestCount = AtomicInteger(0)
+    val finishedCount = AtomicInteger(0)
 
     private fun builder(): Request.Builder {
 
@@ -161,11 +162,13 @@ class SyncJob(
         val call = app.okHttp.newCall(req)
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
+                finishedCount.incrementAndGet()
                 Log.e(TAG, "$url: request failed.", e)
                 exception = e
             }
 
             override fun onResponse(call: Call, response: Response) {
+                finishedCount.incrementAndGet()
                 response.use {
                     try {
                         val obj = parseJson(response)
@@ -183,6 +186,7 @@ class SyncJob(
                 }
             }
         })
+        requestCount.incrementAndGet()
     }
 
     private val lock = ReentrantLock()

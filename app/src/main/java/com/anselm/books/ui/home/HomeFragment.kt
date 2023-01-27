@@ -143,7 +143,7 @@ class HomeFragment : ListFragment() {
             app.toast("Invalid ISBN number.")
             return
         }
-        app.loading(true, "$TAG.handleISBN")
+        app.loading(getString(R.string.looking_up_isbn), true, "$TAG.handleISBN")
         val like = app.repository.newBook(input)
         app.lookupService.lookup(like) { book ->
             if (book == null) {
@@ -156,7 +156,7 @@ class HomeFragment : ListFragment() {
                     findNavController().navigate(action)
                 }
             }
-            app.loading(false, "$TAG.handleISBN")
+            app.loading(onOff = false, tag = "$TAG.handleISBN")
         }
     }
 }

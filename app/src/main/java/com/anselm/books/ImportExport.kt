@@ -25,7 +25,8 @@ class ImportExport(private val repository: BookRepository,
                    private val contentResolver: ContentResolver,
                    private val basedir: File) {
 
-    private suspend fun importJsonText(text: String): Int {
+    private suspend fun importJsonText(text: String, progressReporter: ProgressReporter?): Int {
+        progressReporter?.invoke(app.getString(R.string.importing_books), 0, 0)
         // Parses the json stream into books.
         val tok  = JSONTokener(text)
         val root = tok.nextValue()
@@ -40,6 +41,7 @@ class ImportExport(private val repository: BookRepository,
                     "got a ${books::class.qualifiedName} instead.")
             return -1
         }
+        progressReporter?.invoke(null, 0, books.length())
         var count = 0
         (0 until books.length()).forEach { i ->
             val obj = books.getJSONObject(i)
@@ -58,6 +60,7 @@ class ImportExport(private val repository: BookRepository,
                  */
                 repository.save(book)
                 count++
+                progressReporter?.invoke(null, count, books.length())
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to parse $obj, skipping.", e)
             }
@@ -83,10 +86,15 @@ class ImportExport(private val repository: BookRepository,
         return inp.bufferedReader().readText()
     }
 
-    private suspend fun importZipInputStream(zipInputStream: ZipInputStream): Pair<Int, Int> {
+    private suspend fun importZipInputStream(
+        zipInputStream: ZipInputStream,
+        entryCount: Int,
+        progressReporter: ProgressReporter?,
+    ): Pair<Int, Int> {
         var entry: ZipEntry? = zipInputStream.nextEntry
         var imageCount = 0
         var jsonText: String? = null
+        progressReporter?.invoke(app.getString(R.string.importing_images), 0, 0)
         while (entry != null) {
             val file = File(basedir, entry.name)
             if (entry.name == app.imageRepository.imageDirectoryName  && entry.isDirectory) {
@@ -108,19 +116,42 @@ class ImportExport(private val repository: BookRepository,
                 Log.d(TAG, "Unexpected entry ${entry.name}, ignored.")
             }
             entry = zipInputStream.nextEntry
+            progressReporter?.invoke(null, imageCount, entryCount)
         }
-        val bookCount = importJsonText(jsonText ?: "")
+        val bookCount = importJsonText(jsonText ?: "", progressReporter)
         return Pair(bookCount, imageCount)
     }
 
-    suspend fun importZipFile(uri: Uri): Pair<Int, Int> {
-        var ret: Pair<Int, Int> = Pair(-1, 0)
-        Log.d(TAG, "Importing $uri.")
-        repository.deleteAll()
+    private fun countEntries(uri: Uri): Int {
+        var count = 0
         contentResolver.openInputStream(uri)?.use { input ->
             input.buffered(128 * 1024).use { zipInputStream ->
                 ZipInputStream(zipInputStream).use {
-                    ret = importZipInputStream(it)
+                    var entry: ZipEntry? = it.nextEntry
+                    while (entry != null) {
+                        entry = it.nextEntry
+                        count++
+                    }
+                }
+            }
+        }
+        return count
+    }
+
+    suspend fun importZipFile(
+        uri: Uri,
+        progressReporter: ProgressReporter? = null
+    ): Pair<Int, Int> {
+        var ret: Pair<Int, Int> = Pair(-1, 0)
+        Log.d(TAG, "Importing $uri.")
+        progressReporter?.invoke(app.getString(R.string.deleting_database), 0, 0)
+        repository.deleteAll()
+        // Ok, with this, proceed.
+        val entryCount = countEntries(uri)
+        contentResolver.openInputStream(uri)?.use { input ->
+            input.buffered(128 * 1024).use { zipInputStream ->
+                ZipInputStream(zipInputStream).use {
+                    ret = importZipInputStream(it, entryCount, progressReporter)
                 }
             }
         }
@@ -129,8 +160,8 @@ class ImportExport(private val repository: BookRepository,
     }
 
     suspend fun exportJson(
+        out: OutputStream,
         progressReporter: ProgressReporter?,
-        out: OutputStream
     ): Pair<Int, Int> {
         // Convert all books to JSON, hold them tight(!)
         val totalCount = app.repository.getTotalCount()
@@ -138,7 +169,7 @@ class ImportExport(private val repository: BookRepository,
         val jsonBooks = JSONArray()
         var offset = 0
         val limit = 250
-        progressReporter?.invoke(app.getString(R.string.export_database_progress), 0, totalCount)
+        progressReporter?.invoke(app.getString(R.string.backing_up_database), 0, totalCount)
         do {
             val books = repository.getPagedList(Query.emptyQuery, limit, offset)
             books.map {
@@ -172,13 +203,13 @@ class ImportExport(private val repository: BookRepository,
         zipOut.use {
             // Writes out the json file.
             it.putNextEntry(ZipEntry("books.json"))
-            val counts = exportJson(progressReporter, it)
+            val counts = exportJson(it, progressReporter)
             bookCount = counts.first
             val totalImageCount = counts.second
             var imageCount = 0
             // And all the images.
             progressReporter?.invoke(
-                app.getString(R.string.export_images_progress), 
+                app.getString(R.string.exporting_images),
                 0, totalImageCount
             )
             app.imageRepository.imageDirectory.walk().forEach { file ->
@@ -208,7 +239,7 @@ class ImportExport(private val repository: BookRepository,
             return exportZipFile(zipFile, dest, progressReporter)
         } finally {
             zipFile.delete()
-            progressReporter?.invoke(null, 0, 0)
+            app.loading(onOff = false)
         }
     }
 }

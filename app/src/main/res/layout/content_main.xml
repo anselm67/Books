@@ -13,21 +13,58 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:defaultNavHost="true"
-        app:layout_constraintBottom_toTopOf="@id/progress_bar"
+        app:layout_constraintBottom_toTopOf="@id/idProgressRuler"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navGraph="@navigation/mobile_navigation"
         tools:ignore="FragmentTagUsage" />
 
+    <View
+        android:layout_width="0dp"
+        android:id="@+id/idProgressRuler"
+        android:layout_height="1dp"
+        android:layout_margin="5dp"
+        android:background="#AAAAAA"
+
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/nav_host_fragment_content_main"
+        app:layout_constraintBottom_toTopOf="@id/idProgressText" />
+
+    <TextView
+        android:id="@+id/idProgressText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/idCancelButton"
+        app:layout_constraintTop_toBottomOf="@id/idProgressRuler"
+        app:layout_constraintBottom_toTopOf="@id/idProgressBar" />
+
+    <ImageButton
+        android:id="@+id/idCancelButton"
+        android:layout_width="24dp"
+        android:layout_height="0dp"
+        android:background="@drawable/ic_baseline_cancel_48"
+        android:layout_margin="8dp"
+        app:layout_constraintDimensionRatio="1"
+        app:backgroundTint="#aaaaaa"
+        android:contentDescription="@string/cancel"
+        app:layout_constraintStart_toEndOf="@id/idProgressText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/idProgressRuler"
+        app:layout_constraintBottom_toTopOf="@id/idProgressBar" />
+
     <com.google.android.material.progressindicator.LinearProgressIndicator
-        android:id="@+id/progress_bar"
+        android:id="@+id/idProgressBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:indeterminate="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/nav_host_fragment_content_main" />
+        app:layout_constraintTop_toBottomOf="@id/idProgressText" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

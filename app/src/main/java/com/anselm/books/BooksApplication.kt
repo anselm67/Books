@@ -1,20 +1,20 @@
 package com.anselm.books
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.Application
 import android.content.SharedPreferences
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.View
+import android.widget.ImageButton
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import com.anselm.books.database.BookDao
 import com.anselm.books.database.BookDatabase
 import com.anselm.books.database.BookRepository
-import com.anselm.books.databinding.ProgressBarDialogBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -159,21 +159,74 @@ class BooksApplication : Application() {
         return count
     }
 
-    private var progressBarView: View? = null
-    fun enableProgressBar(view: View) {
-        progressBarView = view
+    private data class Progress(
+        val ruler: View,
+        val text: TextView,
+        val progress: ProgressBar,
+        val cancelButton: ImageButton,
+    )
+    private var progress: Progress? = null
+    fun enableProgressBar(
+        rules: View,
+        text: TextView,
+        progressBar: ProgressBar,
+        cancelButton: ImageButton
+    ) {
+        progress = Progress(rules, text, progressBar, cancelButton)
     }
 
     fun disableProgressBar() {
-        progressBarView = null
+        progress = null
+    }
+
+    private fun progressVisibility(onOff: Boolean) {
+        progress?.let {
+            it.ruler.isVisible = onOff
+            it.text.isVisible = onOff
+            it.progress.isVisible = onOff
+            it.cancelButton.isVisible = false       // Turned on via loadingDialog
+            if ( ! onOff ) {
+                it.text.text = ""
+            }
+        }
     }
 
     private val loadingTags = mutableMapOf<String, Boolean>()
-    fun loading(onOff: Boolean, tag: String = "global" ) {
+    fun loading(text: String? = null, onOff: Boolean, tag: String = "global") {
         loadingTags[tag] = onOff
         val anyOn = loadingTags.toList().any(Pair<String, Boolean>::second)
-        applicationScope.launch(Dispatchers.Main) {
-            progressBarView?.isVisible = anyOn
+        postOnUiThread {
+            progressVisibility(anyOn)
+            progress?.let {
+                it.text.text = text ?: ""
+                it.progress.isIndeterminate = true
+            }
+        }
+    }
+
+    fun loadingDialog(title: String, onCancel: (() -> Unit)? = null): ProgressReporter {
+        progressVisibility(true)
+        progress?.let {
+            it.text.text = title
+            if (onCancel != null) {
+                it.cancelButton.isVisible = true
+                it.cancelButton.setOnClickListener { onCancel() }
+            } else {
+                it.cancelButton.isVisible = false
+            }
+        }
+        return { text: String?, count: Int, total: Int ->
+            postOnUiThread {
+                progressVisibility(true)
+                progress?.let {
+                    text.ifNotEmpty { s -> it.text.text = s  }
+                    it.progress.isIndeterminate = false
+                    if (total > 0) {
+                        val percent = 100.0F * count.toFloat() / total.toFloat()
+                        it.progress.progress = percent.roundToInt()
+                    }
+                }
+            }
         }
     }
 
@@ -189,44 +242,6 @@ class BooksApplication : Application() {
             }
             field = value
         }
-
-
-    fun loadingDialog(
-        title: String,
-        activity: Activity,
-        onCancel: (() -> Unit)? = null
-    ): ProgressReporter {
-        val binding = ProgressBarDialogBinding.inflate(activity.layoutInflater)
-        val dialog = AlertDialog.Builder(activity)
-            .setTitle(title)
-            .setCancelable(false)
-            .setView(binding.root)
-            .create()
-        if (onCancel != null) {
-            binding.idCancelButton.isVisible = true
-            binding.idCancelButton.setOnClickListener {
-                onCancel()
-                dialog.dismiss()
-            }
-        } else {
-            binding.idCancelButton.isVisible = false
-        }
-        dialog.show()
-        return { progressTitle: String?, count: Int, total: Int ->
-            postOnUiThread {
-                if (!dialog.isShowing) {
-                    dialog.show()
-                }
-                if (count >= total) {
-                    dialog.dismiss()
-                } else if (total != 0){
-                    progressTitle?.let { dialog.setTitle(it) }
-                    val percent = 100.0F * count.toFloat() / total.toFloat()
-                    binding.idProgressBar.progress = percent.roundToInt()
-                }
-            }
-        }
-    }
 
     /**
      * invoked by one only activity when it's pause.

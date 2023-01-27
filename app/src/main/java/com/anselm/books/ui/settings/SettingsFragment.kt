@@ -102,10 +102,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 } else {
                     var counts: Pair<Int, Int> = Pair(-1, -1)
                     var msg: String? = null
-                    app.loading(true)
+                    val progressReporter = app.loadingDialog(getString(R.string.importing_books))
                     app.applicationScope.launch {
                         try {
-                            counts = importExport.importZipFile(uri)
+                            counts = importExport.importZipFile(uri, progressReporter)
                         } catch (e: Exception) {
                             Log.e(TAG, "Failed to import books.", e)
                             msg = e.message
@@ -118,7 +118,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                         } else {
                             context.getString(R.string.import_status, counts.first, counts.second)
                         }
-                        app.loading(false)
+                        app.loading(onOff = false)
                         app.toast(text)
                     }
                 }
@@ -135,10 +135,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 app.toast("Select a file to export to.")
             } else {
                 Log.d(TAG, "Opening directory $uri")
-                val progressReporter = app.loadingDialog(
-                    "Exporting books ...",
-                    requireActivity()
-                )
+                val progressReporter = app.loadingDialog(getString(R.string.exporting_books))
                 var count = 0
                 var msg: String? = null
                 app.applicationScope.launch {
@@ -154,7 +151,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     } else {
                         context.getString(R.string.export_status, count)
                     }
-                    app.loading(false, "$TAG.Export")
+                    app.loading(onOff = false, tag = "$TAG.Export")
                     app.toast(text)
                 }
             }

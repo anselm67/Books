@@ -228,18 +228,28 @@ class ImageRepository(
         }
     }
 
-    private suspend fun doGarbageCollect(seen: Set<String>, dir: File = imageDirectory): Int {
+    private suspend fun doGarbageCollect(
+        seen: Set<String>,
+        seenCount: Int,
+        dir: File = imageDirectory,
+        progressReporter: ProgressReporter,
+    ): Int {
+        var thisCount = seenCount
+        progressReporter("Garbage collecting unused images...", thisCount, seen.size)
         var deletedCount = 0
         withContext(Dispatchers.IO) {
             dir.list()?.forEach {
                 val file = File(dir, it)
                 if (file.isDirectory) {
-                    deletedCount += doGarbageCollect(seen, file)
+                    deletedCount += doGarbageCollect(seen, thisCount, file, progressReporter)
                 } else {
                     val imageFilename = file.relativeTo(basedir).path
                     if (!seen.contains(imageFilename)) {
                         file.delete()
                         deletedCount++
+                    } else {
+                        thisCount++
+                        progressReporter(null, thisCount, seen.size)
                     }
                 }
             }
@@ -247,8 +257,8 @@ class ImageRepository(
         return deletedCount
     }
 
-    suspend fun garbageCollect(seen: Set<String>) {
-        val count = doGarbageCollect(seen)
+    suspend fun garbageCollect(seen: Set<String>, progressReporter: ProgressReporter) {
+        val count = doGarbageCollect(seen, 0, progressReporter = progressReporter)
         Log.d(TAG, "Deleted $count unused image.")
     }
 }

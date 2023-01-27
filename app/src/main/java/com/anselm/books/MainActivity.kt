@@ -48,7 +48,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         // We're up and running: enable the progress bar, and set the title.
-        app.enableProgressBar(findViewById(R.id.progress_bar))
+        app.enableProgressBar(
+            findViewById(R.id.idProgressRuler),
+            findViewById(R.id.idProgressText),
+            findViewById(R.id.idProgressBar),
+            findViewById(R.id.idCancelButton),
+        )
         app.enableTitle { title: String ->
             binding.appBarMain.toolbar.title = title
         }

@@ -20,7 +20,7 @@
     <string name="menu_settings">Settings</string>
 
     <string name="import_preferences_header">Import Options</string>
-    <string name="import_preference_title">Import books&#8230;</string>
+    <string name="import_preference_title">Import books…</string>
     <string name="glide_cache_cleared">Glide cache cleared.</string>
 
     <!-- Details fragment strings -->
@@ -146,12 +146,27 @@
     <string name="sync_login">Log In</string>
     <string name="sync_do_sync">Sync</string>
     <string name="sync_log_out">Log Out</string>
-    <string name="cleanup_check_image_progress_title">Checking images&#8230;</string>
+    <string name="cleanup_check_image_progress_title">Checking images…</string>
     <string name="sync_dialog_progress_title">Sync in progress</string>
     <string name="sync_cancelled">Sync cancelled.</string>
     <string name="sync_failed">Sync failed, try again.</string>
     <string name="sync_success">Sync completed successfully.</string>
-    <string name="export_images_progress">Copying images&#8230;</string>
-    <string name="export_database_progress">Backing up database&#8230;</string>
+    <string name="exporting_images">Copying images…</string>
+    <string name="backing_up_database">Backing up database…</string>
+    <string name="ok">OK</string>
+    <string name="lookup_book">Looking up the book…</string>
+    <string name="edit_magic_missing_infos">Magic requires at least an ISBN or a title/author.</string>
+    <string name="edit_no_match">No match found, no magic!</string>
+    <string name="exporting_books">Exporting books…</string>
+    <string name="deleting_database">Deleting existing database…</string>
+    <string name="importing_images">Importing images…</string>
+    <string name="importing_books">Importing books…</string>
+    <string name="saving_changes">Saving changes…</string>
+    <string name="loading_books">Loading books…</string>
+    <string name="deleting_unused_images"><![CDATA[Deleting unused images&#8230;]]></string>
+    <string name="listing_existing_images">Listing existing images</string>
+    <string name="looking_up_isbn"><![CDATA[Looking up ISBN&#8230;]]></string>
+    <string name="user_profile_image">User profile image.</string>
+    <string name="last_synchronized">Last synchronized</string>
 
 </resources>

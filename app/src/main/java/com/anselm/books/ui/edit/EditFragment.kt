@@ -241,12 +241,12 @@ class EditFragment: BookFragment() {
     // edited: after saveChanges has checked that there are changes, and after checkForDuplicates
     // approved.
     private fun doSave() {
-        app.loading(true)
+        app.loading(getString(R.string.saving_changes), true)
         activity?.lifecycleScope?.launch {
             app.repository.save(book)
         }?.invokeOnCompletion {
             app.toast("${book.title} saved.")
-            app.loading(false)
+            app.loading(onOff = false)
             // When the save is very long, we might already have gone.
             if (isAdded ) {
                 findNavController().popBackStack()
@@ -271,7 +271,7 @@ class EditFragment: BookFragment() {
         val title = titleEditor.value
         val authors = authorsEditor.value
         if (book.isbn.isEmpty() && (title.isEmpty() || authors.isEmpty())) {
-            app.toast("Magic requires at least an ISBN or a title/author.")
+            app.toast(getString(R.string.edit_magic_missing_infos))
             return
         }
         val like = app.repository.newBook(book.isbn)
@@ -281,11 +281,11 @@ class EditFragment: BookFragment() {
         }
         like.title = title
         like.authors = authors
-        app.loading(true, "performMagic")
+        app.loading(getString(R.string.lookup_book), true, "performMagic")
         app.lookupService.lookup(like, stopAt = null) {
-            app.loading(false, "performMagic")
+            app.loading(onOff = false, tag = "performMagic")
             if (it == null) {
-                app.toast("No match found, no magic!")
+                app.toast(getString(R.string.edit_no_match))
             } else {
                 mergeFrom(it)
             }

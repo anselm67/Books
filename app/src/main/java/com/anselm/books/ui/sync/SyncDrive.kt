@@ -29,7 +29,10 @@ private class Node(
         return localChildren.firstOrNull { name == it.localName }
     }
 
-    private fun diffChildren(job: SyncJob) {
+    private fun diffChildren(
+        progressReporter: ProgressReporter? = null,
+        job: SyncJob
+    ) {
         check(folderId != null)
         remoteFiles.forEach {
             if ( ! localFiles.contains(it.name)) {
@@ -43,22 +46,25 @@ private class Node(
                 }
             }
         }
-        localChildren.forEach { it.diff(job, folderId) }
+        localChildren.forEach { it.diff(progressReporter, job, folderId) }
     }
 
     fun diff(
+        progressReporter: ProgressReporter? = null,
         job: SyncJob,
         parentFolderId: String? = null,
     ) {
+
         if (folderId == null) {
             require(parentFolderId != null) { "parentFolderId required to createFolder." }
             job.createFolder(localName, parentFolderId) {
                 folderId = it.id
-                diffChildren(job)
+                diffChildren(progressReporter, job)
             }
         } else {
-            diffChildren(job)
+            diffChildren(progressReporter, job)
         }
+        progressReporter?.invoke(null, job.finishedCount.get(), job.requestCount.get())
     }
 
     private fun collectChildren(list: List<GoogleFile>) {
@@ -95,7 +101,7 @@ private class Node(
     }
 
     private fun space(len: Int): String {
-        return "                                                  ".substring(0, len)
+        return " ".repeat(len)
     }
 
     @Suppress("unused")
@@ -152,7 +158,7 @@ class SyncDrive(
         val file = File(app.applicationContext.cacheDir, "books.json")
         file.deleteOnExit()
         file.outputStream().use {
-            app.importExport.exportJson(progressReporter, it)
+            app.importExport.exportJson(it, progressReporter)
         }
         if (config.jsonFileId.isNotEmpty()) {
             job.delete(config.jsonFileId) {
@@ -167,22 +173,24 @@ class SyncDrive(
     }
 
     private fun syncImages(job: SyncJob) {
+        progressReporter?.invoke("Fetching remote books...", 0, 100)
         val local = Node.fromFile(app.basedir)
         job.listFiles({  remoteFiles ->
             val root = local.merge(remoteFiles)
-            root.diff(job)
+            progressReporter?.invoke("Backing up images...", 0, 100)
+            root.diff(progressReporter, job)
         })
         // We're no longer explicitly adding requests to this job.
         job.done()
     }
 
     fun sync(
-        progress: ((String?, Int) -> Unit)? = null,
         onDone: (SyncJob) -> Unit
     ): SyncJob {
         val job = SyncJob(authToken)
         job.start {
-            createRoot(job, progress) {
+            progressReporter?.invoke("Checking drive directory...", 0, 100)
+            createRoot(job) {
                 app.applicationScope.launch(Dispatchers.IO) {
                     syncJson(job) {
                         syncImages(job)
