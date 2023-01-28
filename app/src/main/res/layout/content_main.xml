@@ -40,6 +40,10 @@
         android:textSize="14sp"
         android:textColor="@color/black"
         app:layout_constraintStart_toStartOf="parent"
+
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+
         app:layout_constraintEnd_toStartOf="@id/idCancelButton"
         app:layout_constraintTop_toBottomOf="@id/idProgressRuler"
         app:layout_constraintBottom_toTopOf="@id/idProgressBar" />
@@ -63,6 +67,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:indeterminate="true"
+
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
