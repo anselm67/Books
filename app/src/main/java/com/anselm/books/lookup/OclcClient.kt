@@ -14,7 +14,6 @@ import org.xmlpull.v1.XmlPullParser.TEXT
 import org.xmlpull.v1.XmlPullParserException
 
 class OclcClient: XmlClient() {
-    private val wsKey = "REDACTED"
     private var parser: XmlPullParser = Xml.newPullParser()
 
     private fun until(name: String, handle: (String) -> Unit) {
@@ -126,11 +125,16 @@ class OclcClient: XmlClient() {
         book: Book,
         onCompletion: () -> Unit,
     ) {
+        val wskey = app.bookPrefs.wskey
+        if (wskey.isEmpty()) {
+            onCompletion()
+            return
+        }
         if (hasAllProperties(book, properties) || ! ISBN.isValidEAN13(book.isbn)) {
             onCompletion()
             return
         }
-        val url = "https://www.worldcat.org/webservices/catalog/content/isbn/${book.isbn}?wskey=$wsKey&maximumRecords=1&recordSchema=info:srw/schema/1/dc"
+        val url = "https://www.worldcat.org/webservices/catalog/content/isbn/${book.isbn}?wskey=$wskey&maximumRecords=1&recordSchema=info:srw/schema/1/dc"
         request(tag, url)
             .onResponse {
                 if (it.isSuccessful) {

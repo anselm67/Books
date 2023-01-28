@@ -19,6 +19,8 @@ class BooksPreferences(
     var displayBookId = false
     var enableShortcutToEdit = false
 
+    var wskey = ""
+
     private lateinit var preferenceMap: Map<String, Pair<Boolean, KMutableProperty0<Boolean>>>
 
     private val preferenceListener =
@@ -28,6 +30,8 @@ class BooksPreferences(
                 val value = (prefs?.getBoolean(key, false) == true)
                 prop.second.setter.invoke(value)
                 Log.d(TAG, "$key changed to $value")
+            } else if (key == "oclc_wskey") {
+                wskey = prefs?.getString(key, "")!!
             }
         }
 
@@ -48,6 +52,7 @@ class BooksPreferences(
         preferenceMap.forEach { (key: String, prop: Pair<Boolean, KMutableProperty0<Boolean>>) ->
             prop.second.setter(prefs.getBoolean(key, prop.first))
         }
+        wskey = prefs.getString("oclc_wskey", "")!!
     }
 
 

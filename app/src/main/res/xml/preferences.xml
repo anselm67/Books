@@ -77,6 +77,10 @@
         <Preference app:key="lookup_service_reset_stats"
             android:title="Reset lookup statistics." />
 
+        <EditTextPreference app:key="oclc_wskey"
+            android:title="Worldcat / OCLC wskey"
+            app:useSimpleSummaryProvider="true" />
+
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/preference_category_display">
