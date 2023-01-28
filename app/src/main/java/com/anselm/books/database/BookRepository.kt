@@ -298,6 +298,14 @@ class BookRepository(
         book.decorate(dao.labels(book.id).map { label(it) })
     }
 
+    suspend fun rename(label: Label, newName: String) {
+        dao.updateLabel(label.id, newName)
+        // The ByIds cache doesn't need updating, but the ByValue one does.
+        labelsByValue.remove(Pair(label.type, label.name))
+        label.name = newName
+        labelsByValue[Pair(label.type, label.name)] = label
+    }
+
     /**
      * Stats queries.
      */

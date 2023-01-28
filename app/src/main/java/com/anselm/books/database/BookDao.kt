@@ -55,6 +55,9 @@ interface BookDao {
     @Query("SELECT * FROM label_table WHERE id = :id")
     suspend fun label(id: Long): Label?
 
+    @Query("UPDATE label_table SET name = :name WHERE id = :id")
+    suspend fun updateLabel(id: Long, name: String)
+
     /*
      * The JOIN in the query below ensures we will only get back labels that exist.
      * That should always be the case but on occasion spurious stuff will happen.

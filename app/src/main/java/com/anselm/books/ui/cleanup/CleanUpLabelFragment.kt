@@ -2,13 +2,16 @@ package com.anselm.books.ui.cleanup
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -114,8 +117,36 @@ class LabelCleanupArrayAdapter(
         private val binding: RecyclerviewLabelCleanupItemBinding,
     ): RecyclerView.ViewHolder(binding.root) {
 
+        private fun getDrawable(resId: Int): Drawable {
+            return ContextCompat.getDrawable(
+                binding.idEditLabel.context, resId
+            )!!
+        }
+
+        private fun editLabel(label: Label) {
+            binding.idLabelText.isVisible = false
+            binding.idLabelEditor.isVisible = true
+            binding.idEditLabel.setImageDrawable(getDrawable(R.drawable.ic_baseline_check_24))
+            binding.idEditLabel.setOnClickListener {
+                val newName = binding.idLabelEditor.text.toString().trim()
+                binding.idLabelText.isVisible = true
+                binding.idLabelEditor.isVisible = false
+                binding.idEditLabel.setImageDrawable(getDrawable(R.drawable.ic_baseline_mode_edit_24))
+                if (newName != label.name) {
+                    binding.idLabelText.text = newName
+                    app.applicationScope.launch {
+                        app.repository.rename(label, newName)
+                    }
+                }
+            }
+        }
+
         fun bind(label: Label) {
             binding.idLabelText.text = label.name
+            binding.idLabelEditor.setText(label.name)
+            binding.idEditLabel.setOnClickListener {
+                editLabel(label)
+            }
             binding.root.setOnClickListener {
                 onClick.invoke(label)
             }
