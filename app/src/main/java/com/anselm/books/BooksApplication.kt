@@ -1,6 +1,8 @@
 package com.anselm.books
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.AlertDialog
 import android.app.Application
 import android.content.SharedPreferences
 import android.util.DisplayMetrics
@@ -25,8 +27,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.math.roundToInt
-
-typealias ProgressReporter = (title: String?, count: Int, total: Int) -> Unit
 
 class BooksApplication : Application() {
     val applicationScope = CoroutineScope(SupervisorJob())
@@ -121,7 +121,7 @@ class BooksApplication : Application() {
         result
     }
 
-    val httpQueuedCount: Int
+    private val httpQueuedCount: Int
         get() {
             return (okHttp.dispatcher.runningCalls().size + okHttp.dispatcher.queuedCalls().size)
         }
@@ -173,6 +173,8 @@ class BooksApplication : Application() {
         cancelButton: ImageButton
     ) {
         progress = Progress(rules, text, progressBar, cancelButton)
+        progressVisibility(false)
+        reporters.getOrNull(0)?.activate()
     }
 
     fun disableProgressBar() {
@@ -180,53 +182,104 @@ class BooksApplication : Application() {
     }
 
     private fun progressVisibility(onOff: Boolean) {
-        progress?.let {
-            it.ruler.isVisible = onOff
-            it.text.isVisible = onOff
-            it.progress.isVisible = onOff
-            it.cancelButton.isVisible = onOff       // Turned on via loadingDialog
-            if ( ! onOff ) {
-                it.text.text = ""
-            }
-        }
-    }
-
-    private val loadingTags = mutableMapOf<String, Boolean>()
-    fun loading(text: String? = null, onOff: Boolean, tag: String = "global") {
-        loadingTags[tag] = onOff
-        val anyOn = loadingTags.toList().any(Pair<String, Boolean>::second)
         postOnUiThread {
-            progressVisibility(anyOn)
             progress?.let {
-                it.text.text = text ?: ""
-                it.progress.isIndeterminate = true
+                it.ruler.isVisible = onOff
+                it.text.isVisible = onOff
+                it.progress.isVisible = onOff
+                it.cancelButton.isVisible = onOff       // Turned on via loadingDialog
+                if (!onOff) {
+                    it.text.text = ""
+                }
             }
         }
     }
 
-    fun loadingDialog(title: String, onCancel: (() -> Unit)? = null): ProgressReporter {
-        progressVisibility(true)
-        progress?.let {
-            it.text.text = title
-            if (onCancel != null) {
-                it.cancelButton.isVisible = true
-                it.cancelButton.setOnClickListener { onCancel() }
-            } else {
-                it.cancelButton.isVisible = false
+    inner class Reporter(
+        private var text: String,
+        private val isIndeterminate: Boolean = true,
+        private val onCancel: (() -> Unit)? = null,
+    ) {
+        private var isActive: Boolean = false
+
+        internal fun activate() {
+            isActive =  true
+            postOnUiThread {
+                progress?.let { it ->
+                    it.progress.isIndeterminate = isIndeterminate
+                    if (onCancel == null) {
+                        it.cancelButton.isVisible = false
+                    } else {
+                        it.cancelButton.isVisible = true
+                        it.cancelButton.setOnClickListener { onCancel?.invoke() }
+                    }
+                    doUpdate(text)
+                }
             }
         }
-        return { text: String?, count: Int, total: Int ->
+
+        private fun doUpdate(text: String? = null, count: Int? = null, total: Int? = null) {
             postOnUiThread {
-                progressVisibility(true)
                 progress?.let {
                     text.ifNotEmpty { s -> it.text.text = s  }
-                    it.progress.isIndeterminate = false
-                    if (total > 0) {
+                    if (count != null && total != null && total > 0) {
                         val percent = 100.0F * count.toFloat() / total.toFloat()
                         it.progress.progress = percent.roundToInt()
                     }
                 }
             }
+        }
+
+        fun update(text: String,count:Int, total: Int) {
+            check( ! isIndeterminate )
+            if ( ! isActive ) {
+                return
+            }
+            doUpdate(text, count, total)
+        }
+
+        fun update(count: Int, total: Int) {
+            check( ! isIndeterminate )
+            if ( ! isActive ) {
+                return
+            }
+            doUpdate(null, count, total)
+        }
+
+        fun close() {
+            isActive = false
+            app.closeReporter(this)
+        }
+    }
+
+    private val reporters : MutableList<Reporter> = mutableListOf()
+
+    fun openReporter(
+        title: String,
+        isIndeterminate: Boolean = true,
+        onCancel: (() -> Unit)? = null): Reporter {
+        val reporter = Reporter(title, isIndeterminate, onCancel)
+        synchronized(reporters) {
+            reporters.add(reporter)
+            if (reporters.indexOf(reporter) == 0) {
+                reporter.activate()
+            }
+        }
+        progressVisibility(true)
+        return reporter
+    }
+
+    private fun closeReporter(reporter: Reporter) {
+        var hide = true
+        synchronized(reporters) {
+            reporters.remove(reporter)
+            if (reporters.size > 0) {
+                reporters[0].activate()
+                hide = false
+            }
+        }
+        if ( hide ) {
+            progressVisibility(false)
         }
     }
 
@@ -242,6 +295,13 @@ class BooksApplication : Application() {
             }
             field = value
         }
+
+    fun warn(activity: Activity, prompt: String) {
+        AlertDialog.Builder(activity)
+            .setMessage(prompt)
+            .setPositiveButton(R.string.ok) { _, _ -> }
+            .show()
+    }
 
     /**
      * invoked by one only activity when it's pause.

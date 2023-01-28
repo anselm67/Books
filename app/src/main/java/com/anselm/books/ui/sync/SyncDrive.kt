@@ -1,30 +1,29 @@
 package com.anselm.books.ui.sync
 
 /*
-* ok http multipart
-* https://gist.github.com/balvinder294/e869944161cb0af250b1296f64e3129a#file-post-file-java
-* Bearer from drive api
-Bearer ya29.a0AVvZVspof_MqeP87fIunVZ200zXfxd3I2J7rSmIQhTlWVk4I07u6cik2bDyGS-KnIoCeTefCdJcJ2gHMw9L5B859z5D1NpT_H8snfuogpfOeMQzaE6nHPTK--N8qK7DyCai8aA7Jhrx0wwCW_bO_E3R5piKslgaCgYKAeYSARISFQGbdwaIg8GKP-WnzEVjRzUP0d2I5w0165
+ * ok http multipart
+ * https://gist.github.com/balvinder294/e869944161cb0af250b1296f64e3129a#file-post-file-java
  */
 import android.util.Log
+import com.anselm.books.BooksApplication
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.BooksApplication.Reporter
 import com.anselm.books.Constants
-import com.anselm.books.ProgressReporter
 import com.anselm.books.R
 import com.anselm.books.TAG
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
-class Reporter(
-    private val progressReporter: ProgressReporter,
+private class CounterReporter(
+    private val reporter: Reporter,
     private val totalCount: Int,
 ) {
     private var counter = 0
 
     fun incr() {
         counter++
-        progressReporter(null, counter, totalCount)
+        reporter.update(counter, totalCount)
     }
 }
 
@@ -41,7 +40,7 @@ private class Node(
         return localChildren.firstOrNull { name == it.localName }
     }
 
-    private fun diffChildren(job: SyncJob, doneCounter: Reporter) {
+    private fun diffChildren(job: SyncJob, doneCounter: CounterReporter) {
         check(folderId != null)
         remoteFiles.forEach {
             if ( ! localFiles.contains(it.name)) {
@@ -64,7 +63,7 @@ private class Node(
     fun diff(
         job: SyncJob,
         parentFolderId: String? = null,
-        doneCounter: Reporter,
+        doneCounter: CounterReporter,
     ) {
         if (folderId == null) {
             require(parentFolderId != null) { "parentFolderId required to createFolder." }
@@ -156,7 +155,7 @@ private class Node(
 
 class SyncDrive(
     private val authToken: String,
-    private val progressReporter: ProgressReporter
+    private val reporter: BooksApplication.Reporter
 ) {
     private val config = SyncConfig.get()
 
@@ -191,7 +190,7 @@ class SyncDrive(
         val file = File(app.applicationContext.cacheDir, "books.json")
         file.deleteOnExit()
         file.outputStream().use {
-            app.importExport.exportJson(it, progressReporter)
+            app.importExport.exportJson(it, reporter)
         }
         if (config.jsonFileId.isNotEmpty()) {
             job.delete(config.jsonFileId) {
@@ -206,13 +205,13 @@ class SyncDrive(
     }
 
     private fun syncImages(job: SyncJob) {
-        progressReporter(app.getString(R.string.sync_fetching_remote_database), 0, 100)
+        reporter.update(app.getString(R.string.sync_fetching_remote_database), 0, 100)
         val local = Node.fromFile(app.basedir)
         job.listFiles("trashed = false", {  remoteFiles ->
             val root = local.merge(remoteFiles)
             val totalCount = root.countOps()
-            progressReporter(app.getString(R.string.syncing_images), 0, 0)
-            val doneCounter = Reporter(progressReporter, totalCount)
+            reporter.update(app.getString(R.string.syncing_images), 0, 0)
+            val doneCounter = CounterReporter(reporter, totalCount)
             root.diff(job, doneCounter = doneCounter)
         })
         // We're no longer explicitly adding requests to this job.
@@ -224,7 +223,7 @@ class SyncDrive(
     ): SyncJob {
         val job = SyncJob(authToken)
         job.start {
-            progressReporter(app.getString(R.string.sync_checking_root_directroy), 0, 100)
+            reporter.update(app.getString(R.string.sync_checking_root_directroy), 0, 100)
             createRoot(job) {
                 app.applicationScope.launch(Dispatchers.IO) {
                     syncJson(job) {

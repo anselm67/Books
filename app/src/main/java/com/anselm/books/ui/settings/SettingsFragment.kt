@@ -102,10 +102,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 } else {
                     var counts: Pair<Int, Int> = Pair(-1, -1)
                     var msg: String? = null
-                    val progressReporter = app.loadingDialog(getString(R.string.importing_books))
+                    val reporter = app.openReporter(
+                        getString(R.string.starting_importing),
+                        isIndeterminate = false
+                    )
                     app.applicationScope.launch {
                         try {
-                            counts = importExport.importZipFile(uri, progressReporter)
+                            counts = importExport.importZipFile(uri, reporter)
                         } catch (e: Exception) {
                             Log.e(TAG, "Failed to import books.", e)
                             msg = e.message
@@ -118,7 +121,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                         } else {
                             context.getString(R.string.import_status, counts.first, counts.second)
                         }
-                        app.loading(onOff = false)
+                        reporter.close()
                         app.toast(text)
                     }
                 }
@@ -135,12 +138,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 app.toast("Select a file to export to.")
             } else {
                 Log.d(TAG, "Opening directory $uri")
-                val progressReporter = app.loadingDialog(getString(R.string.exporting_books))
+                val reporter = app.openReporter(getString(R.string.exporting_books), isIndeterminate = false)
                 var count = 0
                 var msg: String? = null
                 app.applicationScope.launch {
                     try {
-                        count = importExport.exportZipFile(uri, progressReporter)
+                        count = importExport.exportZipFile(uri, reporter)
                     } catch (e: Exception) {
                         Log.e(TAG, "Export to $uri failed.", e)
                         msg = e.TAG
@@ -151,7 +154,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     } else {
                         context.getString(R.string.export_status, count)
                     }
-                    app.loading(onOff = false, tag = "$TAG.Export")
+                    reporter.close()
                     app.toast(text)
                 }
             }

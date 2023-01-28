@@ -10,7 +10,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.anselm.books.BookViewModel
@@ -119,18 +118,16 @@ open class ListFragment: BookFragment() {
         )
 
         // Collects from the state and updates the progress bar accordingly.
+        /*
         viewLifecycleOwner.lifecycleScope.launch {
+            val reporter = app.openReporter(getString(R.string.loading_books))
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 adapter.loadStateFlow.collect {
-                    app.loading(
-                        getString(R.string.loading_books),
-                        it.source.prepend is LoadState.Loading
-                                || it.source.append is LoadState.Loading,
-                        "$TAG.recycler"
-                    )
+                    reporter.isLoading = it.source.prepend is LoadState.Loading
+                                || it.source.append is LoadState.Loading
                 }
             }
-        }
+        }*/
         binding.list.adapter = adapter
         binding.list.layoutManager = LinearLayoutManager(binding.list.context)
     }

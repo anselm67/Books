@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.anselm.books.BooksApplication
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.BooksApplication.Reporter
 import com.anselm.books.R
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
@@ -28,6 +30,15 @@ import kotlin.concurrent.withLock
 class CleanUpFragment: BookFragment() {
     private var _binding: FragmentCleanupBinding? = null
     private val binding get() = _binding!!
+    private var reporter: Reporter? = null
+
+    private fun ifEmptyReporter(block: () -> Unit) {
+        if (reporter == null) {
+            block()
+        } else {
+            app.warn(requireActivity(), getString(R.string.cleanup_task_already_running))
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -214,16 +225,20 @@ class CleanUpFragment: BookFragment() {
             inflater, container,
             getString(R.string.check_for_broken_images)
         ) {
-            viewLifecycleOwner.lifecycleScope.launch {
-                checkImages()
+            ifEmptyReporter {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    checkImages()
+                }
             }
         })
         container.addView(item(
             inflater, container,
             getString(R.string.check_gc_images),
         ) {
-            viewLifecycleOwner.lifecycleScope.launch {
-                deleteUnusedImages()
+            ifEmptyReporter {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    deleteUnusedImages()
+                }
             }
         })
     }
@@ -332,7 +347,9 @@ class CleanUpFragment: BookFragment() {
         val bookIds = app.repository.getIdsList(Query())
         val stats = FixCoverStats()
 
-        val progressReporter = app.loadingDialog(getString(R.string.cleanup_check_image_progress_title)) { stats.cancel() }
+        reporter = app.openReporter(
+            getString(R.string.cleanup_check_image_progress_title),
+            isIndeterminate = false) { stats.cancel() }
         bookIds.forEach { bookId ->
             val book = app.repository.load(bookId, decorate = true)
             stats.totalCount++
@@ -340,43 +357,41 @@ class CleanUpFragment: BookFragment() {
                 stats.checkedCount++
                 checkImage(stats, book)
             }
-            progressReporter(null, stats.totalCount, bookIds.size)
+            reporter?.update(stats.totalCount, bookIds.size)
         }
         // Wait until al calls have returned.
         stats.join()
-        app.loading(onOff = false)
+        reporter?.close()
+        reporter = null
         Log.d(TAG, "Done ${stats.totalCount}: " +
                 "broken: ${stats.brokenCount}, unfetched: ${stats.unfetchedCount} " +
                 "fetched: ${stats.fetchCount} of which ${stats.fetchFailedCount} failed."
         )
     }
 
-    private suspend fun doDeleteUnusedImages() {
+    private suspend fun doDeleteUnusedImages(reporter: BooksApplication.Reporter) {
         val bookIds = app.repository.getIdsList(Query())
         val seen = mutableSetOf<String>()
-        val progressReporter = app.loadingDialog(getString(R.string.listing_existing_images))
         var count = 0
+        reporter.update(getString(R.string.listing_existing_images), 0, 0)
         bookIds.forEach {
             val book = app.repository.load(it, decorate = true)
             if (book?.imageFilename?.isNotEmpty() == true) {
                 seen.add(book.imageFilename)
             }
             count++
-            progressReporter(null, count, bookIds.size)
+            reporter.update(count, bookIds.size)
         }
-        app.imageRepository.garbageCollect(seen, progressReporter)
+        app.imageRepository.garbageCollect(seen, reporter)
     }
 
     private fun deleteUnusedImages() {
         thread {
-            app.loading(
-                getString(R.string.deleting_unused_images),
-                true,
-                "cleanUp.deleteUnusedImages"
-            )
+            reporter = app.openReporter(getString(R.string.deleting_unused_images), isIndeterminate = false)
             app.applicationScope.launch {
-                doDeleteUnusedImages()
-                app.loading(onOff = false)
+                doDeleteUnusedImages(reporter!!)
+                reporter?.close()
+                reporter = null
             }
         }
     }

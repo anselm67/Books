@@ -161,6 +161,7 @@
     <string name="deleting_database">Deleting existing database…</string>
     <string name="importing_images">Importing images…</string>
     <string name="importing_books">Importing books…</string>
+    <string name="starting_importing">Importing books…</string>
     <string name="saving_changes">Saving changes…</string>
     <string name="loading_books">Loading books…</string>
     <string name="deleting_unused_images"><![CDATA[Deleting unused images&#8230;]]></string>
@@ -174,5 +175,7 @@
     <string name="sync_checking_root_directroy">Checking drive directory…</string>
     <string name="sync_fetching_remote_database">Fetching remote books…</string>
     <string name="syncing_images">Syncing images…</string>
+    <string name="collecting_unused_images">Garbage collecting unused images…</string>
+    <string name="cleanup_task_already_running">A cleanup task is running, try later.</string>
 
 </resources>

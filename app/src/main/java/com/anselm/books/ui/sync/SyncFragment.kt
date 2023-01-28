@@ -14,9 +14,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
+import com.anselm.books.BooksApplication.Reporter
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.GlideApp
-import com.anselm.books.ProgressReporter
 import com.anselm.books.R
 import com.anselm.books.TAG
 import com.anselm.books.databinding.FragmentSyncBinding
@@ -158,20 +158,21 @@ class SyncFragment: BookFragment() {
     }
 
     private var job: SyncJob? = null
-    private var progressReporter: ProgressReporter? = null
+    private var reporter: Reporter? = null
     private fun withToken(authToken: String) {
         //Displays the progress dialog, and sets up the progress reporter.
-        progressReporter = app.loadingDialog(getString(R.string.sync_started)) {
-            job?.cancel()
-        }
+        reporter = app.openReporter(
+            getString(R.string.sync_started),
+            isIndeterminate = false
+        ) { job?.cancel() }
         binding.idSyncButton.isEnabled = false
         // Proceeds. With care cause we might noo longer be in this fragment when the job completes.
-        job = SyncDrive(authToken, progressReporter!!).sync { finishedJob ->
+        job = SyncDrive(authToken, reporter!!).sync { finishedJob ->
             // We want to help GC a bit by nullifying job and progressReporter.
             val isCancelled = finishedJob.isCancelled
             val exception = finishedJob.exception
             job = null
-            progressReporter = null
+            reporter = null
             app.postOnUiThread {
                 if (isCancelled) {
                     app.toast(getString(R.string.sync_cancelled))
@@ -180,7 +181,7 @@ class SyncFragment: BookFragment() {
                 } else {
                     app.toast(app.getString(R.string.sync_success))
                 }
-                app.loading(onOff = false)
+                reporter?.close()
                 if ( ! this@SyncFragment.isDetached && _binding != null) {
                     syncDone()
                 }

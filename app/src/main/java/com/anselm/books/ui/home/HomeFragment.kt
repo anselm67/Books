@@ -17,7 +17,6 @@ import com.anselm.books.BookViewModel
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.ISBN
 import com.anselm.books.R
-import com.anselm.books.TAG
 import com.anselm.books.database.BookDao
 import com.anselm.books.database.Query
 import com.anselm.books.databinding.BottomAddDialogBinding
@@ -143,7 +142,7 @@ class HomeFragment : ListFragment() {
             app.toast("Invalid ISBN number.")
             return
         }
-        app.loading(getString(R.string.looking_up_isbn), true, "$TAG.handleISBN")
+        val reporter = app.openReporter(getString(R.string.looking_up_isbn))
         val like = app.repository.newBook(input)
         app.lookupService.lookup(like) { book ->
             if (book == null) {
@@ -156,7 +155,7 @@ class HomeFragment : ListFragment() {
                     findNavController().navigate(action)
                 }
             }
-            app.loading(onOff = false, tag = "$TAG.handleISBN")
+            reporter.close()
         }
     }
 }

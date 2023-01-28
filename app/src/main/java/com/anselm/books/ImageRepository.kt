@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.core.net.toUri
 import androidx.heifwriter.HeifWriter
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.BooksApplication.Reporter
 import com.anselm.books.database.Book
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -232,16 +233,16 @@ class ImageRepository(
         seen: Set<String>,
         seenCount: Int,
         dir: File = imageDirectory,
-        progressReporter: ProgressReporter,
+        reporter: Reporter,
     ): Int {
         var thisCount = seenCount
-        progressReporter("Garbage collecting unused images...", thisCount, seen.size)
+        reporter.update(app.getString(R.string.collecting_unused_images), thisCount, seen.size)
         var deletedCount = 0
         withContext(Dispatchers.IO) {
             dir.list()?.forEach {
                 val file = File(dir, it)
                 if (file.isDirectory) {
-                    deletedCount += doGarbageCollect(seen, thisCount, file, progressReporter)
+                    deletedCount += doGarbageCollect(seen, thisCount, file, reporter)
                 } else {
                     val imageFilename = file.relativeTo(basedir).path
                     if (!seen.contains(imageFilename)) {
@@ -249,7 +250,7 @@ class ImageRepository(
                         deletedCount++
                     } else {
                         thisCount++
-                        progressReporter(null, thisCount, seen.size)
+                        reporter.update(thisCount, seen.size)
                     }
                 }
             }
@@ -257,8 +258,8 @@ class ImageRepository(
         return deletedCount
     }
 
-    suspend fun garbageCollect(seen: Set<String>, progressReporter: ProgressReporter) {
-        val count = doGarbageCollect(seen, 0, progressReporter = progressReporter)
+    suspend fun garbageCollect(seen: Set<String>, reporter: Reporter) {
+        val count = doGarbageCollect(seen, 0, reporter = reporter)
         Log.d(TAG, "Deleted $count unused image.")
     }
 }

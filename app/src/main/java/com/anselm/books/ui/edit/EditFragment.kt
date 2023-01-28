@@ -241,12 +241,12 @@ class EditFragment: BookFragment() {
     // edited: after saveChanges has checked that there are changes, and after checkForDuplicates
     // approved.
     private fun doSave() {
-        app.loading(getString(R.string.saving_changes), true)
+        val reporter = app.openReporter(getString(R.string.saving_changes))
         activity?.lifecycleScope?.launch {
             app.repository.save(book)
         }?.invokeOnCompletion {
             app.toast("${book.title} saved.")
-            app.loading(onOff = false)
+            reporter.close()
             // When the save is very long, we might already have gone.
             if (isAdded ) {
                 findNavController().popBackStack()
@@ -281,9 +281,9 @@ class EditFragment: BookFragment() {
         }
         like.title = title
         like.authors = authors
-        app.loading(getString(R.string.lookup_book), true, "performMagic")
+        val reporter = app.openReporter(getString(R.string.lookup_book))
         app.lookupService.lookup(like, stopAt = null) {
-            app.loading(onOff = false, tag = "performMagic")
+            reporter.close()
             if (it == null) {
                 app.toast(getString(R.string.edit_no_match))
             } else {

@@ -67,7 +67,7 @@ class EditMultiDialogFragment: BottomSheetDialogFragment() {
         if ( ! isChanged() )
             return
         // Gets the work done, even when painful.
-        val progressReporter = app.loadingDialog(getString(R.string.saving_changes))
+        val reporter = app.openReporter(getString(R.string.saving_changes), isIndeterminate = false)
         app.applicationScope.launch {
             var count = 0
             bookIds.map { bookId ->
@@ -81,9 +81,9 @@ class EditMultiDialogFragment: BottomSheetDialogFragment() {
                 )
                 count++
                 app.repository.save(target)
-                progressReporter(null, count, bookIds.size)
+                reporter.update(count, bookIds.size)
             }
-            app.loading(onOff = false)
+            reporter.close()
             app.postOnUiThread { findNavController().popBackStack() }
         }
     }
