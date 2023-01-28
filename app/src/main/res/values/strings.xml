@@ -168,5 +168,11 @@
     <string name="looking_up_isbn"><![CDATA[Looking up ISBN&#8230;]]></string>
     <string name="user_profile_image">User profile image.</string>
     <string name="last_synchronized">Last synchronized</string>
+    <string name="google_drive">Google Drive</string>
+    <string name="no_sync_available">No previous sync available.</string>
+    <string name="sync_started">Sync started</string>
+    <string name="sync_checking_root_directroy">Checking drive directory…</string>
+    <string name="sync_fetching_remote_database">Fetching remote books…</string>
+    <string name="syncing_images">Syncing images…</string>
 
 </resources>

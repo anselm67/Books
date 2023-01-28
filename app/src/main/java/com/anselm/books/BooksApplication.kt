@@ -184,7 +184,7 @@ class BooksApplication : Application() {
             it.ruler.isVisible = onOff
             it.text.isVisible = onOff
             it.progress.isVisible = onOff
-            it.cancelButton.isVisible = false       // Turned on via loadingDialog
+            it.cancelButton.isVisible = onOff       // Turned on via loadingDialog
             if ( ! onOff ) {
                 it.text.text = ""
             }

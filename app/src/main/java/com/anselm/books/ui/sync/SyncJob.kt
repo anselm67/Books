@@ -44,8 +44,6 @@ class SyncJob(
                 cond.signalAll()
             }
         }
-    val requestCount = AtomicInteger(0)
-    val finishedCount = AtomicInteger(0)
 
     private fun builder(): Request.Builder {
 
@@ -98,13 +96,14 @@ class SyncJob(
     }
 
     fun listFiles(
+        query: String,
         onResponse: (List<GoogleFile>) -> Unit,
         pageToken: String? = null,
         into: MutableList<GoogleFile>? = null,
     ) {
         val files = into ?: mutableListOf()
         val url = "https://www.googleapis.com/drive/v3/files".toHttpUrlOrNull()!!.newBuilder()
-            .addQueryParameter("q", "trashed = false")
+            .addQueryParameter("q", query)
             .addQueryParameter("fields", "nextPageToken, files(id, name, mimeType, parents)")
             .addQueryParameter("spaces", "drive")
             .addQueryParameter("pageSize", "500")
@@ -125,7 +124,7 @@ class SyncJob(
             if (nextToken.isEmpty()) {
                 onResponse(files)
             } else {
-                listFiles(onResponse, nextToken, files)
+                listFiles(query, onResponse, nextToken, files)
             }
         }
     }
@@ -162,13 +161,11 @@ class SyncJob(
         val call = app.okHttp.newCall(req)
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                finishedCount.incrementAndGet()
                 Log.e(TAG, "$url: request failed.", e)
                 exception = e
             }
 
             override fun onResponse(call: Call, response: Response) {
-                finishedCount.incrementAndGet()
                 response.use {
                     try {
                         val obj = parseJson(response)
@@ -186,7 +183,6 @@ class SyncJob(
                 }
             }
         })
-        requestCount.incrementAndGet()
     }
 
     private val lock = ReentrantLock()

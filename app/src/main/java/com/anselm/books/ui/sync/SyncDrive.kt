@@ -10,11 +10,23 @@ import android.util.Log
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.Constants
 import com.anselm.books.ProgressReporter
+import com.anselm.books.R
 import com.anselm.books.TAG
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
+class Reporter(
+    private val progressReporter: ProgressReporter,
+    private val totalCount: Int,
+) {
+    private var counter = 0
+
+    fun incr() {
+        counter++
+        progressReporter(null, counter, totalCount)
+    }
+}
 
 private class Node(
     val localDirectory: File,
@@ -29,42 +41,51 @@ private class Node(
         return localChildren.firstOrNull { name == it.localName }
     }
 
-    private fun diffChildren(
-        progressReporter: ProgressReporter? = null,
-        job: SyncJob
-    ) {
+    private fun diffChildren(job: SyncJob, doneCounter: Reporter) {
         check(folderId != null)
         remoteFiles.forEach {
             if ( ! localFiles.contains(it.name)) {
                 Log.d(TAG, "FETCH $localName/$it")
+                doneCounter.incr()
             }
         }
         localFiles.forEach { name ->
             if ( remoteFiles.firstOrNull{ it.name == name } == null ) {
                 job.uploadFile(File(localDirectory, name), "image/heic", folderId) {
-                    Log.d(TAG, "$localName/$name uploaded.")
+                    doneCounter.incr()
                 }
             }
         }
-        localChildren.forEach { it.diff(progressReporter, job, folderId) }
+        localChildren.forEach {
+            it.diff(job, folderId, doneCounter)
+        }
     }
 
     fun diff(
-        progressReporter: ProgressReporter? = null,
         job: SyncJob,
         parentFolderId: String? = null,
+        doneCounter: Reporter,
     ) {
-
         if (folderId == null) {
             require(parentFolderId != null) { "parentFolderId required to createFolder." }
             job.createFolder(localName, parentFolderId) {
+                doneCounter.incr()
                 folderId = it.id
-                diffChildren(progressReporter, job)
+                diffChildren(job, doneCounter)
             }
         } else {
-            diffChildren(progressReporter, job)
+            diffChildren(job, doneCounter)
         }
-        progressReporter?.invoke(null, job.finishedCount.get(), job.requestCount.get())
+    }
+
+    fun countOps():Int {
+        var count =  if (folderId == null) 1 else 0
+        count += remoteFiles.filter { ! localFiles.contains(it.name) }.size
+        count += localFiles.filter { name -> remoteFiles.firstOrNull{ it.name == name } == null }.size
+        localChildren.forEach {
+            count += it.countOps()
+        }
+        return count
     }
 
     private fun collectChildren(list: List<GoogleFile>) {
@@ -135,22 +156,34 @@ private class Node(
 
 class SyncDrive(
     private val authToken: String,
-    private val progressReporter: ProgressReporter? = null
+    private val progressReporter: ProgressReporter
 ) {
     private val config = SyncConfig.get()
 
+    private fun doCreateRoot(job: SyncJob, onDone: () -> Unit) {
+        job.createFolder(Constants.DRIVE_FOLDER_NAME) {
+            config.folderId = it.id
+            config.save()
+            onDone()
+        }
+    }
+
     private fun createRoot(
         job: SyncJob,
-        progress: ((String?, Int) -> Unit)? = null,
-        onDone: () -> Unit) {
-        progress?.invoke("Checking target folder.", 10)
+        onDone: () -> Unit
+    ) {
         if (config.folderId.isEmpty()) {
-            job.createFolder(Constants.DRIVE_FOLDER_NAME) {
-                config.folderId = it.id
-                onDone()
-            }
+            doCreateRoot(job, onDone)
         } else {
-            onDone()
+            job.listFiles("name='${Constants.DRIVE_FOLDER_NAME}' and trashed = false", { files ->
+                val root = files.firstOrNull { it.id == config.folderId }
+                if (root == null) {
+                    Log.d(TAG, "createRoot: old root deleted, creating new root.")
+                    doCreateRoot(job, onDone)
+                } else {
+                    onDone()
+                }
+            })
         }
     }
 
@@ -173,23 +206,25 @@ class SyncDrive(
     }
 
     private fun syncImages(job: SyncJob) {
-        progressReporter?.invoke("Fetching remote books...", 0, 100)
+        progressReporter(app.getString(R.string.sync_fetching_remote_database), 0, 100)
         val local = Node.fromFile(app.basedir)
-        job.listFiles({  remoteFiles ->
+        job.listFiles("trashed = false", {  remoteFiles ->
             val root = local.merge(remoteFiles)
-            progressReporter?.invoke("Backing up images...", 0, 100)
-            root.diff(progressReporter, job)
+            val totalCount = root.countOps()
+            progressReporter(app.getString(R.string.syncing_images), 0, 0)
+            val doneCounter = Reporter(progressReporter, totalCount)
+            root.diff(job, doneCounter = doneCounter)
         })
         // We're no longer explicitly adding requests to this job.
         job.done()
     }
 
     fun sync(
-        onDone: (SyncJob) -> Unit
+        onDone: (SyncJob) -> Unit,
     ): SyncJob {
         val job = SyncJob(authToken)
         job.start {
-            progressReporter?.invoke("Checking drive directory...", 0, 100)
+            progressReporter(app.getString(R.string.sync_checking_root_directroy), 0, 100)
             createRoot(job) {
                 app.applicationScope.launch(Dispatchers.IO) {
                     syncJson(job) {

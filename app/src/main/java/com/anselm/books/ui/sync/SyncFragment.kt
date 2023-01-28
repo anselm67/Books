@@ -83,7 +83,7 @@ class SyncFragment: BookFragment() {
         binding.idLastSyncDate.text = if (config.lastSync > 0) {
             SIMPLE_DATE_FORMAT.format(Date(config.lastSync * 1000))
         } else {
-            "No previous sync available."
+            getString(R.string.no_sync_available)
         }
     }
 
@@ -161,22 +161,27 @@ class SyncFragment: BookFragment() {
     private var progressReporter: ProgressReporter? = null
     private fun withToken(authToken: String) {
         //Displays the progress dialog, and sets up the progress reporter.
-        progressReporter = app.loadingDialog("Sync started") {
+        progressReporter = app.loadingDialog(getString(R.string.sync_started)) {
             job?.cancel()
         }
         binding.idSyncButton.isEnabled = false
         // Proceeds. With care cause we might noo longer be in this fragment when the job completes.
-        job = SyncDrive(authToken, progressReporter).sync { job ->
+        job = SyncDrive(authToken, progressReporter!!).sync { finishedJob ->
+            // We want to help GC a bit by nullifying job and progressReporter.
+            val isCancelled = finishedJob.isCancelled
+            val exception = finishedJob.exception
+            job = null
+            progressReporter = null
             app.postOnUiThread {
-                if (job.isCancelled) {
+                if (isCancelled) {
                     app.toast(getString(R.string.sync_cancelled))
-                } else if (job.exception != null) {
+                } else if (exception != null) {
                     app.toast(getString(R.string.sync_failed))
                 } else {
                     app.toast(app.getString(R.string.sync_success))
                 }
                 app.loading(onOff = false)
-                if ( ! this@SyncFragment.isDetached) {
+                if ( ! this@SyncFragment.isDetached && _binding != null) {
                     syncDone()
                 }
             }
