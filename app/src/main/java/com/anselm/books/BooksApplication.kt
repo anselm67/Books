@@ -115,7 +115,7 @@ class BooksApplication : Application() {
                 flushCond.signalAll()
             }
         }
-        result.dispatcher.maxRequestsPerHost = 10
+        result.dispatcher.maxRequestsPerHost = 20
         Log.d(TAG, "okHttp: maxReq=${result.dispatcher.maxRequests}, " +
                 "maxReq/Host=${result.dispatcher.maxRequestsPerHost}")
         result

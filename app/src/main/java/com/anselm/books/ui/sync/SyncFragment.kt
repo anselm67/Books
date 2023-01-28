@@ -14,8 +14,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
-import com.anselm.books.BooksApplication.Reporter
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.BooksApplication.Reporter
 import com.anselm.books.GlideApp
 import com.anselm.books.R
 import com.anselm.books.TAG
@@ -168,6 +168,7 @@ class SyncFragment: BookFragment() {
         binding.idSyncButton.isEnabled = false
         // Proceeds. With care cause we might noo longer be in this fragment when the job completes.
         job = SyncDrive(authToken, reporter!!).sync { finishedJob ->
+            reporter?.close()
             // We want to help GC a bit by nullifying job and progressReporter.
             val isCancelled = finishedJob.isCancelled
             val exception = finishedJob.exception
@@ -175,13 +176,12 @@ class SyncFragment: BookFragment() {
             reporter = null
             app.postOnUiThread {
                 if (isCancelled) {
-                    app.toast(getString(R.string.sync_cancelled))
+                    app.toast(app.getString(R.string.sync_cancelled))
                 } else if (exception != null) {
-                    app.toast(getString(R.string.sync_failed))
+                    app.toast(app.getString(R.string.sync_failed))
                 } else {
                     app.toast(app.getString(R.string.sync_success))
                 }
-                reporter?.close()
                 if ( ! this@SyncFragment.isDetached && _binding != null) {
                     syncDone()
                 }
