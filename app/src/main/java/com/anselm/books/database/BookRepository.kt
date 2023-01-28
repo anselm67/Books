@@ -334,7 +334,7 @@ class BookRepository(
     }
 
     suspend fun getLabels(type: Label.Type): List<Label> {
-        return dao.getLabels(type)
+        return dao.getLabels(type).map { label(it.id) }
     }
 
     suspend fun deleteUnusedLabels(): Int {
@@ -343,9 +343,9 @@ class BookRepository(
 
     suspend fun searchLabels(type: Label.Type, labelQuery: String?): List<Label> {
         return if (labelQuery == null) {
-            dao.getLabels(type)
+            dao.getLabels(type).map { label(it.id) }
         } else {
-            dao.searchLabels(type, labelQuery)
+            dao.searchLabels(type, labelQuery).map { label(it.id) }
         }
     }
 
