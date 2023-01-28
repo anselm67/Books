@@ -259,13 +259,14 @@ class BooksApplication : Application() {
         isIndeterminate: Boolean = true,
         onCancel: (() -> Unit)? = null): Reporter {
         val reporter = Reporter(title, isIndeterminate, onCancel)
+        // This turns on cancel un-conditionally. activate() will fix it.
+        progressVisibility(true)
         synchronized(reporters) {
             reporters.add(reporter)
             if (reporters.indexOf(reporter) == 0) {
                 reporter.activate()
             }
         }
-        progressVisibility(true)
         return reporter
     }
 
