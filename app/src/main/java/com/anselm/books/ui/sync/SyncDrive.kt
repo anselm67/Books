@@ -44,19 +44,22 @@ private class Node(
         remoteFiles.forEach {
             if ( ! localFiles.contains(it.name)) {
                 localDirectory.mkdirs()
-                job.get(it.id) { data->
+                job.get(it.id, onResponse = { data->
                     File(localDirectory, it.name).outputStream().use { out ->
                         out.write(data)
                     }
                     doneCounter.incr()
-                }
+                })
             }
         }
         localFiles.forEach { name ->
             if ( remoteFiles.firstOrNull{ it.name == name } == null ) {
-                job.uploadFile(File(localDirectory, name), "image/heic", folderId) {
-                    doneCounter.incr()
-                }
+                job.uploadFile(
+                    File(localDirectory, name),
+                    "image/heic",
+                    folderId,
+                    onResponse = { doneCounter.incr() }
+                )
             }
         }
         localChildren.forEach {
@@ -71,11 +74,15 @@ private class Node(
     ) {
         if (folderId == null) {
             require(parentFolderId != null) { "parentFolderId required to createFolder." }
-            job.createFolder(localName, parentFolderId) {
-                doneCounter.incr()
-                folderId = it.id
-                diffChildren(job, doneCounter)
-            }
+            job.createFolder(
+                localName,
+                parentFolderId,
+                onResponse = {
+                    doneCounter.incr()
+                    folderId = it.id
+                    diffChildren(job, doneCounter)
+                }
+            )
         } else {
             diffChildren(job, doneCounter)
         }
@@ -165,11 +172,13 @@ class SyncDrive(
     private val config = SyncConfig.get()
 
     private fun doCreateRoot(job: SyncJob, onDone: () -> Unit) {
-        job.createFolder(Constants.DRIVE_FOLDER_NAME) {
-            config.folderId = it.id
-            config.save()
-            onDone()
-        }
+        job.createFolder(Constants.DRIVE_FOLDER_NAME,
+            onResponse = {
+                config.folderId = it.id
+                config.save()
+                onDone()
+            }
+        )
     }
 
     private fun createRoot(
@@ -196,13 +205,18 @@ class SyncDrive(
             Log.d(TAG, "mergeRemoteJson: no remote backup to merge.")
             onDone()
         } else {
-            job.get(config.jsonFileId) {
-                val text = String(it, Charsets.UTF_8)
-                app.applicationScope.launch {
-                    app.importExport.importJsonText(text, reporter)
+            job.get(config.jsonFileId,
+                onResponse = {
+                    val text = String(it, Charsets.UTF_8)
+                    app.applicationScope.launch {
+                        app.importExport.importJsonText(text, reporter)
+                        onDone()
+                    }
+                },
+                onError = {
+                    Log.e(TAG, "mergeRemoteJson: failed to merge remote file.", it)
                     onDone()
-                }
-            }
+                })
         }
     }
 
@@ -214,15 +228,15 @@ class SyncDrive(
                 app.importExport.exportJson(it, reporter)
             }
             if (config.jsonFileId.isNotEmpty()) {
-                job.delete(config.jsonFileId) {
+                job.delete(config.jsonFileId, onResponse = {
                     Log.d(TAG, "Deleted previous json backup.")
-                }
+                })
             }
-            job.uploadFile(file, "application/json", config.folderId) {
+            job.uploadFile(file, "application/json", config.folderId, onResponse = {
                 config.jsonFileId = it.id
                 config.save()
                 onDone()
-            }
+            })
         }
     }
 

@@ -171,14 +171,11 @@ class SyncFragment: BookFragment() {
             reporter?.close()
             // We want to help GC a bit by nullifying job and progressReporter.
             val isCancelled = finishedJob.isCancelled
-            val exception = finishedJob.exception
             job = null
             reporter = null
             app.postOnUiThread {
                 if (isCancelled) {
                     app.toast(app.getString(R.string.sync_cancelled))
-                } else if (exception != null) {
-                    app.toast(app.getString(R.string.sync_failed))
                 } else {
                     app.toast(app.getString(R.string.sync_success))
                 }
