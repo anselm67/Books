@@ -39,18 +39,12 @@ class SyncJob(
         private set
 
     private fun builder(): Request.Builder {
-
         return Request.Builder()
             .tag(tag)
             .header("Authorization", "Bearer $authToken")
     }
 
-    fun createFolder(
-        name: String,
-        parentFolderId: String? = null,
-        onResponse: (GoogleFile) -> Unit,
-        onError: ((Exception) -> Unit)? = null,
-    ) {
+    fun createFolder(name: String, parentFolderId: String? = null): SyncCallback<GoogleFile> {
         Log.d(TAG, "createFolder: $name, parent: $parentFolderId.")
         val url = "https://www.googleapis.com/drive/v3/files".toHttpUrlOrNull()!!.newBuilder()
         val metadata = GoogleFile(
@@ -63,16 +57,14 @@ class SyncJob(
             .url(url.build())
             .post(metadata.toRequestBody(MimeType.APPLICATION_JSON))
             .build()
-        runForJson(req, { onResponse(GoogleFile.fromJson(it)) }, onError)
+        return JsonCallback(req) { obj -> GoogleFile.fromJson(obj) }
     }
 
     fun uploadFile(
         file: File,
         mimeType: String,
         folderId: String? = null,
-        onResponse: (GoogleFile) -> Unit,
-        onError: ((Exception) -> Unit)? = null,
-    ) {
+    ): SyncCallback<GoogleFile> {
         Log.d(TAG, "uploadFile: ${file.name} type: $mimeType.")
         val url = "https://www.googleapis.com/upload/drive/v3/files".toHttpUrlOrNull()!!.newBuilder()
             .addQueryParameter("uploadType", "multipart")
@@ -87,16 +79,14 @@ class SyncJob(
             .header("Content-Length", multipartBody.contentLength().toString())
             .post(multipartBody)
             .build()
-        runForJson(req, { onResponse(GoogleFile.fromJson(it)) }, onError)
+        return JsonCallback(req) { obj -> GoogleFile.fromJson(obj) }
     }
 
     fun listFiles(
         query: String,
-        onResponse: (List<GoogleFile>) -> Unit,
-        onError: ((Exception) -> Unit)? = null,
         pageToken: String? = null,
         into: MutableList<GoogleFile>? = null,
-    ) {
+    ): JsonCallback<List<GoogleFile>> {
         val files = into ?: mutableListOf()
         val url = "https://www.googleapis.com/drive/v3/files".toHttpUrlOrNull()!!.newBuilder()
             .addQueryParameter("q", query)
@@ -109,50 +99,44 @@ class SyncJob(
         val req = builder()
             .url(url.build())
             .build()
-        runForJson(req,
-            onResponse = { obj ->
-                obj.optJSONArray("files")?.let { jsFileArray ->
-                    (0 until jsFileArray.length()).map { position ->
-                        val jsFile = jsFileArray.get(position) as JSONObject
-                        files.add(GoogleFile.fromJson(jsFile))
-                    }
+        val result = JsonCallback<List<GoogleFile>>(req)
+        result.convert = { obj ->
+            obj.optJSONArray("files")?.let { jsFileArray ->
+                (0 until jsFileArray.length()).map { position ->
+                    val jsFile = jsFileArray.get(position) as JSONObject
+                    files.add(GoogleFile.fromJson(jsFile))
                 }
-                val nextToken = obj.optString("nextPageToken")
-                if (nextToken.isEmpty()) {
-                    onResponse(files)
-                } else {
-                    listFiles(query, onResponse, onError, nextToken, files)
-                }
-            },
-            onError,
-        )
+            }
+            val nextToken = obj.optString("nextPageToken")
+            if (nextToken.isNotEmpty()) {
+                val innerResult = listFiles(query, nextToken, files)
+                innerResult.onResponseCallback = result.onResponseCallback
+                innerResult.onErrorCallback = result.onErrorCallback
+                result.onResponseCallback = null
+                innerResult.queue()
+            }
+            files
+        }
+        return result
     }
 
-    fun get(
-        fileId: String,
-        onResponse: (bytes: ByteArray) -> Unit,
-        onError: ((Exception) -> Unit)? = null
-    ) {
+    fun get(fileId: String): ResponseCallback {
         Log.d(TAG, "get: $fileId")
         val url = "https://www.googleapis.com/drive/v3/files/$fileId?alt=media"
         val req = builder()
             .url(url)
             .build()
-        runForBody(req, { response -> onResponse(response.body!!.bytes()) }, onError)
+        return ResponseCallback(req)
     }
 
-    fun delete(
-        fileId: String,
-        onResponse: (JSONObject) -> Unit,
-        onError: ((Exception) -> Unit)? = null,
-    ) {
+    fun delete(fileId: String): JsonCallback<Unit> {
         Log.d(TAG, "deleteFile: $fileId.")
         val url = "https://www.googleapis.com/drive/v3/files/$fileId"
         val req = builder()
             .url(url)
             .method("DELETE", null)
             .build()
-        runForJson(req, { onResponse(it) }, onError)
+        return JsonCallback(req) { }
     }
 
     private fun parseJson(response: Response): JSONObject? {
@@ -168,14 +152,35 @@ class SyncJob(
         return null
     }
 
-    inner class JsonCallback(
-        private val url: String,
-        private val onResponse: (JSONObject) -> Unit,
-        private val onError: ((Exception) -> Unit)? = null,
+    abstract inner class SyncCallback<T>(
+        val req: Request,
     ): Callback {
+        internal var onResponseCallback: ((T) -> Unit)? = null
+        internal var onErrorCallback: ((Exception) -> Unit)? = null
+
+        fun onResponse(onResponseCallback: (T) -> Unit): SyncCallback<T> {
+            this.onResponseCallback = onResponseCallback
+            return this
+        }
+
+        fun onError(onErrorCallback: (Exception) -> Unit): SyncCallback<T> {
+            this.onErrorCallback = onErrorCallback
+            return this
+        }
+
+        fun queue() {
+            this@SyncJob.queue(this)
+        }
+    }
+
+    inner class JsonCallback<T>(
+        req: Request,
+        internal var convert: ((JSONObject) -> T)? = null,
+    ): SyncCallback<T>(req) {
+
         override fun onFailure(call: Call, e: IOException) {
-            Log.e(TAG, "$url: request failed.", e)
-            onError?.invoke(e)
+            Log.e(TAG, "${req.url}: request failed.", e)
+            onErrorCallback?.invoke(e)
         }
 
         override fun onResponse(call: Call, response: Response) {
@@ -183,70 +188,53 @@ class SyncJob(
                 try {
                     val obj = parseJson(response)
                     if (it.isSuccessful) {
-                        onResponse(obj ?: JSONObject())
+                        val value = convert!!(obj ?: JSONObject())
+                        onResponseCallback?.invoke(value)
                     } else {
                         // Throw and catch: all errors match an exception.
-                        Log.d(TAG, "$url: status ${response.code} body: $obj.")
-                        throw SyncException("$url: request failed.")
+                        Log.d(TAG, "${req.url}: status ${response.code} body: $obj.")
+                        throw SyncException("${req.url}: request failed.")
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "$url: handling failed.", e)
-                    onError?.invoke(e)
+                    Log.e(TAG, "${req.url}: handling failed.", e)
+                    onErrorCallback?.invoke(e)
                 }
             }
         }
     }
 
     inner class ResponseCallback(
-        val url: String,
-        val onResponse: (Response) -> Unit,
-        private val onError: ((Exception) -> Unit)? = null,
-    ): Callback {
+        req: Request,
+    ): SyncCallback<ByteArray>(req) {
         override fun onFailure(call: Call, e: IOException) {
-            Log.e(TAG, "$url: request failed.", e)
-            onError?.invoke(e)
+            Log.e(TAG, "${req.url}: request failed.", e)
+            onErrorCallback?.invoke(e)
         }
 
         override fun onResponse(call: Call, response: Response) {
             response.use {
                 try {
                     if (it.isSuccessful) {
-                        onResponse(response)
+                        onResponseCallback?.invoke(it.body!!.bytes())
                     } else {
                         // Throw and catch: all errors match an exception.
-                        Log.d(TAG, "$url: status ${response.code}.")
-                        throw SyncException("$url: request failed.")
+                        Log.d(TAG, "${req.url}: status ${response.code}.")
+                        throw SyncException("${req.url}: request failed.")
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "$url: handling failed.", e)
-                    onError?.invoke(e)
+                    Log.e(TAG, "${req.url}: handling failed.", e)
+                    onErrorCallback?.invoke(e)
                 }
             }
         }
     }
 
-    private fun runForJson(
-        req: Request,
-        onResponse: (JSONObject) -> Unit,
-        onError: ((Exception) -> Unit)? = null,
-    ) {
-        run(req, JsonCallback(req.url.toString(), onResponse, onError))
-    }
-
-    private fun runForBody(
-        req: Request,
-        onResponse: (Response) -> Unit,
-        onError: ((Exception) -> Unit)? = null,
-    ) {
-        run(req, ResponseCallback(req.url.toString(), onResponse, onError))
-    }
-
-    private fun run(req: Request, callback: Callback) {
+    private fun queue(callback: SyncCallback<*>) {
         if ( isCancelled ) {
             Log.e(TAG, "SyncJob $tag cancelled/erred, rejecting request.")
             return
         }
-        app.okHttp.newCall(req).enqueue(callback)
+        app.okHttp.newCall(callback.req).enqueue(callback)
     }
 
     private val lock = ReentrantLock()

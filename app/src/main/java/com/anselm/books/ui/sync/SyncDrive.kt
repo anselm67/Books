@@ -44,22 +44,20 @@ private class Node(
         remoteFiles.forEach {
             if ( ! localFiles.contains(it.name)) {
                 localDirectory.mkdirs()
-                job.get(it.id, onResponse = { data->
-                    File(localDirectory, it.name).outputStream().use { out ->
-                        out.write(data)
-                    }
-                    doneCounter.incr()
-                })
+                job.get(it.id)
+                    .onResponse { data ->
+                        File(localDirectory, it.name).outputStream().use { out ->
+                            out.write(data)
+                        }
+                        doneCounter.incr()
+                    }.queue()
             }
         }
         localFiles.forEach { name ->
             if ( remoteFiles.firstOrNull{ it.name == name } == null ) {
-                job.uploadFile(
-                    File(localDirectory, name),
-                    "image/heic",
-                    folderId,
-                    onResponse = { doneCounter.incr() }
-                )
+                job.uploadFile(File(localDirectory, name), "image/heic", folderId)
+                    .onResponse { doneCounter.incr() }
+                    .queue()
             }
         }
         localChildren.forEach {
@@ -74,15 +72,12 @@ private class Node(
     ) {
         if (folderId == null) {
             require(parentFolderId != null) { "parentFolderId required to createFolder." }
-            job.createFolder(
-                localName,
-                parentFolderId,
-                onResponse = {
+            job.createFolder(localName, parentFolderId)
+                .onResponse {
                     doneCounter.incr()
                     folderId = it.id
                     diffChildren(job, doneCounter)
-                }
-            )
+                }.queue()
         } else {
             diffChildren(job, doneCounter)
         }
@@ -172,13 +167,12 @@ class SyncDrive(
     private val config = SyncConfig.get()
 
     private fun doCreateRoot(job: SyncJob, onDone: () -> Unit) {
-        job.createFolder(Constants.DRIVE_FOLDER_NAME,
-            onResponse = {
+        job.createFolder(Constants.DRIVE_FOLDER_NAME)
+            .onResponse {
                 config.folderId = it.id
                 config.save()
                 onDone()
-            }
-        )
+            }.queue()
     }
 
     private fun createRoot(
@@ -188,15 +182,16 @@ class SyncDrive(
         if (config.folderId.isEmpty()) {
             doCreateRoot(job, onDone)
         } else {
-            job.listFiles("name='${Constants.DRIVE_FOLDER_NAME}' and trashed = false", { files ->
-                val root = files.firstOrNull { it.id == config.folderId }
-                if (root == null) {
-                    Log.d(TAG, "createRoot: old root deleted, creating new root.")
-                    doCreateRoot(job, onDone)
-                } else {
-                    onDone()
-                }
-            })
+            job.listFiles("name='${Constants.DRIVE_FOLDER_NAME}' and trashed = false")
+                .onResponse { files ->
+                    val root = files.firstOrNull { it.id == config.folderId }
+                    if (root == null) {
+                        Log.d(TAG, "createRoot: old root deleted, creating new root.")
+                        doCreateRoot(job, onDone)
+                    } else {
+                        onDone()
+                    }
+                }.queue()
         }
     }
 
@@ -205,18 +200,18 @@ class SyncDrive(
             Log.d(TAG, "mergeRemoteJson: no remote backup to merge.")
             onDone()
         } else {
-            job.get(config.jsonFileId,
-                onResponse = {
+            job.get(config.jsonFileId)
+                .onResponse {
                     val text = String(it, Charsets.UTF_8)
                     app.applicationScope.launch {
                         app.importExport.importJsonText(text, reporter)
                         onDone()
                     }
-                },
-                onError = {
+                }
+                .onError {
                     Log.e(TAG, "mergeRemoteJson: failed to merge remote file.", it)
                     onDone()
-                })
+                }.queue()
         }
     }
 
@@ -228,15 +223,17 @@ class SyncDrive(
                 app.importExport.exportJson(it, reporter)
             }
             if (config.jsonFileId.isNotEmpty()) {
-                job.delete(config.jsonFileId, onResponse = {
-                    Log.d(TAG, "Deleted previous json backup.")
-                })
+                job.delete(config.jsonFileId)
+                    .onResponse {
+                        Log.d(TAG, "Deleted previous json backup.")
+                    }.queue()
             }
-            job.uploadFile(file, "application/json", config.folderId, onResponse = {
-                config.jsonFileId = it.id
-                config.save()
-                onDone()
-            })
+            job.uploadFile(file, "application/json", config.folderId)
+                .onResponse {
+                    config.jsonFileId = it.id
+                    config.save()
+                    onDone()
+                }.queue()
         }
     }
 
@@ -249,13 +246,14 @@ class SyncDrive(
     private fun syncImages(job: SyncJob) {
         reporter.update(app.getString(R.string.sync_fetching_remote_database), 0, 100)
         val local = Node.fromFile(app.basedir)
-        job.listFiles("trashed = false", {  remoteFiles ->
-            val root = local.merge(remoteFiles)
-            val totalCount = root.countOps()
-            reporter.update(app.getString(R.string.syncing_images), 0, 0)
-            val doneCounter = CounterReporter(reporter, totalCount)
-            root.diff(job, doneCounter = doneCounter)
-        })
+        job.listFiles("trashed = false")
+            .onResponse {  remoteFiles ->
+                val root = local.merge(remoteFiles)
+                val totalCount = root.countOps()
+                reporter.update(app.getString(R.string.syncing_images), 0, 0)
+                val doneCounter = CounterReporter(reporter, totalCount)
+                root.diff(job, doneCounter = doneCounter)
+            }.queue()
         // We're no longer explicitly adding requests to this job.
         job.done()
     }
