@@ -8,6 +8,7 @@ import org.json.JSONTokener
 import java.io.File
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
+import java.time.Instant
 
 class SyncConfig(
     fileName: String = "sync-config.json"
@@ -21,12 +22,15 @@ class SyncConfig(
         load()
     }
 
-    fun save() {
+    fun save(updateLastSync: Boolean = false) {
+        if (updateLastSync) {
+            lastSync = Instant.now().toEpochMilli()
+        }
         try {
             val obj = JSONObject()
             obj.put("folderId", folderId)
             obj.put("jsonFileId", jsonFileId)
-            obj.put("lastSyncDate", System.currentTimeMillis())
+            obj.put("lastSyncDate", lastSync)
             file.outputStream().use { outputStream ->
                 OutputStreamWriter(outputStream, Charsets.UTF_8).use {
                     it.write(obj.toString(2))

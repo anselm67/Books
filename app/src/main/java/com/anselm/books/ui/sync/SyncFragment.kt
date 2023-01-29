@@ -27,7 +27,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 private val SIMPLE_DATE_FORMAT by lazy {
-    val format = SimpleDateFormat("EEE, MMM d hh:mm:ss", Locale.US)
+    val format = SimpleDateFormat("EEE, MMM d HH:mm:ss", Locale.US)
     format.timeZone = TimeZone.getDefault()
     format
 }
@@ -81,7 +81,7 @@ class SyncFragment: BookFragment() {
     private fun displayStatus() {
         val config = SyncConfig.get()
         binding.idLastSyncDate.text = if (config.lastSync > 0) {
-            SIMPLE_DATE_FORMAT.format(Date(config.lastSync * 1000))
+            SIMPLE_DATE_FORMAT.format(Date(config.lastSync))
         } else {
             getString(R.string.no_sync_available)
         }

@@ -233,10 +233,10 @@ class SyncDrive(
                     syncJson(job) {
                         syncImages(job)
                     }
-                    config.save()
                 }
             }
             job.flush()
+            config.save(updateLastSync = true)
             onDone(job)
         }
         return job
