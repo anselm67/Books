@@ -12,7 +12,7 @@ import com.anselm.books.Constants
         Label::class, LabelFTS::class,
         BookLabels::class
     ],
-    version = 20,
+    version = 21,
     exportSchema = false)
 abstract class BookDatabase : RoomDatabase() {
 

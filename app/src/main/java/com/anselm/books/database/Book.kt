@@ -16,6 +16,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 object BookFields {
+    const val UID = "uid"
+    const val VERSION = "version"
     const val TITLE = "title"
     const val SUBTITLE = "subtitle"
     const val AUTHOR = "author"
@@ -45,6 +47,12 @@ private val DATE_FORMAT = SimpleDateFormat("EEE, MMM d yyy", Locale.US)
     ]
 )
 data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
+    @ColumnInfo(name = "uid")
+    var uid = ""
+
+    @ColumnInfo(name = "version")
+    var version = 0
+
     @ColumnInfo(name = "title")
     var title = ""
 
@@ -113,6 +121,8 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
     }
 
     private fun fromJson(obj: JSONObject) {
+        this.uid = obj.optString(BookFields.UID, "")
+        this.version = obj.optInt(BookFields.VERSION, 0)
         this.title = obj.optString(BookFields.TITLE, "")
         this.subtitle = obj.optString(BookFields.SUBTITLE, "")
         this.imgUrl = obj.optString(BookFields.UPLOADED_IMAGE_URL, "")
@@ -140,6 +150,8 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
 
     fun toJson(): JSONObject {
         val obj = JSONObject()
+        obj.put(BookFields.UID, uid)
+        obj.put(BookFields.VERSION, version)
         obj.put(BookFields.TITLE, title)
         obj.put(BookFields.SUBTITLE, subtitle)
         obj.put(BookFields.UPLOADED_IMAGE_URL, imgUrl)

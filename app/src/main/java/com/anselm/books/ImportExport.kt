@@ -95,7 +95,7 @@ class ImportExport(private val repository: BookRepository,
         var entry: ZipEntry? = zipInputStream.nextEntry
         var imageCount = 0
         var jsonText: String? = null
-        reporter.update(app.getString(R.string.starting_importing), 0, 0)
+        reporter.update(app.getString(R.string.importing_images), 0, 0)
         while (entry != null) {
             val file = File(basedir, entry.name)
             if (entry.name == app.imageRepository.imageDirectoryName  && entry.isDirectory) {

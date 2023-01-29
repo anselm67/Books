@@ -19,8 +19,6 @@ import okhttp3.Response
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.math.BigInteger
-import java.security.MessageDigest
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
@@ -185,22 +183,14 @@ class ImageRepository(
             val now = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
             "$now:${book.title}:${book.authors.joinToString { it.name }}"
         }
-        val md = MessageDigest.getInstance("MD5")
-        val path = BigInteger(1, md.digest(input.toByteArray()))
-            .toString(16).padStart(32, '0').uppercase()
+        val path = MD5.from(input)
         val sep = File.separator
-        return "$imageDirectoryName${sep}${path.substring(0, 2)}${sep}${dash(path)}"
+        return "$imageDirectoryName${sep}${path.substring(0, 2)}${sep}${path}"
     }
 
     private fun getFileFor(book: Book): Pair<String, File> {
         val imageFilename = getImageFilename(book)
         return Pair(imageFilename, File(basedir, imageFilename))
-    }
-
-    private fun dash(md5: String): String {
-        return "${md5.substring(0,8)}-${md5.substring(8, 12)}" +
-                "-${md5.substring(12, 16)}-${md5.substring(16, 20)}" +
-                "-${md5.substring(20)}"
     }
 
     private fun resize(bitmap:Bitmap): Bitmap {

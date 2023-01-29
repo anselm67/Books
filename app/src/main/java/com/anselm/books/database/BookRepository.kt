@@ -2,9 +2,12 @@ package com.anselm.books.database
 
 import android.util.Log
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.MD5
 import com.anselm.books.TAG
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 
 class BookRepository(
     private val dao: BookDao
@@ -158,10 +161,19 @@ class BookRepository(
         return book
     }
 
+    private fun uidAndVersion(book: Book) {
+        book.uid.ifEmpty {
+            val now = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+            book.uid = MD5.from("$now:${book.title}:${book.authors.joinToString { it.name }}")
+        }
+        book.version++
+    }
+
     /**
      * Saves - inserts or updates - keeps track of dateAdded and last modified timestamps.
      */
     private suspend fun doSave(book: Book) {
+        uidAndVersion(book)
         var bookId = book.id
         val timestamp = System.currentTimeMillis() / 1000
         if (book.id <= 0) {
