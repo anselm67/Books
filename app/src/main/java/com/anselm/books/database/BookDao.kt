@@ -25,6 +25,8 @@ interface BookDao {
             "              AND (:isbn != '' AND bt1.isbn = :isbn))) ")
     suspend fun getDuplicates(bookId: Long, title: String, authorId: Long, isbn: String): List<Book>
 
+    @Query("SELECT EXISTS (SELECT * FROM book_table WHERE uid = :uid)")
+    suspend fun uidExists(uid: String): Boolean
 
     @Update
     suspend fun update(book: Book)

@@ -26,7 +26,7 @@ class ImportExport(private val repository: BookRepository,
                    private val contentResolver: ContentResolver,
                    private val basedir: File) {
 
-    private suspend fun importJsonText(text: String, reporter: Reporter): Int {
+    suspend fun importJsonText(text: String, reporter: Reporter): Int {
         reporter.update(app.getString(R.string.importing_books), 0, 0)
         // Parses the json stream into books.
         val tok  = JSONTokener(text)
@@ -59,7 +59,7 @@ class ImportExport(private val repository: BookRepository,
                  * here, which will rename the image file properly and update the books's
                  * imageFilename accordingly.
                  */
-                repository.save(book, updateVersion = false)
+                repository.saveIfNone(book, updateVersion = false)
                 count++
                 reporter.update(count, books.length())
             } catch (e: Exception) {

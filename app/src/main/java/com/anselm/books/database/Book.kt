@@ -42,8 +42,9 @@ private val DATE_FORMAT = SimpleDateFormat("EEE, MMM d yyy", Locale.US)
 @Entity(
     tableName = "book_table",
     indices = [
-        Index(value = ["title"] ),
-        Index(value = ["date_added"])
+        Index(value = ["title", "subtitle"] ),
+        Index(value = ["date_added"]),
+        Index(value = ["uid"]),
     ]
 )
 data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
@@ -296,6 +297,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
     // The compiler warning is to be ignored here: this field is only read - and by the dao only -
     // upon inserting / saving a book to the database.
     // That is in fact what it is for.
+    @Suppress("SuspiciousVarProperty")
     @ColumnInfo(name = "author_text")
     var authorText: String = ""
         get() = getLabels(Label.Type.Authors).joinToString { it.name }

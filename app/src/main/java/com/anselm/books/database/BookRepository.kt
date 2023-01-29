@@ -216,6 +216,12 @@ class BookRepository(
         }
     }
 
+    suspend fun saveIfNone(book: Book, updateVersion: Boolean = true) {
+        if (book.uid.isEmpty() || ! dao.uidExists(book.uid)) {
+            save(book, updateVersion)
+        }
+    }
+
     /**
      * Returns the list of duplicates for the [book] not including itself.
      */

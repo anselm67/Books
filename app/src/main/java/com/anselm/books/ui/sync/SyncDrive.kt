@@ -11,7 +11,6 @@ import com.anselm.books.BooksApplication.Reporter
 import com.anselm.books.Constants
 import com.anselm.books.R
 import com.anselm.books.TAG
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -44,6 +43,7 @@ private class Node(
         check(folderId != null)
         remoteFiles.forEach {
             if ( ! localFiles.contains(it.name)) {
+                localDirectory.mkdirs()
                 job.get(it.id) { data->
                     File(localDirectory, it.name).outputStream().use { out ->
                         out.write(data)
@@ -103,6 +103,7 @@ private class Node(
                         localChild = Node(File(localDirectory, it.name), it.name)
                         localChild.folderId = it.id
                     }
+                    localChildren.add(localChild)
                     localChild.collectChildren(list)
                 } else {
                     remoteFiles.add(it)
@@ -190,21 +191,44 @@ class SyncDrive(
         }
     }
 
-    private suspend fun syncJson(job: SyncJob, onDone: () -> Unit) {
-        val file = File(app.applicationContext.cacheDir, "books.json")
-        file.deleteOnExit()
-        file.outputStream().use {
-            app.importExport.exportJson(it, reporter)
-        }
-        if (config.jsonFileId.isNotEmpty()) {
-            job.delete(config.jsonFileId) {
-                Log.d(TAG, "Deleted previous json backup.")
+    private fun mergeRemoteJson(job: SyncJob, onDone: () -> Unit) {
+        if(config.jsonFileId.isEmpty()) {
+            Log.d(TAG, "mergeRemoteJson: no remote backup to merge.")
+            onDone()
+        } else {
+            job.get(config.jsonFileId) {
+                val text = String(it, Charsets.UTF_8)
+                app.applicationScope.launch {
+                    app.importExport.importJsonText(text, reporter)
+                    onDone()
+                }
             }
         }
-        job.uploadFile(file, "application/json", config.folderId) {
-            config.jsonFileId = it.id
-            config.save()
-            onDone()
+    }
+
+    private fun uploadJson(job: SyncJob, onDone: () -> Unit) {
+        val file = File(app.applicationContext.cacheDir, "books.json")
+        file.deleteOnExit()
+        app.applicationScope.launch {
+            file.outputStream().use {
+                app.importExport.exportJson(it, reporter)
+            }
+            if (config.jsonFileId.isNotEmpty()) {
+                job.delete(config.jsonFileId) {
+                    Log.d(TAG, "Deleted previous json backup.")
+                }
+            }
+            job.uploadFile(file, "application/json", config.folderId) {
+                config.jsonFileId = it.id
+                config.save()
+                onDone()
+            }
+        }
+    }
+
+    private fun syncJson(job: SyncJob, onDone: () -> Unit) {
+        mergeRemoteJson(job) {
+            uploadJson(job, onDone)
         }
     }
 
@@ -229,10 +253,8 @@ class SyncDrive(
         job.start {
             reporter.update(app.getString(R.string.sync_checking_root_directroy), 0, 100)
             createRoot(job) {
-                app.applicationScope.launch(Dispatchers.IO) {
-                    syncJson(job) {
-                        syncImages(job)
-                    }
+                syncJson(job) {
+                    syncImages(job)
                 }
             }
             job.flush()

@@ -80,8 +80,8 @@ class SyncFragment: BookFragment() {
 
     private fun displayStatus() {
         val config = SyncConfig.get()
-        binding.idLastSyncDate.text = if (config.lastSync > 0) {
-            SIMPLE_DATE_FORMAT.format(Date(config.lastSync))
+        binding.idLastSyncDate.text = if (config.hasSynced()) {
+            SIMPLE_DATE_FORMAT.format(config.lastSync())
         } else {
             getString(R.string.no_sync_available)
         }

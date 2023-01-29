@@ -1,22 +1,19 @@
 package com.anselm.books.ui.sync
 
-import android.util.Log
+import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import com.anselm.books.BooksApplication.Companion.app
-import com.anselm.books.TAG
-import org.json.JSONObject
-import org.json.JSONTokener
-import java.io.File
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
+import com.anselm.books.Constants
 import java.time.Instant
+import java.util.*
 
 class SyncConfig(
-    fileName: String = "sync-config.json"
+    context: Context
 ) {
-    private val file = File(app.applicationContext?.filesDir, fileName)
+    private val prefs = context.getSharedPreferences(Constants.SYNC_PREFERENCES_NAME, MODE_PRIVATE)
     var folderId: String = ""
     var jsonFileId: String = ""
-    var lastSync: Long = -1
+    private var lastSyncTimestamp: Long = -1
 
     init {
         load()
@@ -24,40 +21,27 @@ class SyncConfig(
 
     fun save(updateLastSync: Boolean = false) {
         if (updateLastSync) {
-            lastSync = Instant.now().toEpochMilli()
+            lastSyncTimestamp = Instant.now().toEpochMilli()
         }
-        try {
-            val obj = JSONObject()
-            obj.put("folderId", folderId)
-            obj.put("jsonFileId", jsonFileId)
-            obj.put("lastSyncDate", lastSync)
-            file.outputStream().use { outputStream ->
-                OutputStreamWriter(outputStream, Charsets.UTF_8).use {
-                    it.write(obj.toString(2))
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to save lookup statistics from ${file.path} (ignored)", e)
-        }
+        val editor = prefs.edit()
+        editor.putString("folderId", folderId)
+        editor.putString("jsonFileId", jsonFileId)
+        editor.putLong("lastSyncInstant", lastSyncTimestamp)
+        editor.apply()
+    }
+
+    fun hasSynced(): Boolean {
+        return lastSyncTimestamp > 0
+    }
+
+    fun lastSync(): Date {
+        return Date(lastSyncTimestamp)
     }
 
     private fun load() {
-        try {
-            var obj: JSONObject
-            file.inputStream().use { inputStream ->
-                InputStreamReader(inputStream).use {
-                    obj = JSONTokener(it.readText()).nextValue() as JSONObject
-                }
-            }
-            folderId = obj.optString("folderId")
-            jsonFileId = obj.optString("jsonFileId")
-            lastSync = obj.getLong("lastSyncDate")
-        } catch (e: Exception) {
-            // By deleting the file we make sure it'll get recreated properly next time around.
-            Log.e(TAG, "Failed to load lookup statistics from ${file.path} (ignored)", e)
-            file.delete()
-            save()
-        }
+        folderId = prefs.getString("folderId", "")!!
+        jsonFileId = prefs.getString("jsonFileId", "")!!
+        lastSyncTimestamp = prefs.getLong("lastSyncInstant", 0L)
     }
 
     companion object {
@@ -66,7 +50,7 @@ class SyncConfig(
         @Synchronized
         fun get(): SyncConfig {
             if (config == null) {
-                config = SyncConfig()
+                config = SyncConfig(app.applicationContext)
             }
             return config!!
         }
