@@ -161,19 +161,21 @@ class BookRepository(
         return book
     }
 
-    private fun uidAndVersion(book: Book) {
+    private fun uidAndVersion(book: Book, updateVersion: Boolean) {
         book.uid.ifEmpty {
             val now = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
             book.uid = MD5.from("$now:${book.title}:${book.authors.joinToString { it.name }}")
         }
-        book.version++
+        if (updateVersion) {
+            book.version++
+        }
     }
 
     /**
      * Saves - inserts or updates - keeps track of dateAdded and last modified timestamps.
      */
-    private suspend fun doSave(book: Book) {
-        uidAndVersion(book)
+    private suspend fun doSave(book: Book, updateVersion: Boolean) {
+        uidAndVersion(book, updateVersion)
         var bookId = book.id
         val timestamp = System.currentTimeMillis() / 1000
         if (book.id <= 0) {
@@ -204,11 +206,12 @@ class BookRepository(
      * Saves this book and its image.
      * The work is done within the application main scope, so it doesn't get canceled as the user
      * switches fragment during save.
+     * Importing a book - for ex. - shouldn't increment its version number.
      */
-    suspend fun save(book: Book) {
+    suspend fun save(book: Book, updateVersion: Boolean = true) {
         app.imageRepository.save(book) {
             app.applicationScope.launch {
-                doSave(book)
+                doSave(book, updateVersion)
             }
         }
     }
