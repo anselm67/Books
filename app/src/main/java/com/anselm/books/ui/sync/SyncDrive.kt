@@ -44,8 +44,12 @@ private class Node(
         check(folderId != null)
         remoteFiles.forEach {
             if ( ! localFiles.contains(it.name)) {
-                Log.d(TAG, "FETCH $localName/$it")
-                doneCounter.incr()
+                job.get(it.id) { data->
+                    File(localDirectory, it.name).outputStream().use { out ->
+                        out.write(data)
+                    }
+                    doneCounter.incr()
+                }
             }
         }
         localFiles.forEach { name ->

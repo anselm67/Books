@@ -27,8 +27,7 @@ class ImageRepository(
 ) {
     // Name of the directory in which images are saved.
     // This name is the same within the exported zip, and it has to be that way.
-    val imageDirectoryName = "images"
-    val imageDirectory = File(basedir, "images")
+    val imageDirectory = File(basedir, Constants.IMAGE_FOLDER_NAME)
 
     private fun getCoverUri(imageFilename: String, imgUrl: String): Uri? {
         return if (imageFilename != "") {
@@ -185,7 +184,7 @@ class ImageRepository(
         }
         val path = MD5.from(input)
         val sep = File.separator
-        return "$imageDirectoryName${sep}${path.substring(0, 2)}${sep}${path}"
+        return "${Constants.IMAGE_FOLDER_NAME}${sep}${path.substring(0, 2)}${sep}${path}"
     }
 
     private fun getFileFor(book: Book): Pair<String, File> {

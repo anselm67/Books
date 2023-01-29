@@ -32,7 +32,7 @@ class BooksApplication : Application() {
     val applicationScope = CoroutineScope(SupervisorJob())
 
     val basedir by lazy {
-        File(applicationContext?.filesDir, "books")
+        File(applicationContext?.filesDir, Constants.LOCAL_FOLDER_NAME)
     }
 
    fun toast(resId: Int) {

@@ -98,11 +98,11 @@ class ImportExport(private val repository: BookRepository,
         reporter.update(app.getString(R.string.importing_images), 0, 0)
         while (entry != null) {
             val file = File(basedir, entry.name)
-            if (entry.name == app.imageRepository.imageDirectoryName  && entry.isDirectory) {
+            if (entry.name == Constants.IMAGE_FOLDER_NAME  && entry.isDirectory) {
                 file.mkdirs()
             } else if (entry.name == "books.json") {
                 jsonText = readText(zipInputStream)
-            } else if (entry.name.startsWith(app.imageRepository.imageDirectoryName)) {
+            } else if (entry.name.startsWith(Constants.IMAGE_FOLDER_NAME)) {
                 file.parentFile?.mkdirs()
                 withContext(Dispatchers.IO) {
                     FileOutputStream(file).use { out ->
