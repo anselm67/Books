@@ -51,7 +51,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
     var uid = ""
 
     @ColumnInfo(name = "version")
-    var version = 0
+    var version = 1
 
     @ColumnInfo(name = "title")
     var title = ""
@@ -122,7 +122,7 @@ data class Book(@PrimaryKey(autoGenerate=true) val id: Long = 0): Parcelable {
 
     private fun fromJson(obj: JSONObject) {
         this.uid = obj.optString(BookFields.UID, "")
-        this.version = obj.optInt(BookFields.VERSION, 0)
+        this.version = obj.optInt(BookFields.VERSION, 1)
         this.title = obj.optString(BookFields.TITLE, "")
         this.subtitle = obj.optString(BookFields.SUBTITLE, "")
         this.imgUrl = obj.optString(BookFields.UPLOADED_IMAGE_URL, "")
