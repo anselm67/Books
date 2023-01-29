@@ -208,17 +208,21 @@ class BookRepository(
      * switches fragment during save.
      * Importing a book - for ex. - shouldn't increment its version number.
      */
-    suspend fun save(book: Book, updateVersion: Boolean = true) {
-        app.imageRepository.save(book) {
-            app.applicationScope.launch {
-                doSave(book, updateVersion)
+    suspend fun save(book: Book, updateVersion: Boolean = true, saveImage: Boolean = true) {
+        if (saveImage) {
+            app.imageRepository.save(book) {
+                app.applicationScope.launch {
+                    doSave(book, updateVersion)
+                }
             }
+        } else {
+            doSave(book, updateVersion)
         }
     }
 
-    suspend fun saveIfNone(book: Book, updateVersion: Boolean = true) {
+    suspend fun saveIfNone(book: Book, updateVersion: Boolean = true, saveImage: Boolean = true) {
         if (book.uid.isEmpty() || ! dao.uidExists(book.uid)) {
-            save(book, updateVersion)
+            save(book, updateVersion, saveImage)
         }
     }
 

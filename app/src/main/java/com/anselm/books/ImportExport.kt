@@ -59,7 +59,7 @@ class ImportExport(private val repository: BookRepository,
                  * here, which will rename the image file properly and update the books's
                  * imageFilename accordingly.
                  */
-                repository.saveIfNone(book, updateVersion = false)
+                repository.saveIfNone(book, updateVersion = false, saveImage = false)
                 count++
                 reporter.update(count, books.length())
             } catch (e: Exception) {
@@ -93,15 +93,16 @@ class ImportExport(private val repository: BookRepository,
         reporter: Reporter,
     ): Pair<Int, Int> {
         var entry: ZipEntry? = zipInputStream.nextEntry
+        var bookCount = 0
         var imageCount = 0
-        var jsonText: String? = null
         reporter.update(app.getString(R.string.importing_images), 0, 0)
         while (entry != null) {
             val file = File(basedir, entry.name)
             if (entry.name == Constants.IMAGE_FOLDER_NAME  && entry.isDirectory) {
                 file.mkdirs()
             } else if (entry.name == "books.json") {
-                jsonText = readText(zipInputStream)
+                val jsonText = readText(zipInputStream)
+                bookCount = importJsonText(jsonText, reporter)
             } else if (entry.name.startsWith(Constants.IMAGE_FOLDER_NAME)) {
                 file.parentFile?.mkdirs()
                 withContext(Dispatchers.IO) {
@@ -119,7 +120,6 @@ class ImportExport(private val repository: BookRepository,
             entry = zipInputStream.nextEntry
             reporter.update(imageCount, entryCount)
         }
-        val bookCount = importJsonText(jsonText ?: "", reporter)
         return Pair(bookCount, imageCount)
     }
 
