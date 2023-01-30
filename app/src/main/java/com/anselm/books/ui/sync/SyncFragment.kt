@@ -23,6 +23,7 @@ import com.anselm.books.databinding.FragmentSyncBinding
 import com.anselm.books.ui.widgets.BookFragment
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -167,7 +168,7 @@ class SyncFragment: BookFragment() {
         ) { job?.cancel() }
         binding.idSyncButton.isEnabled = false
         // Proceeds. With care cause we might noo longer be in this fragment when the job completes.
-        job = SyncDrive(authToken, reporter!!).sync { finishedJob ->
+        job = SyncDrive(authToken, reporter!!).sync { finishedJob, syncFailed ->
             reporter?.close()
             // We want to help GC a bit by nullifying job and progressReporter.
             val isCancelled = finishedJob.isCancelled
@@ -176,8 +177,14 @@ class SyncFragment: BookFragment() {
             app.postOnUiThread {
                 if (isCancelled) {
                     app.toast(app.getString(R.string.sync_cancelled))
+                } else if (syncFailed) {
+                    app.toast(app.getString(R.string.sync_failed))
                 } else {
                     app.toast(app.getString(R.string.sync_success))
+                }
+                app.applicationScope.launch {
+                    val totalCount = app.repository.getTotalCount()
+                    app.title = getString(R.string.book_count, totalCount)
                 }
                 if ( ! this@SyncFragment.isDetached && _binding != null) {
                     syncDone()

@@ -12,7 +12,6 @@ class SyncConfig(
 ) {
     private val prefs = context.getSharedPreferences(Constants.SYNC_PREFERENCES_NAME, MODE_PRIVATE)
     var folderId: String = ""
-    var jsonFileId: String = ""
     private var lastSyncTimestamp: Long = -1
 
     init {
@@ -25,7 +24,6 @@ class SyncConfig(
         }
         val editor = prefs.edit()
         editor.putString("folderId", folderId)
-        editor.putString("jsonFileId", jsonFileId)
         editor.putLong("lastSyncInstant", lastSyncTimestamp)
         editor.apply()
     }
@@ -40,7 +38,6 @@ class SyncConfig(
 
     private fun load() {
         folderId = prefs.getString("folderId", "")!!
-        jsonFileId = prefs.getString("jsonFileId", "")!!
         lastSyncTimestamp = prefs.getLong("lastSyncInstant", 0L)
     }
 

@@ -195,52 +195,78 @@ class SyncDrive(
         }
     }
 
-    private fun mergeRemoteJson(job: SyncJob, onDone: () -> Unit) {
-        if(config.jsonFileId.isEmpty()) {
-            Log.d(TAG, "mergeRemoteJson: no remote backup to merge.")
-            onDone()
-        } else {
-            job.get(config.jsonFileId)
-                .onResponse {
-                    val text = String(it, Charsets.UTF_8)
-                    app.applicationScope.launch {
-                        app.importExport.importJsonText(text, reporter)
-                        onDone()
-                    }
+    private fun mergeRemoteJson(
+        job: SyncJob,
+        onDone: (jsonFileId: String?) -> Unit,
+        onError: (Exception) -> Unit,
+    ) {
+        job.listFiles("name='books.json' and trashed = false")
+            .onResponse { files ->
+                if (files.isEmpty()) {
+                    onDone(null)
+                } else if (files.size > 1) {
+                    Log.d(TAG, "Found ${files.size} remote json files, deleting them.")
+                    files.forEach { job.delete(it.id).queue() }
+                    onDone(null)
+                } else {
+                    job.get(files[0].id)
+                        .onResponse { bytes ->
+                            val text = String(bytes, Charsets.UTF_8)
+                            app.applicationScope.launch {
+                                app.importExport.importJsonText(text, reporter)
+                                onDone(files[0].id)
+                            }
+                        }
+                        .onError {
+                            Log.e(TAG, "mergeRemoteJson: failed to merge remote file.", it)
+                            onError(it)
+                        }.queue()
                 }
-                .onError {
-                    Log.e(TAG, "mergeRemoteJson: failed to merge remote file.", it)
-                    onDone()
-                }.queue()
-        }
+            }
+            .onError {
+                Log.e(TAG, "mergeRemoteJson: failed to list for json.books (ignored).", it)
+                onError(it)
+            }.queue()
     }
 
-    private fun uploadJson(job: SyncJob, onDone: () -> Unit) {
+    private fun uploadJson(job: SyncJob, jsonFileId: String?, onDone: () -> Unit) {
         val file = File(app.applicationContext.cacheDir, "books.json")
         file.deleteOnExit()
         app.applicationScope.launch {
             file.outputStream().use {
                 app.importExport.exportJson(it, reporter)
             }
-            if (config.jsonFileId.isNotEmpty()) {
-                job.delete(config.jsonFileId)
+            if (jsonFileId != null) {
+                job.updateFile(jsonFileId, MimeType.APPLICATION_JSON, file)
+                    .onResponse{
+                        Log.d(TAG, "updateJson: books.json uploaded, id: $jsonFileId")
+                        onDone()
+                    }
+                    .onError{
+                        Log.e(TAG, "uploadJson: failed, ignored.", it)
+                        onDone()
+                    }.queue()
+            } else {
+                job.uploadFile(file, "application/json", config.folderId)
                     .onResponse {
-                        Log.d(TAG, "Deleted previous json backup.")
+                        Log.d(TAG, "uploadJson: json.books created, id: ${it.id}")
+                        onDone()
+                    }
+                    .onError {
+                        Log.e(TAG, "uploadJson: failed, ignored.", it)
+                        onDone()
                     }.queue()
             }
-            job.uploadFile(file, "application/json", config.folderId)
-                .onResponse {
-                    config.jsonFileId = it.id
-                    config.save()
-                    onDone()
-                }.queue()
         }
     }
 
-    private fun syncJson(job: SyncJob, onDone: () -> Unit) {
-        mergeRemoteJson(job) {
-            uploadJson(job, onDone)
-        }
+    private fun syncJson(job: SyncJob, onDone: () -> Unit, onError: (Exception) -> Unit) {
+        mergeRemoteJson(job, onDone = { jsonFileId ->
+            uploadJson(job, jsonFileId, onDone)
+        }, onError = {
+            Log.d(TAG, "mergeRemoteJson failed, not uploading new books.json version.")
+            onError(it)
+        })
     }
 
     private fun syncImages(job: SyncJob) {
@@ -259,19 +285,22 @@ class SyncDrive(
     }
 
     fun sync(
-        onDone: (SyncJob) -> Unit,
+        onDone: (SyncJob, syncFailed: Boolean) -> Unit,
     ): SyncJob {
         val job = SyncJob(authToken)
+        var syncFailed = false
         job.start {
             reporter.update(app.getString(R.string.sync_checking_root_directroy), 0, 100)
             createRoot(job) {
-                syncJson(job) {
-                    syncImages(job)
-                }
+                syncJson(
+                    job,
+                    onDone = { syncImages(job) },
+                    onError = { syncFailed = true }
+                )
             }
             job.flush()
             config.save(updateLastSync = true)
-            onDone(job)
+            onDone(job, syncFailed)
         }
         return job
     }

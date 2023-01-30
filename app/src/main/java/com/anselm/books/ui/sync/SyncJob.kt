@@ -6,6 +6,7 @@ import com.anselm.books.TAG
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.Request
@@ -60,23 +61,31 @@ class SyncJob(
         return JsonCallback(req) { obj -> GoogleFile.fromJson(obj) }
     }
 
+    fun updateFile(fileId: String, mimeType: MediaType, content: File): SyncCallback<GoogleFile> {
+        Log.d(TAG, "updateFile: ${content.name} type: $mimeType.")
+        val url = "https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media"
+        val req = builder()
+            .url(url)
+            .method("PATCH", content.asRequestBody(mimeType))
+            .build()
+        return JsonCallback(req) { obj -> GoogleFile.fromJson(obj) }
+    }
+
     fun uploadFile(
-        file: File,
+        content: File,
         mimeType: String,
         folderId: String? = null,
     ): SyncCallback<GoogleFile> {
-        Log.d(TAG, "uploadFile: ${file.name} type: $mimeType.")
-        val url = "https://www.googleapis.com/upload/drive/v3/files".toHttpUrlOrNull()!!.newBuilder()
-            .addQueryParameter("uploadType", "multipart")
-        val metadata = GoogleFile("", file.name, mimeType, folderId).toJson().toString()
+        Log.d(TAG, "uploadFile: ${content.name} type: $mimeType.")
+        val url = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart"
+        val metadata = GoogleFile("", content.name, mimeType, folderId).toJson().toString()
         val multipartBody = MultipartBody.Builder()
             .setType(MimeType.MULTIPART_RELATED)
             .addPart(metadata.toRequestBody(MimeType.APPLICATION_JSON))
-            .addPart(file.asRequestBody(mimeType.toMediaType()))
+            .addPart(content.asRequestBody(mimeType.toMediaType()))
             .build()
         val req = builder()
-            .url(url.build())
-            .header("Content-Length", multipartBody.contentLength().toString())
+            .url(url)
             .post(multipartBody)
             .build()
         return JsonCallback(req) { obj -> GoogleFile.fromJson(obj) }
