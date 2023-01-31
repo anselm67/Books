@@ -204,7 +204,7 @@ class BooksApplication : Application() {
                         it.cancelButton.isVisible = false
                     } else {
                         it.cancelButton.isVisible = true
-                        it.cancelButton.setOnClickListener { onCancel?.invoke() }
+                        it.cancelButton.setOnClickListener { onCancel.invoke() }
                     }
                     doUpdate(text)
                 }

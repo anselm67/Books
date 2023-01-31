@@ -57,7 +57,7 @@ class LookupService {
     }
 
     fun stats(key: String): Triple<Int, Int, Int> {
-        val client = clients.firstOrNull() { it.preferenceKey == key }
+        val client = clients.firstOrNull { it.preferenceKey == key }
         return Triple(client?.lookupCount ?: 0, client?.matchCount ?: 0, client?.coverCount ?: 0)
     }
 

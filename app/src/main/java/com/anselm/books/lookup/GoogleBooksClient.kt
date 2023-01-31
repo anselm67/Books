@@ -18,7 +18,7 @@ class GoogleBooksClient: JsonClient() {
         return if (ids == null) {
             ""
         } else {
-            arrayToList<JSONObject>(ids).firstOrNull() {
+            arrayToList<JSONObject>(ids).firstOrNull {
                 it.optString("type") == "ISBN_13"
             }?.optString("identifier") ?: ""
         }
