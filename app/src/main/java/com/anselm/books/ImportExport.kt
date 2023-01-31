@@ -118,7 +118,7 @@ class ImportExport(private val repository: BookRepository,
                 Log.d(TAG, "Unexpected entry ${entry.name}, ignored.")
             }
             entry = zipInputStream.nextEntry
-            reporter.update(imageCount, entryCount)
+            reporter.update(app.getString(R.string.importing_images), imageCount, entryCount)
         }
         return Pair(bookCount, imageCount)
     }
