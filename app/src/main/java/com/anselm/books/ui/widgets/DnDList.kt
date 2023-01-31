@@ -23,7 +23,7 @@ private class LabelArrayAdapter(
 
         fun bind(label: Label) {
             binding.labelView.text = label.name
-            binding.idDelete.setOnClickListener { _ ->
+            binding.idDelete.setOnClickListener {
                 this@LabelArrayAdapter.delete(this.bindingAdapterPosition)
             }
         }

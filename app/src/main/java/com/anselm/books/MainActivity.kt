@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
 
         // We're up and running: enable the progress bar, and set the title.
         app.enableProgressBar(
-            findViewById(R.id.idProgressRuler),
+            findViewById(R.id.idProgressReporter),
             findViewById(R.id.idProgressText),
             findViewById(R.id.idProgressBar),
             findViewById(R.id.idCancelButton),

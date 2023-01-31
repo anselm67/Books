@@ -101,7 +101,7 @@ class BarcodeAnalyzer(
     private var scaleY:Float = 1.0F
 
     private fun scale(x: Int, y: Int): Pair<Int, Int> {
-        return Pair((x * scaleX).roundToInt(), (y * scaleY).roundToInt(), )
+        return Pair((x * scaleX).roundToInt(), (y * scaleY).roundToInt())
     }
 
     @SuppressLint("SwitchIntDef")

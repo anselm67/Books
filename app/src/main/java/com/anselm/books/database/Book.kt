@@ -17,7 +17,6 @@ import java.util.*
 
 object BookFields {
     const val UID = "uid"
-    const val VERSION = "version"
     const val TITLE = "title"
     const val SUBTITLE = "subtitle"
     const val AUTHOR = "author"

@@ -21,7 +21,7 @@ class CleanUpLabelItemTouchHelper(
     private val fragment: CleanUpLabelFragment,
 ) :  TrashItemTouchHelper(UP or DOWN or START or END, RIGHT or LEFT) {
     var target: RecyclerView.ViewHolder? = null
-    var moving: RecyclerView.ViewHolder? = null
+    private var moving: RecyclerView.ViewHolder? = null
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
         fragment.promptForDelete(viewHolder.bindingAdapterPosition)

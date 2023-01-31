@@ -48,7 +48,7 @@ class CoverImageEditor<T>(
     private var editCoverImgUrl: String? = null
 
     // http://sylvana.net/jpegcrop/exif_orientation.html
-    private val exifAngles = mapOf<Int, Float>(
+    private val exifAngles = mapOf(
         1 to 0F,
         2 to 0F,
         3 to 180F,

@@ -153,19 +153,19 @@ class BooksApplication : Application() {
     }
 
     private data class Progress(
-        val ruler: View,
+        val reporterView: View,
         val text: TextView,
         val progress: ProgressBar,
         val cancelButton: ImageButton,
     )
     private var progress: Progress? = null
     fun enableProgressBar(
-        rules: View,
+        reporterView: View,
         text: TextView,
         progressBar: ProgressBar,
         cancelButton: ImageButton
     ) {
-        progress = Progress(rules, text, progressBar, cancelButton)
+        progress = Progress(reporterView, text, progressBar, cancelButton)
         progressVisibility(false)
         reporters.getOrNull(0)?.activate()
     }
@@ -177,13 +177,15 @@ class BooksApplication : Application() {
     private fun progressVisibility(onOff: Boolean) {
         postOnUiThread {
             progress?.let {
+                it.reporterView.isVisible = onOff
+                /*
                 it.ruler.isVisible = onOff
                 it.text.isVisible = onOff
                 it.progress.isVisible = onOff
                 it.cancelButton.isVisible = onOff       // Turned on via loadingDialog
                 if (!onOff) {
                     it.text.text = ""
-                }
+                } */
             }
         }
     }
@@ -201,9 +203,9 @@ class BooksApplication : Application() {
                 progress?.let { it ->
                     it.progress.isIndeterminate = isIndeterminate
                     if (onCancel == null) {
-                        it.cancelButton.isVisible = false
+                        it.cancelButton.visibility = View.INVISIBLE
                     } else {
-                        it.cancelButton.isVisible = true
+                        it.cancelButton.visibility = View.VISIBLE
                         it.cancelButton.setOnClickListener { onCancel.invoke() }
                     }
                     doUpdate(text)

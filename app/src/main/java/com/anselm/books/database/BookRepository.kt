@@ -55,13 +55,13 @@ class BookRepository(
         )
         val count = if ( query.query.isNullOrEmpty() ) {
             dao.getFilteredPagedListCount(
-                query.filters.map { it -> it.labelId },
+                query.filters.map { it.labelId },
                 query.withoutLabelOfType,
             )
         } else /* Requests text matching. */ {
             dao.getTitlePagedListCount(
                 if (query.partial) query.query!! + '*' else query.query!!,
-                query.filters.map { it -> it.labelId },
+                query.filters.map { it.labelId },
                 query.withoutLabelOfType,
             )
         }
@@ -72,13 +72,13 @@ class BookRepository(
         when (query.type) {
             Query.Type.Regular -> return if (query.query.isNullOrEmpty()) {
                     dao.getFilteredIdsList(
-                        query.filters.map { it -> it.labelId },
+                        query.filters.map { it.labelId },
                         query.withoutLabelOfType, query.sortBy,
                     )
                 } else /* Requests text matching. */ {
                     dao.getTitleIdsList(
                         if (query.partial) query.query!! + '*' else query.query!!,
-                        query.filters.map { it -> it.labelId },
+                        query.filters.map { it.labelId },
                         query.withoutLabelOfType, query.sortBy,
                     )
                 }
@@ -161,21 +161,18 @@ class BookRepository(
         return book
     }
 
-    private fun uidAndVersion(book: Book, updateVersion: Boolean) {
+    private fun uidAndVersion(book: Book) {
         book.uid.ifEmpty {
             val now = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
             book.uid = MD5.from("$now:${book.title}:${book.authors.joinToString { it.name }}")
-        }
-        if (updateVersion) {
-            book.version++
         }
     }
 
     /**
      * Saves - inserts or updates - keeps track of dateAdded and last modified timestamps.
      */
-    private suspend fun doSave(book: Book, updateVersion: Boolean) {
-        uidAndVersion(book, updateVersion)
+    private suspend fun doSave(book: Book) {
+        uidAndVersion(book)
         var bookId = book.id
         val timestamp = System.currentTimeMillis() / 1000
         if (book.id <= 0) {
@@ -208,21 +205,21 @@ class BookRepository(
      * switches fragment during save.
      * Importing a book - for ex. - shouldn't increment its version number.
      */
-    suspend fun save(book: Book, updateVersion: Boolean = true, saveImage: Boolean = true) {
+    suspend fun save(book: Book, saveImage: Boolean = true) {
         if (saveImage) {
             app.imageRepository.save(book) {
                 app.applicationScope.launch {
-                    doSave(book, updateVersion)
+                    doSave(book)
                 }
             }
         } else {
-            doSave(book, updateVersion)
+            doSave(book)
         }
     }
 
-    suspend fun saveIfNone(book: Book, updateVersion: Boolean = true, saveImage: Boolean = true) {
+    suspend fun saveIfNone(book: Book, saveImage: Boolean = true) {
         if (book.uid.isEmpty() || ! dao.uidExists(book.uid)) {
-            save(book, updateVersion, saveImage)
+            save(book, saveImage)
         }
     }
 

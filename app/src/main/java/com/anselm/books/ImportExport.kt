@@ -59,7 +59,7 @@ class ImportExport(private val repository: BookRepository,
                  * here, which will rename the image file properly and update the books's
                  * imageFilename accordingly.
                  */
-                repository.saveIfNone(book, updateVersion = false, saveImage = false)
+                repository.saveIfNone(book, saveImage = false)
                 count++
                 reporter.update(count, books.length())
             } catch (e: Exception) {

@@ -1,20 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="serviceIdentifiers">
-        <item>Google</item>
-        <item>OpenLibrary</item>
-        <item>Worldcat</item>
-        <item>iTunes</item>
-        <item>Both</item>
-    </string-array>
-    <string-array name="serviceNames">
-        <item>Google Books</item>
-        <item>Open Library</item>
-        <item>Worldcat</item>
-        <item>iTunes</item>
-        <item>Merge GoogleBooks and OpenLibrary</item>
-    </string-array>
-
     <string-array name="sortOrderIdentifiers">
         <item>LastAdded</item>
         <item>Alphabetical</item>

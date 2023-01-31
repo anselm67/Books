@@ -9,8 +9,8 @@ class ISBN {
 
         private fun checksum(s12: String): Char {
             check(s12.length == 12) { "Argument string should have exactly 12 characters." }
-            val sum1 = arrayListOf(0, 2, 4, 6, 8, 10).sumOf { it -> digit(s12[it]) }
-            val sum2 = 3 * arrayListOf(1, 3, 5, 7, 9, 11).sumOf { it -> digit(s12[it]) }
+            val sum1 = arrayListOf(0, 2, 4, 6, 8, 10).sumOf { digit(s12[it]) }
+            val sum2 = 3 * arrayListOf(1, 3, 5, 7, 9, 11).sumOf { digit(s12[it]) }
             val checksum = (sum1 + sum2) % 10
             return if (checksum == 0) '0' else ('0' + 10 - checksum)
         }

@@ -141,7 +141,7 @@ class CleanUpFragment: BookFragment() {
         }
     }
 
-    private fun header( inflater: LayoutInflater, container: ViewGroup, title: String,): View {
+    private fun header( inflater: LayoutInflater, container: ViewGroup, title: String): View {
         val header = CleanupHeaderLayoutBinding.inflate(inflater, container, false)
         header.idHeader.text = title
         return header.root
