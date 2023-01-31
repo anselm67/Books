@@ -1,5 +1,6 @@
 package com.anselm.books.ui.settings
 
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -24,20 +25,35 @@ import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import com.anselm.books.BooksApplication
 import com.anselm.books.BooksApplication.Companion.app
+import com.anselm.books.BooksPreferences
 import com.anselm.books.R
 import com.anselm.books.TAG
 import kotlinx.coroutines.launch
 
 class SettingsFragment : PreferenceFragmentCompat() {
+    private var preferenceListener: OnSharedPreferenceChangeListener? =
+        OnSharedPreferenceChangeListener { _, key ->
+            if (key == BooksPreferences.OCLC_KEY) {
+                updateUseWorldcat()
+            }
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         val root = super.onCreateView(inflater, container, savedInstanceState)
+        app.prefs.registerOnSharedPreferenceChangeListener(preferenceListener)
         handleMenu(requireActivity())
 
         return root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        app.prefs.unregisterOnSharedPreferenceChangeListener(preferenceListener)
+        preferenceListener = null
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -164,12 +180,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private fun setupLastLocation() {
         // Handles the "last location" preference using the hidden "lookup_use_last_location_value"
         // preference.
-        val locationCheckBox = findPreference<CheckBoxPreference>("lookup_use_last_location")!!
-        val locationValue = findPreference<EditTextPreference>("lookup_use_last_location_value")!!
+        val locationCheckBox = findPreference<CheckBoxPreference>(BooksPreferences.USE_LAST_LOCATION)!!
+        val locationValue = findPreference<EditTextPreference>(BooksPreferences.USE_LAST_LOCATION_VALUE)!!
         findPreference<PreferenceCategory>("preferences_import_options")
             ?.removePreference(locationValue)
         val prefs = preferenceManager.sharedPreferences
-        if (prefs?.getBoolean("lookup_use_last_location", true) == true) {
+        if (prefs?.getBoolean(BooksPreferences.USE_LAST_LOCATION, true) == true) {
             locationCheckBox.summary = locationValue.text
         } else {
             locationCheckBox.summary = ""
@@ -207,6 +223,23 @@ class SettingsFragment : PreferenceFragmentCompat() {
             true
         }
         displayLookupServiceStats()
+        updateUseWorldcat()
+    }
+
+    private fun updateUseWorldcat() {
+        val summary = app.getString(R.string.worldcat_requires_wskey)
+        val wskey = app.prefs.getString(BooksPreferences.OCLC_KEY, "")
+        val useWorldcat = findPreference<CheckBoxPreference>(BooksPreferences.USE_WORLDCAT)!!
+        if (wskey == null || wskey.isEmpty()) {
+            useWorldcat.isEnabled = false
+            useWorldcat.summary = summary
+        } else {
+            useWorldcat.isEnabled = true
+            if (useWorldcat.summary == summary) {
+                useWorldcat.summary = ""
+            }
+        }
+
     }
 }
 

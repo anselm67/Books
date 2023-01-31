@@ -16,7 +16,7 @@ class LastLocationPreference(
     private var preferenceListener: OnSharedPreferenceChangeListener
 
     init {
-        isEnabled = app.prefs.getBoolean("lookup_use_last_location", true)
+        isEnabled = app.prefs.getBoolean(BooksPreferences.USE_LAST_LOCATION, true)
         if (isEnabled) {
             getLastLocation()
         }
@@ -26,15 +26,15 @@ class LastLocationPreference(
                 prefs: SharedPreferences?,
                 key: String?
             ) {
-                if (prefs == null || key != "lookup_use_last_location") {
+                if (prefs == null || key != BooksPreferences.USE_LAST_LOCATION) {
                     return
                 }
-                val newValue = prefs.getBoolean("lookup_use_last_location", true)
+                val newValue = prefs.getBoolean(BooksPreferences.USE_LAST_LOCATION, true)
                 if (newValue != isEnabled) {
                     lastLocation = null
                 }
                 val editor = prefs.edit()
-                editor.putString("lookup_use_last_location_value", "")
+                editor.putString(BooksPreferences.USE_LAST_LOCATION_VALUE, "")
                 editor.apply()
                 isEnabled = newValue
             }
@@ -64,13 +64,13 @@ class LastLocationPreference(
         }
         lastLocation = book.location
         val editor = app.prefs.edit()
-        editor.putString("lookup_use_last_location_value", lastLocation!!.name)
+        editor.putString(BooksPreferences.USE_LAST_LOCATION_VALUE, lastLocation!!.name)
         editor.apply()
     }
 
     fun getLastLocation(): Label? {
         if (lastLocation == null) {
-            val locationName = app.prefs.getString("lookup_use_last_location_value", "")!!
+            val locationName = app.prefs.getString(BooksPreferences.USE_LAST_LOCATION_VALUE, "")!!
             if ( locationName.isNotEmpty()) {
                 lastLocation = repository.labelB(Label.Type.Location, locationName)
             }

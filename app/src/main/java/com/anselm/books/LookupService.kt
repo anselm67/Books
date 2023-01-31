@@ -33,14 +33,20 @@ class LookupService {
     private val prefs by lazy {
         app.bookPrefs
     }
-    private val clients = listOf(
-        LookupServiceClient("use_google", prefs::useGoogle.getter, GoogleBooksClient()),
-        LookupServiceClient("use_bnf", prefs::useBNF.getter, BnfClient()),
-        LookupServiceClient("use_worldcat", prefs::useWorldcat.getter, OclcClient()),
-        LookupServiceClient("use_itunes", prefs::useiTunes.getter, iTuneClient()),
-        LookupServiceClient("use_amazon", prefs::useAmazon.getter, AmazonImageClient()),
-        LookupServiceClient("use_open_library", prefs::useOpenLibrary.getter, OpenLibraryClient()),
-    )
+    private val clients = with(BooksPreferences) {
+        listOf(
+            LookupServiceClient(USE_GOOGLE, prefs::useGoogle.getter, GoogleBooksClient()),
+            LookupServiceClient(USE_BNF, prefs::useBNF.getter, BnfClient()),
+            LookupServiceClient(USE_WORLDCAT, prefs::useWorldcat.getter, OclcClient()),
+            LookupServiceClient(USE_ITUNES, prefs::useiTunes.getter, iTuneClient()),
+            LookupServiceClient(USE_AMAZON, prefs::useAmazon.getter, AmazonImageClient()),
+            LookupServiceClient(
+                USE_OPEN_LIBRARY,
+                prefs::useOpenLibrary.getter,
+                OpenLibraryClient()
+            ),
+        )
+    }
 
     init {
         loadStats()

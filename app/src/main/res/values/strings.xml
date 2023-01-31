@@ -177,5 +177,6 @@
     <string name="syncing_images">Syncing images…</string>
     <string name="collecting_unused_images">Garbage collecting unused images…</string>
     <string name="cleanup_task_already_running">A cleanup task is running, try later.</string>
+    <string name="worldcat_requires_wskey">A WSKEY is required for Worldcat.</string>
 
 </resources>

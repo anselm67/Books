@@ -14,7 +14,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
-import com.anselm.books.database.BookDao
 import com.anselm.books.database.BookDatabase
 import com.anselm.books.database.BookRepository
 import kotlinx.coroutines.CoroutineScope
@@ -62,13 +61,7 @@ class BooksApplication : Application() {
         BooksPreferences(prefs)
     }
 
-    val defaultSortOrder: Int get() {
-        return when (prefs.getString("sort_order", "DateAdded")) {
-            "DateAdded" -> BookDao.SortByDateAdded
-            "Alphabetical" -> BookDao.SortByTitle
-            else -> BookDao.SortByDateAdded
-        }
-    }
+    val defaultSortOrder: Int get() = bookPrefs.sortOrder
 
     val database by lazy {
         BookDatabase.getDatabase(this)
