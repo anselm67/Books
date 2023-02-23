@@ -186,16 +186,18 @@ class ScanFragment: BookFragment() {
     }
 
     private fun updateLookupStats(stats: LookupStats, updateSaveButton: Boolean = true) {
-        // Updates the display of the stats.
+        // Updates the display of the stats, when the fragment is still alive.
         viewModel.stats = stats
-        binding.idMessageText.text = app.getString(
-            R.string.scan_stat_message,
-            stats.lookupCount.get(),
-            stats.matchCount.get(),
-            stats.noMatchCount.get(),
-        )
-        if (updateSaveButton && adapter.itemCount == 0) {
-            saveSaysDone()
+        if (_binding != null) {
+            binding.idMessageText.text = app.getString(
+                R.string.scan_stat_message,
+                stats.lookupCount.get(),
+                stats.matchCount.get(),
+                stats.noMatchCount.get(),
+            )
+            if (updateSaveButton && adapter.itemCount == 0) {
+                saveSaysDone()
+            }
         }
     }
 
