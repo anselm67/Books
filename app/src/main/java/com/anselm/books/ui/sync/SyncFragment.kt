@@ -61,7 +61,7 @@ class SyncFragment: BookFragment() {
         if (viewModel.account == null) {
             silentSignIn()
         } else {
-            bindWithoutAccount()
+            bindWithAccount()
         }
 
         binding.idLogoutButton.setOnClickListener {
@@ -80,17 +80,13 @@ class SyncFragment: BookFragment() {
     }
 
     private fun displayStatus() {
+        binding.idSyncButton.isEnabled = ! viewModel.inSync
         val config = SyncConfig.get()
         binding.idLastSyncDate.text = if (config.hasSynced()) {
             SIMPLE_DATE_FORMAT.format(config.lastSync())
         } else {
             getString(R.string.no_sync_available)
         }
-    }
-
-    private fun syncDone() {
-        binding.idSyncButton.isEnabled = true
-        displayStatus()
     }
 
     private fun bindWithAccount() {
@@ -168,12 +164,20 @@ class SyncFragment: BookFragment() {
         ) { job?.cancel() }
         binding.idSyncButton.isEnabled = false
         // Proceeds. With care cause we might noo longer be in this fragment when the job completes.
+        viewModel.inSync = true
         job = SyncDrive(authToken, reporter!!).sync { finishedJob, syncFailed ->
+            viewModel.inSync = false
             reporter?.close()
             // We want to help GC a bit by nullifying job and progressReporter.
             val isCancelled = finishedJob.isCancelled
             job = null
             reporter = null
+            app.applicationScope.launch {
+                val totalCount = app.repository.getTotalCount()
+                app.postOnUiThread {
+                    app.title = app.getString(R.string.book_count, totalCount)
+                }
+            }
             app.postOnUiThread {
                 if (isCancelled) {
                     app.toast(app.getString(R.string.sync_cancelled))
@@ -182,12 +186,8 @@ class SyncFragment: BookFragment() {
                 } else {
                     app.toast(app.getString(R.string.sync_success))
                 }
-                app.applicationScope.launch {
-                    val totalCount = app.repository.getTotalCount()
-                    app.title = getString(R.string.book_count, totalCount)
-                }
                 if ( ! this@SyncFragment.isDetached && _binding != null) {
-                    syncDone()
+                    displayStatus()
                 }
             }
         }
