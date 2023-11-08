@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace 'com.anselm.books'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.anselm.books"
@@ -49,11 +49,11 @@ dependencies {
     implementation "androidx.room:room-ktx:$rootProject.roomVersion"
     implementation "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
     implementation "androidx.navigation:navigation-ui-ktx:$navigationVersion"
-    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.heifwriter:heifwriter:1.0.0'
 
     kapt "androidx.room:room-compiler:$rootProject.roomVersion"
-    implementation "androidx.paging:paging-runtime-ktx:3.1.1"
+    implementation 'androidx.paging:paging-runtime-ktx:3.2.1'
 
     androidTestImplementation "androidx.room:room-testing:$rootProject.roomVersion"
 
@@ -94,7 +94,7 @@ dependencies {
     implementation "androidx.camera:camera-extensions:${camerax_version}"
 
     // Barcode scanning with mlkit, including the model.
-    implementation 'com.google.mlkit:barcode-scanning:17.0.3'
+    implementation 'com.google.mlkit:barcode-scanning:17.2.0'
 
     // Google drive logging in.
     implementation "com.google.android.gms:play-services-auth:$play_services_drive"
