@@ -39,6 +39,7 @@ class SyncFragment: BookFragment() {
     private val viewModel: SyncViewModel by viewModels()
     private val signInClient by lazy {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
             .requestProfile()
             .build()
         GoogleSignIn.getClient(requireActivity(), gso)

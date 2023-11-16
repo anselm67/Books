@@ -28,9 +28,9 @@ class OverlayView(
             strokeWidth = 10.0F
         }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        canvas?.let{ rects.forEach { (rect, paint) -> it.drawRect(rect, paint) } }
+        rects.forEach { (rect, paint) -> canvas.drawRect(rect, paint) }
     }
 
     fun drawRect(rect: Rect, known: Boolean) {

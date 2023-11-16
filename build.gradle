@@ -1,12 +1,12 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = '1.7.20'
+    ext.kotlin_version = '1.9.0'
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.5.3"
+        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.7.5"
     }
 }
 
@@ -18,25 +18,25 @@ plugins {
 }
 
 ext {
-    activityVersion = '1.6.1'
-    appCompatVersion = '1.6.0'
+    activityVersion = '1.8.0'
+    appCompatVersion = '1.6.1'
     constraintLayoutVersion = '2.1.4'
-    coreTestingVersion = '2.1.0'
-    coroutines = '1.5.2'
-    lifecycleVersion = '2.5.1'
-    materialVersion = '1.7.0'
-    roomVersion = '2.5.0'
+    coreTestingVersion = '2.2.0'
+    coroutines = '1.7.3'
+    lifecycleVersion = '2.6.2'
+    materialVersion = '1.10.0'
+    roomVersion = '2.6.0'
     picassoVersion = "2.71828"
-    preferencesVersion="1.2.0"
-    navigationVersion = "2.5.3"
+    preferencesVersion= '1.2.1'
+    navigationVersion = '2.7.5'
     glideVersion = '4.14.2'
-    reflectVersion = '1.7.22'
+    reflectVersion = '1.9.20'
     okHttpVersion = '4.10.0'
-    camerax_version = '1.2.0'
-    play_services_drive = '20.4.1'
+    camerax_version = '1.3.0'
+    play_services_drive = '20.7.0'
     // testing
     junitVersion = '4.13.2'
-    espressoVersion = '3.4.0'
+    espressoVersion = '3.5.1'
     androidxJunitVersion = '1.1.5'
 }
 
