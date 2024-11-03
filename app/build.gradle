@@ -16,7 +16,7 @@ android {
         targetSdk 33
         versionCode 1
         versionName "1.0"
-
+        applicationId "com.anselm.books"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -24,6 +24,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
         }
     }
     compileOptions {
@@ -35,6 +36,7 @@ android {
     }
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
     packagingOptions {
         resources.excludes.add("META-INF/DEPENDENCIES")
