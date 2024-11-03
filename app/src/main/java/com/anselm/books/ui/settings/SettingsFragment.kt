@@ -29,6 +29,8 @@ import com.anselm.books.BooksPreferences
 import com.anselm.books.R
 import com.anselm.books.TAG
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class SettingsFragment : PreferenceFragmentCompat() {
     private var preferenceListener: OnSharedPreferenceChangeListener? =
@@ -71,7 +73,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val exporter = setupExport()
         findPreference<Preference>("export_preference")?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                exporter.launch("books.zip")
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                val today = LocalDate.now().format(formatter)
+
+                exporter.launch("$today-books.zip")
                 true
             }
 
