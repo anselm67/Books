@@ -16,11 +16,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.BooksApplication.Reporter
-import com.anselm.books.GlideApp
 import com.anselm.books.R
 import com.anselm.books.TAG
 import com.anselm.books.databinding.FragmentSyncBinding
 import com.anselm.books.ui.widgets.BookFragment
+import com.bumptech.glide.Glide
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import kotlinx.coroutines.launch
@@ -93,7 +93,7 @@ class SyncFragment: BookFragment() {
     private fun bindWithAccount() {
         check(viewModel.account != null)
         binding.idUserDisplayName.text = viewModel.displayName
-        GlideApp.with(app.applicationContext)
+        Glide.with(app.applicationContext)
             .load(viewModel.photoUrl)
             .fallback(R.drawable.user_profile)
             .into(binding.idUserPhoto)

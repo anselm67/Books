@@ -23,7 +23,6 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.anselm.books.BooksApplication.Companion.app
-import com.anselm.books.GlideApp
 import com.anselm.books.ISBN
 import com.anselm.books.R
 import com.anselm.books.TAG
@@ -32,6 +31,7 @@ import com.anselm.books.databinding.FragmentScanBinding
 import com.anselm.books.databinding.RecyclerviewScanIsbnBinding
 import com.anselm.books.databinding.ScanConfirmDialogLayoutBinding
 import com.anselm.books.ui.widgets.BookFragment
+import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -443,14 +443,14 @@ class IsbnArrayAdapter(
             binding.idAuthorText.isVisible = true
             binding.idAuthorText.text = result.book!!.authors.joinToString { it.name }
             val uri = app.imageRepository.getCoverUri(result.book!!)
-            GlideApp.with(app.applicationContext)
+            Glide.with(app.applicationContext)
                 .load(uri)
                 .into(binding.idCoverImage)
         }
 
         private fun bindNotFound(result: LookupResult) {
             // Clears the image in case this holder was used by a match before.
-            GlideApp.with(app.applicationContext)
+            Glide.with(app.applicationContext)
                 .load(R.mipmap.ic_book_cover)
                 .into(binding.idCoverImage)
             // Some kind of error occurred: no match or a real error.

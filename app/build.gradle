@@ -1,19 +1,19 @@
 plugins {
+    id 'com.google.devtools.ksp'
     id 'com.android.application'
     id 'kotlin-android'
-    id 'kotlin-kapt'
     id 'androidx.navigation.safeargs.kotlin'
     id 'kotlin-parcelize'
 }
 
 android {
     namespace 'com.anselm.books'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.anselm.books"
         minSdk 31
-        targetSdk 33
+        targetSdk 35
         versionCode 1
         versionName "1.0"
         applicationId "com.anselm.books"
@@ -51,11 +51,11 @@ dependencies {
     implementation "androidx.room:room-ktx:$rootProject.roomVersion"
     implementation "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
     implementation "androidx.navigation:navigation-ui-ktx:$navigationVersion"
-    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.core:core-ktx:1.15.0'
     implementation 'androidx.heifwriter:heifwriter:1.0.0'
 
-    kapt "androidx.room:room-compiler:$rootProject.roomVersion"
-    implementation 'androidx.paging:paging-runtime-ktx:3.2.1'
+    ksp "androidx.room:room-compiler:$rootProject.roomVersion"
+    implementation 'androidx.paging:paging-runtime-ktx:3.3.5'
 
     androidTestImplementation "androidx.room:room-testing:$rootProject.roomVersion"
 
@@ -78,7 +78,7 @@ dependencies {
 
     // Glide
     implementation "com.github.bumptech.glide:glide:$glideVersion"
-    kapt "com.github.bumptech.glide:compiler:$glideVersion"
+    ksp "com.github.bumptech.glide:compiler:$glideVersion"
 
     // Kotlin reflection
     implementation "org.jetbrains.kotlin:kotlin-reflect:$reflectVersion"
@@ -96,7 +96,7 @@ dependencies {
     implementation "androidx.camera:camera-extensions:${camerax_version}"
 
     // Barcode scanning with mlkit, including the model.
-    implementation 'com.google.mlkit:barcode-scanning:17.2.0'
+    implementation 'com.google.mlkit:barcode-scanning:17.3.0'
 
     // Google drive logging in.
     implementation "com.google.android.gms:play-services-auth:$play_services_drive"
