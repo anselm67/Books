@@ -25,7 +25,7 @@ import com.bumptech.glide.request.target.Target
 import java.io.InputStream
 
 
-private class HeaderLoader(
+class HeaderLoader(
     delegate: ModelLoader<GlideUrl, InputStream>
 ): BaseGlideUrlLoader<Uri>(delegate) {
 
