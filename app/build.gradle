@@ -92,9 +92,6 @@ dependencies {
     // Barcode scanning with mlkit, including the model.
     implementation libs.barcode.scanning
 
-    // Google drive logging in.
-    implementation libs.play.services.auth
-
     // Testing
     testImplementation libs.junit
     androidTestImplementation libs.androidx.core.testing
