@@ -30,7 +30,7 @@ import kotlin.math.roundToInt
 class BooksApplication : Application() {
     val applicationScope = CoroutineScope(SupervisorJob())
 
-    val basedir by lazy {
+    private val basedir by lazy {
         File(applicationContext?.filesDir, Constants.LOCAL_FOLDER_NAME)
     }
 
@@ -119,6 +119,7 @@ class BooksApplication : Application() {
             return (okHttp.dispatcher.runningCalls().size + okHttp.dispatcher.queuedCalls().size)
         }
 
+    @Suppress("unused")
     fun flushOkHttp() {
         var pending: Int
         do {
@@ -200,7 +201,7 @@ class BooksApplication : Application() {
         internal fun activate() {
             isActive =  true
             postOnUiThread {
-                progress?.let { it ->
+                progress?.let {
                     it.progress.isIndeterminate = isIndeterminate
                     if (onCancel == null) {
                         it.cancelButton.visibility = View.INVISIBLE
