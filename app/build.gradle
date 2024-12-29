@@ -1,9 +1,9 @@
 plugins {
-    id 'com.google.devtools.ksp'
-    id 'com.android.application'
-    id 'kotlin-android'
-    id 'androidx.navigation.safeargs.kotlin'
-    id 'kotlin-parcelize'
+    alias libs.plugins.android.application
+    alias libs.plugins.jetbrains.kotlin.android
+    alias libs.plugins.navigation.safeargs.kotlin
+    alias libs.plugins.kotlin.parcelize
+    alias libs.plugins.com.google.devtools.ksp
 }
 
 android {
@@ -44,68 +44,62 @@ android {
 }
 
 dependencies {
-    implementation "androidx.appcompat:appcompat:$rootProject.appCompatVersion"
-    implementation "androidx.activity:activity-ktx:$rootProject.activityVersion"
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.activity.ktx
 
     // Room components
-    implementation "androidx.room:room-ktx:$rootProject.roomVersion"
-    implementation "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
-    implementation "androidx.navigation:navigation-ui-ktx:$navigationVersion"
-    implementation 'androidx.core:core-ktx:1.15.0'
-    implementation 'androidx.heifwriter:heifwriter:1.0.0'
+    implementation libs.androidx.room.ktx
+    implementation libs.androidx.navigation.fragment.ktx
+    implementation libs.androidx.navigation.ui.ktx
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.heifwriter
 
-    ksp "androidx.room:room-compiler:$rootProject.roomVersion"
-    implementation 'androidx.paging:paging-runtime-ktx:3.3.5'
-
-    androidTestImplementation "androidx.room:room-testing:$rootProject.roomVersion"
+    implementation libs.androidx.paging.runtime.ktx
+    ksp libs.androidx.room.compiler
+    androidTestImplementation libs.androidx.room.testing
 
     // Lifecycle components
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.lifecycleVersion"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$rootProject.lifecycleVersion"
-    implementation "androidx.lifecycle:lifecycle-common-java8:$rootProject.lifecycleVersion"
-
-    // Kotlin components
-    //implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$rootProject.coroutines"
-    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.coroutines"
+    implementation libs.androidx.lifecycle.viewmodel.ktx
+    implementation libs.androidx.lifecycle.livedata.ktx
+    implementation libs.androidx.lifecycle.common.java8
 
     // UI
-    implementation "androidx.constraintlayout:constraintlayout:$rootProject.constraintLayoutVersion"
-    implementation "com.google.android.material:material:$rootProject.materialVersion"
+    implementation libs.androidx.constraintlayout
+    implementation libs.material
 
     // Preferences
-    implementation "androidx.preference:preference-ktx:$preferencesVersion"
+    implementation libs.androidx.preference.ktx
 
     // Glide
-    implementation "com.github.bumptech.glide:glide:$glideVersion"
-    ksp "com.github.bumptech.glide:compiler:$glideVersion"
+    implementation libs.glide
+    ksp libs.glide.compiler
 
     // Kotlin reflection
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$reflectVersion"
+    implementation libs.kotlin.reflect
 
     // OkHttp for OpenLibrary and GoogleBooks access.
-    implementation("com.squareup.okhttp3:okhttp:$okHttpVersion")
+    implementation(libs.okhttp)
 
     // CameraX
-    implementation "androidx.camera:camera-core:${camerax_version}"
-    implementation "androidx.camera:camera-camera2:${camerax_version}"
-    implementation "androidx.camera:camera-lifecycle:${camerax_version}"
-    implementation "androidx.camera:camera-video:${camerax_version}"
+    implementation libs.androidx.camera.core
+    implementation libs.androidx.camera.camera2
+    implementation libs.androidx.camera.lifecycle
+    implementation libs.androidx.camera.video
 
-    implementation "androidx.camera:camera-view:${camerax_version}"
-    implementation "androidx.camera:camera-extensions:${camerax_version}"
+    implementation libs.androidx.camera.view
+    implementation libs.androidx.camera.extensions
 
     // Barcode scanning with mlkit, including the model.
-    implementation 'com.google.mlkit:barcode-scanning:17.3.0'
+    implementation libs.barcode.scanning
 
     // Google drive logging in.
-    implementation "com.google.android.gms:play-services-auth:$play_services_drive"
+    implementation libs.play.services.auth
 
     // Testing
-    testImplementation "junit:junit:$rootProject.junitVersion"
-    androidTestImplementation "androidx.arch.core:core-testing:$rootProject.coreTestingVersion"
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.core.testing
     androidTestImplementation ("androidx.test.espresso:espresso-core:$rootProject.espressoVersion", {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    androidTestImplementation "androidx.test.ext:junit:$rootProject.androidxJunitVersion"
+    androidTestImplementation libs.androidx.junit
 }
