@@ -59,7 +59,7 @@ class GlideErrorHandler : RequestListener<Any> {
     override fun onLoadFailed(
         e: GlideException?,
         model: Any?,
-        target: Target<Any>?,
+        target: Target<Any>,
         isFirstResource: Boolean
     ): Boolean {
         /*
@@ -73,12 +73,12 @@ class GlideErrorHandler : RequestListener<Any> {
     }
 
     override fun onResourceReady(
-        resource: Any?,
-        model: Any?,
+        resource: Any,
+        model: Any,
         target: Target<Any>?,
-        dataSource: DataSource?,
+        dataSource: DataSource,
         isFirstResource: Boolean
-    ) = false
+    ): Boolean = false
 
 }
 

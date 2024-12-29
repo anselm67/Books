@@ -56,7 +56,6 @@ dependencies {
 
     implementation libs.androidx.paging.runtime.ktx
     ksp libs.androidx.room.compiler
-    androidTestImplementation libs.androidx.room.testing
 
     // Lifecycle components
     implementation libs.androidx.lifecycle.viewmodel.ktx
@@ -95,8 +94,5 @@ dependencies {
     // Testing
     testImplementation libs.junit
     androidTestImplementation libs.androidx.core.testing
-    androidTestImplementation ("androidx.test.espresso:espresso-core:$rootProject.espressoVersion", {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
     androidTestImplementation libs.androidx.junit
 }

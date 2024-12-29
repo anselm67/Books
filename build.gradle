@@ -38,7 +38,7 @@ ext {
     play_services_drive = '21.3.0'
     // testing
     junitVersion = '4.13.2'
-    espressoVersion = '3.5.1'
+    espressoVersion = '3.6.1'
     androidxJunitVersion = '1.2.1'
 }
 
