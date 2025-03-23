@@ -73,10 +73,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val exporter = setupExport()
         findPreference<Preference>("export_preference")?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                val today = LocalDate.now().format(formatter)
-
-                exporter.launch("$today-books.zip")
+                val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+                exporter.launch("${formatter.format(LocalDate.now())} - books.zip")
                 true
             }
 
