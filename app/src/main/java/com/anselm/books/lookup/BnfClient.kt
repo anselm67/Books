@@ -7,7 +7,6 @@ import com.anselm.books.ISBN
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
 import com.anselm.books.database.Label
-import okhttp3.internal.headersContentLength
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParser.END_DOCUMENT
 import org.xmlpull.v1.XmlPullParser.END_TAG
@@ -234,7 +233,7 @@ class BnfClient: XmlClient() {
             // We have to HEAD this because they always provide a default image even if none found.
             request(tag, imgUrl, useHead = true)
                 .onResponse {
-                    if (it.isSuccessful && it.headersContentLength() != 4658L) {
+                    if (it.isSuccessful && it.body.contentLength() != 4658L) {
                         book.imgUrl = imgUrl
                     }
                     onCompletion()

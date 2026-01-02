@@ -4,7 +4,6 @@ import android.util.Log
 import com.anselm.books.ISBN
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
-import okhttp3.internal.headersContentLength
 
 class AmazonImageClient: SimpleClient() {
 
@@ -17,7 +16,7 @@ class AmazonImageClient: SimpleClient() {
 
             request(tag, url, useHead = true)
                 .onResponse { response ->
-                    if (response.isSuccessful && response.headersContentLength() > 50) {
+                    if (response.isSuccessful && response.body.contentLength() > 50) {
                         book.imgUrl = url
                     }
                     onCompletion()

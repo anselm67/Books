@@ -75,8 +75,8 @@ class ImageRepository(
 
             override fun onResponse(call: Call, response: Response) {
                 try {
-                    if (response.isSuccessful && response.body != null) {
-                        val bitmap = BitmapFactory.decodeStream(response.body!!.byteStream())
+                    if (response.isSuccessful && response.body.contentLength() > 0) {
+                        val bitmap = BitmapFactory.decodeStream(response.body.byteStream())
                         if (bitmap != null) {
                             app.applicationScope.launch {
                                 saveBitmap(book, bitmap, onCompletion)
