@@ -55,7 +55,7 @@
     <string name="book_count">%1$d Books</string>
     <string name="select_import_file_prompt">Select a file to import.</string>
     <string name="import_status">Imported %1$d books and %2$d images.</string>
-    <string name="import_failed">Failed to import books (%1s$).</string>
+    <string name="import_failed">Failed to import books (%1$s).</string>
     <string name="export_status">Exported %1$d books.</string>
     <string name="export_failed">Failed to export books (%1$s).</string>
     <string name="scan_failed">Scanner failed: %1$s.</string>
