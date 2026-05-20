@@ -29,7 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.anselm.books.BooksApplication.Companion.app
@@ -39,50 +38,60 @@ import com.anselm.books.TAG
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import androidx.core.content.edit
 
 private fun collectStats(): Map<String, Triple<Int, Int, Int>> =
     buildMap { app.lookupService.clientKeys { put(it, app.lookupService.stats(it)) } }
 
 @Composable
 fun SettingsScreen() {
-    val context = LocalContext.current
     val prefs = app.prefs
 
-    var showResetDbDialog by remember { mutableStateOf(false) }
-    var showResetStatsDialog by remember { mutableStateOf(false) }
-    var showSortDialog by remember { mutableStateOf(false) }
-    var showOclcDialog by remember { mutableStateOf(false) }
+    val showResetDbDialog = remember { mutableStateOf(false) }
+    val showResetStatsDialog = remember { mutableStateOf(false) }
+    val showSortDialog = remember { mutableStateOf(false) }
+    val showOclcDialog = remember { mutableStateOf(false) }
 
-    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        if (uri == null) {
-            app.toast(R.string.select_import_file_prompt)
-        } else {
-            var counts = Pair(-1, -1); var msg: String? = null
-            val reporter = app.openReporter(context.getString(R.string.starting_importing), isIndeterminate = false)
-            app.applicationScope.launch {
-                try { counts = app.importExport.importZipFile(uri, reporter) }
-                catch (e: Exception) { Log.e(TAG, "Import failed.", e); msg = e.message }
-            }.invokeOnCompletion {
-                reporter.close()
-                app.toast(if (msg != null) context.getString(R.string.import_failed, msg)
-                          else context.getString(R.string.import_status, counts.first, counts.second))
+    val importLauncher = run {
+        val startingImporting = stringResource(R.string.starting_importing)
+        val importFailed = stringResource(R.string.import_failed)
+        val importStatus = stringResource(R.string.import_status)
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            if (uri == null) {
+                app.toast(R.string.select_import_file_prompt)
+            } else {
+                var counts = Pair(-1, -1); var msg: String? = null
+                val reporter = app.openReporter(startingImporting, isIndeterminate = false)
+                app.applicationScope.launch {
+                    try { counts = app.importExport.importZipFile(uri, reporter) }
+                    catch (e: Exception) { Log.e(TAG, "Import failed.", e); msg = e.message }
+                }.invokeOnCompletion {
+                    reporter.close()
+                    app.toast(if (msg != null) importFailed.format(msg)
+                              else importStatus.format(counts.first, counts.second))
+                }
             }
         }
     }
 
-    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("*/*")) { uri: Uri? ->
-        if (uri == null) {
-            app.toast("Select a file to export to.")
-        } else {
-            var count = 0; var msg: String? = null
-            val reporter = app.openReporter(context.getString(R.string.exporting_books), isIndeterminate = false)
-            app.applicationScope.launch {
-                try { count = app.importExport.exportZipFile(uri, reporter) }
-                catch (e: Exception) { Log.e(TAG, "Export failed.", e); msg = e.message }
-            }.invokeOnCompletion {
-                reporter.close()
-                app.toast(if (msg != null) context.getString(R.string.export_failed, msg)
-                          else context.getString(R.string.export_status, count))
+    val exportLauncher = run {
+        val exportingBooks = stringResource(R.string.exporting_books)
+        val exportFailed = stringResource(R.string.export_failed)
+        val exportStatus = stringResource(R.string.export_status)
+        rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("*/*")) { uri: Uri? ->
+            if (uri == null) {
+                app.toast("Select a file to export to.")
+            } else {
+                var count = 0; var msg: String? = null
+                val reporter = app.openReporter(exportingBooks, isIndeterminate = false)
+                app.applicationScope.launch {
+                    try { count = app.importExport.exportZipFile(uri, reporter) }
+                    catch (e: Exception) { Log.e(TAG, "Export failed.", e); msg = e.message }
+                }.invokeOnCompletion {
+                    reporter.close()
+                    app.toast(if (msg != null) exportFailed.format(msg)
+                              else exportStatus.format(count))
+                }
             }
         }
     }
@@ -110,12 +119,13 @@ fun SettingsScreen() {
     var displayBookId by remember { mutableStateOf(prefs.getBoolean(BooksPreferences.DISPLAY_BOOK_ID, false)) }
     var displayLastModified by remember { mutableStateOf(prefs.getBoolean(BooksPreferences.DISPLAY_LAST_MODIFIED, false)) }
 
-    fun boolPref(key: String, v: Boolean) = prefs.edit().putBoolean(key, v).apply()
-    fun strPref(key: String, v: String) = prefs.edit().putString(key, v).apply()
+    fun boolPref(key: String, v: Boolean) = prefs.edit { putBoolean(key, v) }
+    fun strPref(key: String, v: String) = prefs.edit { putString(key, v) }
 
+    val statsTemplate = stringResource(R.string.preferences_lookup_service_stats)
     val statsSummary: (String) -> String? = { key ->
         stats[key]?.let { (l, m, c) ->
-            context.getString(R.string.preferences_lookup_service_stats, l, m, c)
+            statsTemplate.format(l, m, c)
         }
     }
 
@@ -128,7 +138,9 @@ fun SettingsScreen() {
                 exportLauncher.launch("${DateTimeFormatter.ofPattern("yyyyMMdd").format(LocalDate.now())} - books.zip")
             }
         }
-        item { ClickPref(stringResource(R.string.reset_preference_title)) { showResetDbDialog = true } }
+        item { ClickPref(stringResource(R.string.reset_preference_title)) {
+            showResetDbDialog.value = true }
+        }
 
         item { SectionHeader(stringResource(R.string.import_preferences_header)) }
         item {
@@ -180,12 +192,12 @@ fun SettingsScreen() {
                 v -> useOpenLibrary = v; boolPref(BooksPreferences.USE_OPEN_LIBRARY, v)
             }
         }
-        item { ClickPref("Reset lookup statistics.") { showResetStatsDialog = true } }
+        item { ClickPref("Reset lookup statistics.") { showResetStatsDialog.value = true } }
         item {
             ClickPref(
                 title = "Worldcat / OCLC wskey",
                 subtitle = oclcKey.ifEmpty { null },
-            ) { showOclcDialog = true }
+            ) { showOclcDialog.value = true }
         }
 
         item { SectionHeader(stringResource(R.string.preference_category_display)) }
@@ -193,7 +205,7 @@ fun SettingsScreen() {
             ClickPref(
                 title = stringResource(R.string.sort_order_preference_prompt),
                 subtitle = sortNames.getOrElse(sortIds.indexOf(sortOrder)) { sortNames[0] },
-            ) { showSortDialog = true }
+            ) { showSortDialog.value = true }
         }
         item {
             CheckPref(stringResource(R.string.preference_enable_shortcut_to_edit), checked = enableShortcutToEdit) {
@@ -212,42 +224,42 @@ fun SettingsScreen() {
         }
     }
 
-    if (showResetDbDialog) {
+    if (showResetDbDialog.value) {
         AlertDialog(
-            onDismissRequest = { showResetDbDialog = false },
+            onDismissRequest = { showResetDbDialog.value = false },
             text = { Text(stringResource(R.string.reset_database_confirmation)) },
             confirmButton = {
                 TextButton(onClick = {
-                    showResetDbDialog = false
+                    showResetDbDialog.value = false
                     app.applicationScope.launch { app.repository.deleteAll() }
                 }) { Text(stringResource(R.string.yes)) }
             },
             dismissButton = {
-                TextButton(onClick = { showResetDbDialog = false }) { Text(stringResource(R.string.no)) }
+                TextButton(onClick = { showResetDbDialog.value = false }) { Text(stringResource(R.string.no)) }
             }
         )
     }
 
-    if (showResetStatsDialog) {
+    if (showResetStatsDialog.value) {
         AlertDialog(
-            onDismissRequest = { showResetStatsDialog = false },
+            onDismissRequest = { showResetStatsDialog.value = false },
             title = { Text("Really reset lookup statistics?") },
             confirmButton = {
                 TextButton(onClick = {
-                    showResetStatsDialog = false
+                    showResetStatsDialog.value = false
                     app.lookupService.resetStats()
                     stats = collectStats()
                 }) { Text(stringResource(R.string.yes)) }
             },
             dismissButton = {
-                TextButton(onClick = { showResetStatsDialog = false }) { Text(stringResource(R.string.no)) }
+                TextButton(onClick = { showResetStatsDialog.value = false }) { Text(stringResource(R.string.no)) }
             }
         )
     }
 
-    if (showSortDialog) {
+    if (showSortDialog.value) {
         AlertDialog(
-            onDismissRequest = { showSortDialog = false },
+            onDismissRequest = { showSortDialog.value = false },
             title = { Text(stringResource(R.string.sort_order_preference_prompt)) },
             text = {
                 Column {
@@ -256,13 +268,19 @@ fun SettingsScreen() {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    sortOrder = id; strPref(BooksPreferences.SORT_ORDER, id); showSortDialog = false
+                                    sortOrder = id
+                                    strPref(BooksPreferences.SORT_ORDER, id)
+                                    showSortDialog.value = false
                                 },
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             RadioButton(
                                 selected = sortOrder == id,
-                                onClick = { sortOrder = id; strPref(BooksPreferences.SORT_ORDER, id); showSortDialog = false },
+                                onClick = {
+                                    sortOrder = id
+                                    strPref(BooksPreferences.SORT_ORDER, id)
+                                    showSortDialog.value = false
+                                },
                             )
                             Text(sortNames[i], style = MaterialTheme.typography.bodyLarge)
                         }
@@ -273,10 +291,10 @@ fun SettingsScreen() {
         )
     }
 
-    if (showOclcDialog) {
+    if (showOclcDialog.value) {
         var editText by remember { mutableStateOf(oclcKey) }
         AlertDialog(
-            onDismissRequest = { showOclcDialog = false },
+            onDismissRequest = { showOclcDialog.value = false },
             title = { Text("Worldcat / OCLC wskey") },
             text = {
                 OutlinedTextField(
@@ -288,11 +306,15 @@ fun SettingsScreen() {
             },
             confirmButton = {
                 TextButton(onClick = {
-                    oclcKey = editText; strPref(BooksPreferences.OCLC_KEY, editText); showOclcDialog = false
+                    oclcKey = editText
+                    strPref(BooksPreferences.OCLC_KEY, editText)
+                    showOclcDialog.value = false
                 }) { Text("OK") }
             },
             dismissButton = {
-                TextButton(onClick = { showOclcDialog = false }) { Text(stringResource(R.string.no)) }
+                TextButton(onClick = { showOclcDialog.value = false }) {
+                    Text(stringResource(R.string.no))
+                }
             }
         )
     }
