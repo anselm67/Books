@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.navigation.safeargs.kotlin)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.com.google.devtools.ksp)
-    alias(libs.plugins.kotlin.compose)
 }
 
 android {
@@ -33,7 +32,6 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
-        compose = true
     }
     packaging {
         resources {
@@ -95,14 +93,6 @@ dependencies {
 
     // Barcode scanning with mlkit, including the model.
     implementation(libs.barcode.scanning)
-
-    // Compose
-    implementation(platform(libs.compose.bom))
-    implementation(libs.compose.ui)
-    implementation(libs.compose.material3)
-    implementation(libs.compose.ui.tooling.preview)
-    implementation(libs.activity.compose)
-    debugImplementation(libs.compose.ui.tooling)
 
     // Testing
     testImplementation(libs.junit)

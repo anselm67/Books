@@ -6,9 +6,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.anselm.books.BooksApplication
@@ -17,7 +14,11 @@ import com.anselm.books.BooksApplication.Reporter
 import com.anselm.books.R
 import com.anselm.books.TAG
 import com.anselm.books.database.Book
+import com.anselm.books.database.Label
 import com.anselm.books.database.Query
+import com.anselm.books.databinding.CleanupHeaderLayoutBinding
+import com.anselm.books.databinding.CleanupItemLayoutBinding
+import com.anselm.books.databinding.FragmentCleanupBinding
 import com.anselm.books.ui.widgets.BookFragment
 import kotlinx.coroutines.launch
 import okhttp3.Call
@@ -27,6 +28,8 @@ import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 
 class CleanUpFragment: BookFragment() {
+    private var _binding: FragmentCleanupBinding? = null
+    private val binding get() = _binding!!
     private var reporter: Reporter? = null
 
     private fun ifEmptyReporter(block: () -> Unit) {
@@ -40,42 +43,204 @@ class CleanUpFragment: BookFragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ): View {
         super.onCreateView(inflater, container, savedInstanceState)
+        _binding = FragmentCleanupBinding.inflate(inflater, container, false)
+
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val count = app.repository.deleteUnusedLabels()
+            Log.d(TAG, "Deleted $count unused labels.")
+            bookSection(inflater, binding.idStatsContainer)
+            labelSection(inflater, binding.idStatsContainer)
+            imageSection(inflater, binding.idStatsContainer)
+        }
+
         super.handleMenu()
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
-                MaterialTheme {
-                    CleanUpScreen(
-                        onNavigateToPager = { query ->
-                            findNavController().navigate(
-                                CleanUpFragmentDirections.toPagerFragment(query = query)
-                            )
-                        },
-                        onNavigateToSearch = { query ->
-                            findNavController().navigate(
-                                CleanUpFragmentDirections.toSearchFragment(query)
-                            )
-                        },
-                        onNavigateToLabelCleanup = { type ->
-                            findNavController().navigate(
-                                CleanUpFragmentDirections.toCleanupLabelFragment(type)
-                            )
-                        },
-                        onCheckImages = {
-                            ifEmptyReporter {
-                                viewLifecycleOwner.lifecycleScope.launch { checkImages() }
-                            }
-                        },
-                        onDeleteUnusedImages = {
-                            ifEmptyReporter { deleteUnusedImages() }
-                        },
-                    )
-                }
+        return binding.root
+    }
+
+    private suspend fun bookSection(inflater: LayoutInflater, container: ViewGroup) {
+        // Book section.
+        container.addView(header(
+            inflater,
+            container,
+            getString(R.string.book_count,app.repository.getTotalCount()),
+        ))
+        // Duplicate books.
+        var count = app.repository.getDuplicateBookCount()
+        if (count > 0) {
+            container.addView(bookItem(
+                inflater,
+                container,
+                getString(R.string.duplicate_books_cleanup, count),
+                Query(type = Query.Type.Duplicates)
+            ))
+        }
+        // Books without cover images.
+        count = app.repository.getWithoutCoverBookCount()
+        if (count > 0) {
+            container.addView(bookItem(
+                inflater, container,
+                getString(R.string.without_cover_books_cleanup, count),
+                Query(type = Query.Type.NoCover),
+            ))
+        }
+        // Books without certain label type.
+        count = app.repository.getWithoutLabelBookCount(Label.Type.Authors)
+        if (count > 0) {
+            container.addView(bookQueryItem(
+                inflater, container,
+                getString(R.string.without_authors_cleanup, count),
+                Query(withoutLabelOfType = Label.Type.Authors),
+            ))
+        }
+        count = app.repository.getWithoutLabelBookCount(Label.Type.Genres)
+        if (count > 0) {
+            container.addView(bookQueryItem(
+                inflater, container,
+                getString(R.string.without_genres_cleanup, count),
+                Query(withoutLabelOfType = Label.Type.Genres),
+            ))
+        }
+        count = app.repository.getWithoutLabelBookCount(Label.Type.Location)
+        if (count > 0) {
+            container.addView(bookQueryItem(
+                inflater, container,
+                getString(R.string.without_locations_cleanup, count),
+                Query(withoutLabelOfType = Label.Type.Location),
+            ))
+        }
+        count = app.repository.getWithoutLabelBookCount(Label.Type.Language)
+        if (count > 0) {
+            container.addView(bookQueryItem(
+                inflater, container,
+                getString(R.string.without_languages_cleanup, count),
+                Query(withoutLabelOfType = Label.Type.Language)
+            ))
+        }
+    }
+
+    private suspend fun labelSection(inflater: LayoutInflater, container: ViewGroup) {
+        container.addView(header(inflater, container,getString(R.string.labels_cleanup_header)))
+        val types = app.repository.getLabelTypeCounts()
+        listOf(
+            Pair(R.string.authors_cleanup, Label.Type.Authors),
+            Pair(R.string.genres_cleanup, Label.Type.Genres),
+            Pair(R.string.publishers_cleanup, Label.Type.Publisher),
+            Pair(R.string.languages_cleanup, Label.Type.Language),
+            Pair(R.string.locations_cleanup, Label.Type.Location),
+        ).map { (stringId, type) ->
+            container.addView(labelItem(
+                inflater, container,
+                getString(stringId,
+                    types.firstOrNull { it.type == type }?.count ?: 0),
+                type,
+            ))
+        }
+    }
+
+    private fun header( inflater: LayoutInflater, container: ViewGroup, title: String): View {
+        val header = CleanupHeaderLayoutBinding.inflate(inflater, container, false)
+        header.idHeader.text = title
+        return header.root
+    }
+
+    private fun item(
+        inflater: LayoutInflater,
+        container : ViewGroup,
+        text: String,
+        onClick: (() -> Unit)? = null,
+    ): View {
+        val item = CleanupItemLayoutBinding.inflate(inflater, container, false)
+        item.idItemText.text = text
+        onClick?.let { item.idItemText.setOnClickListener { it() } }
+        return item.root
+    }
+
+    private fun bookQueryItem(
+        inflater: LayoutInflater,
+        container : ViewGroup,
+        text: String,
+        query: Query,
+    ): View {
+        val item = CleanupItemLayoutBinding.inflate(inflater, container, false)
+        item.idItemText.text = text
+        item.idItemText.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val action = CleanUpFragmentDirections.toSearchFragment(query)
+                findNavController().navigate(action)
             }
         }
+        return item.root
+    }
+
+    private fun bookItem(
+        inflater: LayoutInflater,
+        container : ViewGroup,
+        text: String,
+        query: Query,
+    ): View {
+        val item = CleanupItemLayoutBinding.inflate(inflater, container, false)
+        item.idItemText.text = text
+        item.idItemText.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val action = CleanUpFragmentDirections.toPagerFragment(
+                    query = query,
+                )
+                findNavController().navigate(action)
+            }
+        }
+        return item.root
+    }
+
+    private fun labelItem(
+        inflater: LayoutInflater,
+        container : ViewGroup,
+        text: String,
+        labelType: Label.Type
+    ): View {
+        val item = CleanupItemLayoutBinding.inflate(inflater, container, false)
+        item.idItemText.text = text
+        item.idItemText.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val action = CleanUpFragmentDirections.toCleanupLabelFragment(labelType)
+                findNavController().navigate(action)
+            }
+        }
+        return item.root
+    }
+
+    private fun imageSection(
+        inflater: LayoutInflater,
+        container: ViewGroup,
+    ) {
+        container.addView(header(
+            inflater,
+            container,
+            getString(R.string.cleanup_book_cover_section),
+        ))
+        container.addView(item(
+            inflater, container,
+            getString(R.string.check_for_broken_images)
+        ) {
+            ifEmptyReporter {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    checkImages()
+                }
+            }
+        })
+        container.addView(item(
+            inflater, container,
+            getString(R.string.check_gc_images),
+        ) {
+            ifEmptyReporter {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    deleteUnusedImages()
+                }
+            }
+        })
     }
 
     class FixCoverStats(
@@ -194,7 +359,7 @@ class CleanUpFragment: BookFragment() {
             }
             reporter?.update(stats.totalCount, bookIds.size)
         }
-        // Wait until all calls have returned.
+        // Wait until al calls have returned.
         stats.join()
         reporter?.close()
         reporter = null
@@ -229,5 +394,10 @@ class CleanUpFragment: BookFragment() {
                 reporter = null
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 }

@@ -72,7 +72,7 @@ The app is undergoing a planned modernisation in three phases, worked incrementa
 
 2. **Launcher icon refresh** — replace the current icon with an improved adaptive icon design.
 
-3. **Jetpack Compose migration (incremental)** — convert the UI screen by screen, embedding `ComposeView` inside existing fragments while the XML/Navigation Component shell remains. Migration order: Settings first, then negotiate the next screen after each one lands. Do not do a full rewrite in one pass. When migrating a screen:
+3. **Jetpack Compose migration (incremental)** — convert the UI screen by screen, embedding `ComposeView` inside existing fragments while the XML/Navigation Component shell remains. Compose dependencies have been removed; no screens have been migrated yet. Migration order: negotiate the first screen before starting. Do not do a full rewrite in one pass. When migrating a screen:
    - Keep the existing Fragment and navigation graph entry; replace the XML layout body with a `ComposeView`.
    - Use Coil instead of Glide for any new Compose image-loading code (Glide is View-oriented).
    - Compose Navigation replaces the XML nav graph only once all screens are migrated.

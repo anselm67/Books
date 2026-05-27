@@ -148,7 +148,7 @@ class SearchFragment : ListFragment() {
                 bookViewModel.query.firstFilter(Label.Type.Genres),
                 R.string.genreLabel),
             Filter(Label.Type.Publisher,
-                binding.idPublisherFilter,
+            binding.idPublisherFilter,
                 bookViewModel.query.firstFilter(Label.Type.Publisher),
                 R.string.publisherLabel),
             Filter(Label.Type.Authors,
