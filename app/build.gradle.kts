@@ -1,8 +1,15 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.navigation.safeargs.kotlin)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.com.google.devtools.ksp)
+}
+
+val secretProperties = Properties().apply {
+    val f = rootProject.file("secret.properties")
+    if (f.exists()) load(f.inputStream())
 }
 
 android {
@@ -17,6 +24,8 @@ android {
         versionName = "1.0"
         applicationId = "com.anselm.books"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "GOOGLE_BOOKS_API_KEY",
+            "\"${secretProperties["google_books_api_key"] ?: ""}\"")
     }
 
     buildTypes {

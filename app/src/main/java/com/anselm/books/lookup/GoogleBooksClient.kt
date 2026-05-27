@@ -1,6 +1,8 @@
 package com.anselm.books.lookup
 
 import android.util.Log
+import android.content.pm.PackageManager
+import com.anselm.books.BuildConfig
 import com.anselm.books.BooksApplication.Companion.app
 import com.anselm.books.ISBN
 import com.anselm.books.TAG
@@ -8,10 +10,23 @@ import com.anselm.books.database.Book
 import com.anselm.books.database.Label
 import org.json.JSONObject
 import java.net.URLEncoder
+import java.security.MessageDigest
 
 // https://developers.google.com/books/docs/v1/using
 class GoogleBooksClient: JsonClient() {
     val repository by lazy { app.repository }
+
+    private val androidHeaders: Map<String, String> by lazy {
+        val info = app.packageManager.getPackageInfo(
+            app.packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+        val sig = info.signingInfo!!.apkContentsSigners[0].toByteArray()
+        val sha1 = MessageDigest.getInstance("SHA1").digest(sig)
+            .joinToString("") { "%02X".format(it) }
+        mapOf(
+            "X-Android-Package" to BuildConfig.APPLICATION_ID,
+            "X-Android-Cert" to sha1,
+        )
+    }
 
     private fun extractIsbn(obj: JSONObject): String {
         val ids = obj.optJSONArray("industryIdentifiers")
@@ -108,19 +123,21 @@ class GoogleBooksClient: JsonClient() {
             onCompletion()
             return
         }
+        val apiKey = if (BuildConfig.GOOGLE_BOOKS_API_KEY.isNotEmpty())
+            "&key=${BuildConfig.GOOGLE_BOOKS_API_KEY}" else ""
         val url = if ( ISBN.isValidEAN13(book.isbn) ) {
-            "https://www.googleapis.com/books/v1/volumes?q=isbn:${book.isbn}"
+            "https://www.googleapis.com/books/v1/volumes?q=isbn:${book.isbn}$apiKey"
         } else if (book.title.isNotEmpty() && book.authors.isNotEmpty()){
             @Suppress("DEPRECATION") // Min is 31, and it doesn't have the right version.
             val title = URLEncoder.encode(book.title /* , Charsets.UTF_8 */)
             @Suppress("DEPRECATION")
             val author = URLEncoder.encode(book.authors[0].name /* , Charsets.UTF_8 */)
-            "https://www.googleapis.com/books/v1/volumes?q=intitle:$title+inauthor:${author}"
+            "https://www.googleapis.com/books/v1/volumes?q=intitle:$title+inauthor:${author}$apiKey"
         } else {
             onCompletion()
             return
         }
-        request(tag, url)
+        request(tag, url, headers = androidHeaders)
             .onResponse { response ->
                 parse(response)?.let { convertResponse(book, it) }
                 onCompletion()

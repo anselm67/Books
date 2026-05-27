@@ -7,4 +7,5 @@ build
 .externalNativeBuild
 .cxx
 local.properties
+secret.properties
 .idea/deploymentTargetDropDown.xml

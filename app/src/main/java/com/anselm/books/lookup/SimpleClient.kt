@@ -72,13 +72,16 @@ abstract class SimpleClient {
     protected fun request(
         tag: String,
         url: String,
-        useHead: Boolean = false): LookupCall {
+        useHead: Boolean = false,
+        headers: Map<String, String> = emptyMap(),
+    ): LookupCall {
         val req = Request.Builder()
             .tag(tag)
             .url(url)
         if (useHead) {
             req.head()
         }
+        headers.forEach { (k, v) -> req.addHeader(k, v) }
         Log.d(TAG, "$tag: $url")
         return LookupCall(client.newCall(req.build()))
     }
